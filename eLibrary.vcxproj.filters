@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{aa830bda-de0d-4e94-b570-781ad32332e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source\libgraphics">
+      <UniqueIdentifier>{b5b34c9c-8353-42bd-8c0a-2cce462bec93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\simpleGUI">
+      <UniqueIdentifier>{fc5bc457-e4e0-4d59-82ea-0e183951bcc4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\model">
+      <UniqueIdentifier>{02f1ad4e-1079-4a92-9ce6-68b91a57275f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\template">
+      <UniqueIdentifier>{8bf7dce7-8c93-4844-91e7-1de4b8aaa7dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\view">
+      <UniqueIdentifier>{deaa4975-dcc6-4b60-aa5b-4a5ba4a2b6e5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\libgraphics\exceptio.c">
+      <Filter>Source\libgraphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\libgraphics\genlib.c">
+      <Filter>Source\libgraphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\libgraphics\graphics.c">
+      <Filter>Source\libgraphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\libgraphics\random.c">
+      <Filter>Source\libgraphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\libgraphics\simpio.c">
+      <Filter>Source\libgraphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\libgraphics\strlib.c">
+      <Filter>Source\libgraphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\simpleGUI\imgui.c">
+      <Filter>Source\simpleGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\model\placeholder.c">
+      <Filter>Source\model</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\template\placeholder.c">
+      <Filter>Source\template</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\view\main.c">
+      <Filter>Source\view</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\libgraphics\exception.h">
+      <Filter>Source\libgraphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\libgraphics\extgraph.h">
+      <Filter>Source\libgraphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\libgraphics\gcalloc.h">
+      <Filter>Source\libgraphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\libgraphics\genlib.h">
+      <Filter>Source\libgraphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\libgraphics\graphics.h">
+      <Filter>Source\libgraphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\libgraphics\random.h">
+      <Filter>Source\libgraphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\libgraphics\simpio.h">
+      <Filter>Source\libgraphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\libgraphics\strlib.h">
+      <Filter>Source\libgraphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\simpleGUI\imgui.h">
+      <Filter>Source\simpleGUI</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resource\test.jpg">
+      <Filter>Resource</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

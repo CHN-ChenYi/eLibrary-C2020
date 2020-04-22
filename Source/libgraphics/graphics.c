@@ -358,12 +358,20 @@ void DrawArc(double r, double start, double sweep)
 double GetWindowWidth(void)
 {
     InitCheck();
+    RECT lpRect;
+    GetClientRect(graphicsWindow, &lpRect);
+    int width = lpRect.right - lpRect.left;
+    windowWidth = InchesX (width);
     return (windowWidth);
 }
 
 double GetWindowHeight(void)
 {
     InitCheck();
+    RECT lpRect;
+    GetClientRect(graphicsWindow, &lpRect);
+    int height = lpRect.bottom - lpRect.top;
+    windowHeight = InchesY (height);
     return (windowHeight);
 }
 

@@ -143,6 +143,7 @@
 
 #include <setjmp.h>
 #include <string.h>
+
 #include "genlib.h"
 
 /* Define parameters and error status indicators */
@@ -166,7 +167,9 @@
  * name for the use of debuggers and other tools.
  */
 
-typedef struct { string name; } exception;
+typedef struct {
+  string name;
+} exception;
 
 /*
  * Type: context_block
@@ -176,13 +179,13 @@ typedef struct { string name; } exception;
  */
 
 typedef struct ctx_block {
-    jmp_buf jmp;
-    int nx;
-    exception *array[MaxExceptionsPerScope];
-    exception *id;
-    void *value;
-    string name;
-    struct ctx_block *link;
+  jmp_buf jmp;
+  int nx;
+  exception *array[MaxExceptionsPerScope];
+  exception *id;
+  void *value;
+  string name;
+  struct ctx_block *link;
 } context_block;
 
 /* Declare the built-in exceptions */
@@ -220,36 +223,35 @@ bool HandlerExists(exception *e);
 
 #define raise(e) RaiseException(&e, #e, NULL)
 
-#define try \
-      { \
-          jmp_buf _tmpbuf; \
-          context_block _ctx; \
-          volatile int _es; \
-          _es = ES_Initialize; \
-          _ctx.nx = 0; \
-          _ctx.link = exceptionStack; \
-          exceptionStack = (context_block *) &_ctx; \
-          if (setjmp(_tmpbuf) != 0) _es = ES_Exception; \
-          memcpy((void *) _ctx.jmp, (void *) _tmpbuf, sizeof(jmp_buf)); \
-          while (1) { \
-              if (_es == ES_EvalBody)
+#define try                                                     \
+  {                                                             \
+    jmp_buf _tmpbuf;                                            \
+    context_block _ctx;                                         \
+    volatile int _es;                                           \
+    _es = ES_Initialize;                                        \
+    _ctx.nx = 0;                                                \
+    _ctx.link = exceptionStack;                                 \
+    exceptionStack = (context_block *)&_ctx;                    \
+    if (setjmp(_tmpbuf) != 0) _es = ES_Exception;               \
+    memcpy((void *)_ctx.jmp, (void *)_tmpbuf, sizeof(jmp_buf)); \
+    while (1) {                                                 \
+      if (_es == ES_EvalBody)
 
-#define except(e) \
-                  if (_es == ES_EvalBody) exceptionStack = _ctx.link; \
-                  break; \
-              } \
-              if (_es == ES_Initialize) { \
-                  if (_ctx.nx >= MaxExceptionsPerScope) \
-                      exit(ETooManyExceptClauses); \
-                  _ctx.array[_ctx.nx++] = &e; \
-              } else if (_ctx.id == &e || &e == &ANY) { \
-                  exceptionStack = _ctx.link;
+#define except(e)                                                      \
+  if (_es == ES_EvalBody) exceptionStack = _ctx.link;                  \
+  break;                                                               \
+  }                                                                    \
+  if (_es == ES_Initialize) {                                          \
+    if (_ctx.nx >= MaxExceptionsPerScope) exit(ETooManyExceptClauses); \
+    _ctx.array[_ctx.nx++] = &e;                                        \
+  } else if (_ctx.id == &e || &e == &ANY) {                            \
+    exceptionStack = _ctx.link;
 
-#define endtry \
-              if (_es != ES_Initialize) break; \
-              _es = ES_EvalBody; \
-          } \
-      }
+#define endtry                     \
+  if (_es != ES_Initialize) break; \
+  _es = ES_EvalBody;               \
+  }                                \
+  }
 
 #define GetExceptionName() _ctx.name
 #define GetExceptionValue() _ctx.value

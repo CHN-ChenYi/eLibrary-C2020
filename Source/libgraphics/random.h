@@ -10,8 +10,9 @@
 #ifndef _random_h
 #define _random_h
 
-#include "genlib.h"
 #include <stdlib.h>
+
+#include "genlib.h"
 
 /*
  * Constant: RAND_MAX
@@ -23,7 +24,7 @@
  */
 
 #ifndef RAND_MAX
-#  define RAND_MAX ((int) ((unsigned) ~0 >> 1))
+#define RAND_MAX ((int)((unsigned)~0 >> 1))
 #endif
 
 /*

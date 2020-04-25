@@ -27,9 +27,9 @@
 #ifndef _genlib_h
 #define _genlib_h
 
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stddef.h>
 
 /* Section 1 -- Define new "primitive" types */
 
@@ -47,20 +47,20 @@
  */
 
 #ifdef THINK_C
-   typedef int bool;
+typedef int bool;
 #else
-#  ifdef TRUE
-#    ifndef bool
-#      define bool int
-#    endif
-#  else
-#    ifdef bool
-#      define FALSE 0
-#      define TRUE 1
-#    else
-       typedef enum {FALSE, TRUE} bool;
-#    endif
-#  endif
+#ifdef TRUE
+#ifndef bool
+#define bool int
+#endif
+#else
+#ifdef bool
+#define FALSE 0
+#define TRUE 1
+#else
+typedef enum { FALSE, TRUE } bool;
+#endif
+#endif
 #endif
 
 /*
@@ -99,7 +99,7 @@ typedef FILE *stream;
  * therefore inappropriate as a sentinel.
  */
 
-#define UNDEFINED ((void *) undefined_object)
+#define UNDEFINED ((void *)undefined_object)
 
 extern char undefined_object[];
 
@@ -150,7 +150,7 @@ void FreeBlock(void *ptr);
  * target type.
  */
 
-#define New(type) ((type) GetBlock(sizeof *((type) NULL)))
+#define New(type) ((type)GetBlock(sizeof *((type)NULL)))
 
 /*
  * Macro: NewArray
@@ -160,7 +160,7 @@ void FreeBlock(void *ptr);
  * values of the specified element type.
  */
 
-#define NewArray(n, type) ((type *) GetBlock((n) * sizeof (type)))
+#define NewArray(n, type) ((type *)GetBlock((n) * sizeof(type)))
 
 /* Section 3 -- Basic error handling */
 

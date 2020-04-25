@@ -6,12 +6,13 @@
  * This file implements the random.h interface.
  */
 
+#include "random.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
 #include "genlib.h"
-#include "random.h"
 
 /*
  * Function: Randomize
@@ -23,10 +24,7 @@
  * by <time.h>.
  */
 
-void Randomize(void)
-{
-    srand((int) time(NULL));
-}
+void Randomize(void) { srand((int)time(NULL)); }
 
 /*
  * Function: RandomInteger
@@ -39,14 +37,13 @@ void Randomize(void)
  * (4) Translate it to the appropriate starting point.
  */
 
-int RandomInteger(int low, int high)
-{
-    int k;
-    double d;
+int RandomInteger(int low, int high) {
+  int k;
+  double d;
 
-    d = (double) rand() / ((double) RAND_MAX + 1);
-    k = (int) (d * (high - low + 1));
-    return (low + k);
+  d = (double)rand() / ((double)RAND_MAX + 1);
+  k = (int)(d * (high - low + 1));
+  return (low + k);
 }
 
 /*
@@ -56,12 +53,11 @@ int RandomInteger(int low, int high)
  * of RandomInteger, without the truncation step.
  */
 
-double RandomReal(double low, double high)
-{
-    double d;
+double RandomReal(double low, double high) {
+  double d;
 
-    d = (double) rand() / ((double) RAND_MAX + 1);
-    return (low + d * (high - low));
+  d = (double)rand() / ((double)RAND_MAX + 1);
+  return (low + d * (high - low));
 }
 
 /*
@@ -71,7 +67,4 @@ double RandomReal(double low, double high)
  * between 0 and 100, which it then compares to p.
  */
 
-bool RandomChance(double p)
-{
-    return (RandomReal(0, 1) < p);
-}
+bool RandomChance(double p) { return (RandomReal(0, 1) < p); }

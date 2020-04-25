@@ -32,8 +32,7 @@
  * two axes.
  */
 
-void DrawEllipticalArc(double rx, double ry,
-                       double start, double sweep);
+void DrawEllipticalArc(double rx, double ry, double start, double sweep);
 
 /* Section 3 -- Graphical regions*/
 
@@ -145,9 +144,9 @@ int GetPointSize(void);
  * default style.
  */
 
-#define Normal  0
-#define Bold    1
-#define Italic  2
+#define Normal 0
+#define Bold 1
+#define Italic 2
 
 /*
  * Function: SetStyle
@@ -330,8 +329,7 @@ int GetPenSize(void);
  *      DefineColor("Brown", .35, .20, .05);
  */
 
-void DefineColor(string name,
-                 double red, double green, double blue);
+void DefineColor(string name, double red, double green, double blue);
 
 /* Section 7 -- Miscellaneous functions */
 
@@ -485,10 +483,10 @@ void SetWindowSize(double width, double height);
  * draws a line from the current point to the point two pixels
  * further right, which results in a line of three pixels.
  */
- 
+
 double GetXResolution(void);
 double GetYResolution(void);
- 
+
 /*pixels to inches*/
 double ScaleXInches(int x);
 double ScaleYInches(int y);

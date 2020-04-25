@@ -7,12 +7,12 @@
  * real work is done in the exception.h header file.
  */
 
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 
-#include "genlib.h"
-#include "gcalloc.h"
 #include "exception.h"
+#include "gcalloc.h"
+#include "genlib.h"
 
 /*
  * Constant: MaxUnhandledMessage
@@ -25,8 +25,8 @@
 
 /* Publically accessible exceptions */
 
-exception ANY = { "ANY" };
-exception ErrorException = { "ErrorException" };
+exception ANY = {"ANY"};
+exception ErrorException = {"ErrorException"};
 
 /*
  * Global variable: exceptionStack
@@ -57,34 +57,33 @@ static context_block *FindHandler(exception *e);
  * within the exception handler may fail.
  */
 
-void RaiseException(exception *e, string name, void *value)
-{
-    context_block *cb;
-    char errbuf[MaxUnhandledMessage + 1];
-    string errmsg;
-    int errlen;
+void RaiseException(exception *e, string name, void *value) {
+  context_block *cb;
+  char errbuf[MaxUnhandledMessage + 1];
+  string errmsg;
+  int errlen;
 
-    cb = FindHandler(e);
-    if (cb == NULL) {
-        sprintf(errbuf, "Unhandled exception (%.30s)", name);
-        errlen = strlen(errbuf);
-        if (_acb == NULL) {
-            errmsg = malloc(errlen + 1);
-        } else {
-            errmsg = _acb->allocMethod(errlen + 1);
-        }
-        if (errmsg == NULL) {
-            errmsg = "Unhandled exception: unknown";
-        } else {
-            strcpy(errmsg, errbuf);
-        }
-        Error(errmsg);
+  cb = FindHandler(e);
+  if (cb == NULL) {
+    sprintf(errbuf, "Unhandled exception (%.30s)", name);
+    errlen = strlen(errbuf);
+    if (_acb == NULL) {
+      errmsg = malloc(errlen + 1);
+    } else {
+      errmsg = _acb->allocMethod(errlen + 1);
     }
-    exceptionStack = cb;
-    cb->id = e;
-    cb->value = value;
-    cb->name = name;
-    longjmp(cb->jmp, ES_Exception);
+    if (errmsg == NULL) {
+      errmsg = "Unhandled exception: unknown";
+    } else {
+      strcpy(errmsg, errbuf);
+    }
+    Error(errmsg);
+  }
+  exceptionStack = cb;
+  cb->id = e;
+  cb->value = value;
+  cb->name = name;
+  longjmp(cb->jmp, ES_Exception);
 }
 
 /*
@@ -95,10 +94,7 @@ void RaiseException(exception *e, string name, void *value)
  * it is available to other clients as well.
  */
 
-bool HandlerExists(exception *e)
-{
-    return (FindHandler(e) != NULL);
-}
+bool HandlerExists(exception *e) { return (FindHandler(e) != NULL); }
 
 /* Private functions */
 
@@ -111,17 +107,16 @@ bool HandlerExists(exception *e)
  * If not, FindHandler returns NULL.
  */
 
-static context_block *FindHandler(exception *e)
-{
-    context_block *cb;
-    exception *t;
-    int i;
+static context_block *FindHandler(exception *e) {
+  context_block *cb;
+  exception *t;
+  int i;
 
-    for (cb = exceptionStack; cb != NULL; cb = cb->link) {
-        for (i = 0; i < cb->nx; i++) {
-            t = cb->array[i];
-            if (t == e || t == &ANY) return (cb);
-        }
+  for (cb = exceptionStack; cb != NULL; cb = cb->link) {
+    for (i = 0; i < cb->nx; i++) {
+      t = cb->array[i];
+      if (t == e || t == &ANY) return (cb);
     }
-    return (NULL);
+  }
+  return (NULL);
 }

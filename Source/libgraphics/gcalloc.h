@@ -57,10 +57,10 @@ void ProtectBlock(void *ptr, size_t nbytes);
  */
 
 typedef struct {
-    void *(*allocMethod)(size_t nbytes);
-    void (*freeMethod)(void *ptr);
-    void (*protectMethod)(void *ptr, size_t nbytes);
-} *_GCControlBlock;
+  void *(*allocMethod)(size_t nbytes);
+  void (*freeMethod)(void *ptr);
+  void (*protectMethod)(void *ptr, size_t nbytes);
+} * _GCControlBlock;
 
 extern _GCControlBlock _acb;
 

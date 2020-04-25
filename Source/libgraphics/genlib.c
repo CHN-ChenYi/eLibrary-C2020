@@ -7,14 +7,15 @@
  * interface description in genlib.h for details.
  */
 
-#include <stdio.h>
-#include <stddef.h>
-#include <string.h>
-#include <stdarg.h>
-
 #include "genlib.h"
-#include "gcalloc.h"
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "exception.h"
+#include "gcalloc.h"
 
 /*
  * Constants:
@@ -66,31 +67,28 @@ _GCControlBlock _acb = NULL;
 
 /* Memory allocation implementation */
 
-void *GetBlock(size_t nbytes)
-{
-    void *result;
+void *GetBlock(size_t nbytes) {
+  void *result;
 
-    if (_acb == NULL) {
-        result = malloc(nbytes);
-    } else {
-        result = _acb->allocMethod(nbytes);
-    }
-    if (result == NULL) Error("No memory available");
-    return (result);
+  if (_acb == NULL) {
+    result = malloc(nbytes);
+  } else {
+    result = _acb->allocMethod(nbytes);
+  }
+  if (result == NULL) Error("No memory available");
+  return (result);
 }
 
-void FreeBlock(void *ptr)
-{
-    if (_acb == NULL) {
-        free(ptr);
-    } else {
-        _acb->freeMethod(ptr);
-    }
+void FreeBlock(void *ptr) {
+  if (_acb == NULL) {
+    free(ptr);
+  } else {
+    _acb->freeMethod(ptr);
+  }
 }
 
-void ProtectBlock(void *ptr, size_t nbytes)
-{
-    if (_acb != NULL) _acb->protectMethod(ptr, nbytes);
+void ProtectBlock(void *ptr, size_t nbytes) {
+  if (_acb != NULL) _acb->protectMethod(ptr, nbytes);
 }
 
 /* Section 3 -- Basic error handling */
@@ -110,35 +108,34 @@ void ProtectBlock(void *ptr, size_t nbytes)
  * certainly corrupts the stack.
  */
 
-void Error(string msg, ...)
-{
-    va_list args;
-    char errbuf[MaxErrorMessage + 1];
-    string errmsg;
-    int errlen;
+void Error(string msg, ...) {
+  va_list args;
+  char errbuf[MaxErrorMessage + 1];
+  string errmsg;
+  int errlen;
 
-    va_start(args, msg);
-    vsprintf(errbuf, msg, args);
-    va_end(args);
-    errlen = strlen(errbuf);
-    if (errlen > MaxErrorMessage) {
-        fprintf(stderr, "Error: Error Message too long\n");
-        exit(ErrorExitStatus);
-    }
-    if (_acb == NULL) {
-        errmsg = malloc(errlen + 1);
-    } else {
-        errmsg = _acb->allocMethod(errlen + 1);
-    }
-    if (errmsg == NULL) {
-        errmsg = "No memory available";
-    } else {
-        strcpy(errmsg, errbuf);
-    }
-    if (HandlerExists(&ErrorException)) {
-        RaiseException(&ErrorException, "ErrorException", errmsg);
-    } else {
-        fprintf(stderr, "Error: %s\n", errmsg);
-        exit(ErrorExitStatus);
-    }
+  va_start(args, msg);
+  vsprintf(errbuf, msg, args);
+  va_end(args);
+  errlen = strlen(errbuf);
+  if (errlen > MaxErrorMessage) {
+    fprintf(stderr, "Error: Error Message too long\n");
+    exit(ErrorExitStatus);
+  }
+  if (_acb == NULL) {
+    errmsg = malloc(errlen + 1);
+  } else {
+    errmsg = _acb->allocMethod(errlen + 1);
+  }
+  if (errmsg == NULL) {
+    errmsg = "No memory available";
+  } else {
+    strcpy(errmsg, errbuf);
+  }
+  if (HandlerExists(&ErrorException)) {
+    RaiseException(&ErrorException, "ErrorException", errmsg);
+  } else {
+    fprintf(stderr, "Error: %s\n", errmsg);
+    exit(ErrorExitStatus);
+  }
 }

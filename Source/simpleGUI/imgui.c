@@ -1,21 +1,21 @@
 //===========================================================================
 //
-//  ��Ȩ�����ߣ� ���¹����㽭��ѧ�������ѧ�뼼��ѧԺ
-//                       CAD&CG�����ص�ʵ����
+//  版权所有者： 刘新国，浙江大学计算机科学与技术学院
+//                       CAD&CG国家重点实验室
 //               xgliu@cad.zju.edu.cn
-//  ����޸ģ�2019��5��22��
-//            ���Ӳ˵�չ���ľ��Σ��ڲ˵�չ���Ϳؼ������ص��ǣ����ȴ����˵���
-//  ����޸ģ�2019��2��28��
-//            �����˿ؼ�����ɫ���������ã�
-//            �Լ�������ɫ�����ӣ��ں���demoGuiALL.c��drawButtons�����
-//  ����޸ģ�2019��2��26��
-//            ��������ʾ�ı��༭��ʾ
-//            �����˶�����ʾ
-//            ������textbox �ı�����ؼ�
-//            ���˲˵�����
-//            �� uiGetInput Ϊ uiGetMouse,uiGetKey,uiGetKeyboard
-//  ����޸ģ�2019��2��18��
-//  ���δ�����2018��4�£�����<<�������ר��>>�γ̽�ѧ
+//  最近修改：2019年5月22日
+//            添加菜单展开的矩形，在菜单展开和控件区域重叠是，优先处理菜单。
+//  最近修改：2019年2月28日
+//            添加了控件的颜色和填充的设置，
+//            以及设置颜色的例子（在函数demoGuiALL.c的drawButtons函数里）
+//  最近修改：2019年2月26日
+//            添加了演示文本编辑演示
+//            添加了动画演示
+//            添加了textbox 文本输入控件
+//            简化了菜单处理
+//            改 uiGetInput 为 uiGetMouse,uiGetKey,uiGetKeyboard
+//  最近修改：2019年2月18日
+//  初次创建：2018年4月，用于<<程序设计专题>>课程教学
 //
 //===========================================================================
 
@@ -45,7 +45,7 @@
 #define KMOD_SHIFT 0x01
 #define KMOD_CTRL 0x02
 
-/* ���Ϳռ�״̬ */
+/* 鼠标和空间状态 */
 typedef struct {
   double mousex;
   double mousey;
@@ -62,7 +62,7 @@ typedef struct {
 static UIState gs_UIState;
 static double gs_menuRect[4];
 
-/* ���ԣ������(x,y)�Ƿ�λ�ڰ�Χ�� [x1,x2] X [y1,y2] �ڲ� */
+/* 测试：坐标点(x,y)是否位于包围和 [x1,x2] X [y1,y2] 内部 */
 static bool inBox(double x, double y, double x1, double x2, double y1,
                   double y2) {
   return (x >= x1 && x <= x2 && y >= y1 && y <= y2);
@@ -85,7 +85,7 @@ void mySetPenColor(char *color) {
 }
 
 /*
- *  libgraphics Ԥ�������ɫ����
+ *  libgraphics 预定义的颜色名称
  *
  *  DefineColor("Black", 0, 0, 0);
  *  DefineColor("Dark Gray", .35, .35, .35);
@@ -104,7 +104,7 @@ void mySetPenColor(char *color) {
  */
 
 /*
- *  �˵���ɫ
+ *  菜单颜色
  */
 static struct {
   char frame[32];
@@ -116,25 +116,25 @@ static struct {
     {
         {"Blue", "Blue", "Red", "Red", 0},                  //
         {"Orange", "Black", "Green", "Blue", 0},            //
-        {"Orange", "White", "Green", "Blue", 1},            // ���
+        {"Orange", "White", "Green", "Blue", 1},            // 填充
         {"Light Gray", "Black", "Dark Gray", "Blue", 0},    //
-        {"Light Gray", "Black", "Dark Gray", "Yellow", 1},  // ���
+        {"Light Gray", "Black", "Dark Gray", "Yellow", 1},  // 填充
         {"Brown", "Red", "Orange", "Blue", 0},
-        {"Brown", "Red", "Orange", "White", 1}  // ���
+        {"Brown", "Red", "Orange", "White", 1}  // 填充
 },
 
   gs_menu_color =
       {
-          "Blue", "Blue", "Red", "Red", 0,  // �����
+          "Blue", "Blue", "Red", "Red", 0,  // 不填充
 },
 
   gs_button_color =
       {
-          "Blue", "Blue", "Red", "Red", 0,  // �����
+          "Blue", "Blue", "Red", "Red", 0,  // 不填充
 },
 
   gs_textbox_color = {
-      "Blue", "Blue", "Red", "Red", 0,  // �����
+      "Blue", "Blue", "Red", "Red", 0,  // 不填充
 };
 
 void setButtonColors(char *frame, char *label, char *hotFrame, char *hotLabel,
@@ -183,15 +183,15 @@ void usePredefinedTexBoxColors(int k) {
   gs_textbox_color = gs_predefined_colors[k % N];
 }
 
-/* ��������	InitGUI
+/* 函数名：	InitGUI
  *
- * ���ܣ���ʼ������
+ * 功能：初始化工作
  *
- * �÷����ڴ��ڴ�������������֮�����
+ * 用法：在窗口创建或字体设置之后调用
  */
 void InitGUI() { memset(&gs_UIState, 0, sizeof(gs_UIState)); }
 
-/* ���øú���,�õ�����״̬ */
+/* 调用该函数,得到鼠标的状态 */
 void uiGetMouse(int x, int y, int button, int event) {
   gs_UIState.mousex = ScaleXInches(x); /*pixels --> inches*/
   gs_UIState.mousey = ScaleYInches(y); /*pixels --> inches*/
@@ -206,7 +206,7 @@ void uiGetMouse(int x, int y, int button, int event) {
   }
 }
 
-/* ���øú���,�õ����̵����� */
+/* 调用该函数,得到键盘的输入 */
 void uiGetKeyboard(int key, int event) {
   if (event == KEY_DOWN) {
     switch (key) {
@@ -233,26 +233,26 @@ void uiGetKeyboard(int key, int event) {
   }
 }
 
-/* ���øú���,�õ��ı����� */
+/* 调用该函数,得到文本输入 */
 void uiGetChar(int ch) { gs_UIState.charInput = ch; }
 
 /*
- * ��������button
+ * 函数名：button
  *
- * ���ܣ���ʾһ����ť��button��
+ * 功能：显示一个按钮（button）
  *
- * �÷���if( button(GenUUID(0),x,y,w,h,label) ) {
- *           ִ����䣬��Ӧ�û����¸ð�ť
+ * 用法：if( button(GenUUID(0),x,y,w,h,label) ) {
+ *           执行语句，响应用户按下该按钮
  *       }
  *
- *   id  - Ψһ��
- *   x,y - λ��
- *   w,h - ���Ⱥ͸߶�
- *   label - ��ť�ϵ����ֱ�ǩ
+ *   id  - 唯一号
+ *   x,y - 位置
+ *   w,h - 宽度和高度
+ *   label - 按钮上的文字标签
  *
- * ����ֵ
- *   0 - �û�û�е�������²��ͷţ���ť
- *   1 - ����˰�ť
+ * 返回值
+ *   0 - 用户没有点击（按下并释放）按钮
+ *   1 - 点击了按钮
  */
 int button(int id, double x, double y, double w, double h, char *label) {
   char *frameColor = gs_button_color.frame;
@@ -304,7 +304,7 @@ int button(int id, double x, double y, double w, double h, char *label) {
     drawRectangle(x + sinkx, y + sinky, w, h, 0);
   }
 
-  // ��������ʾ, show a small ractangle frane
+  // 画键盘提示, show a small ractangle frane
   if (gs_UIState.kbdItem == id) {
     mySetPenColor(labelColor);
     drawRectangle(x + sinkx + shrink, y + sinky + shrink, w - 2 * shrink,
@@ -323,15 +323,15 @@ int button(int id, double x, double y, double w, double h, char *label) {
 }
 
 /*
- * ��ʾһ���˵���
- *   id  - �˵����Ψһ��
- *   x,y - �˵����λ��
- *   w,h - �˵���Ĵ�С
- *   label - �˵���ı�ǩ����
+ * 显示一个菜单项
+ *   id  - 菜单项的唯一号
+ *   x,y - 菜单项的位置
+ *   w,h - 菜单项的大小
+ *   label - 菜单项的标签文字
  *
- * ����ֵ
- *   0 - �û�û�е�������²��ͷţ��˲˵���
- *   1 - ����˴˲˵���
+ * 返回值
+ *   0 - 用户没有点击（按下并释放）此菜单项
+ *   1 - 点击了此菜单项
  */
 static int menuItem(int id, double x, double y, double w, double h,
                     char *label) {
@@ -363,10 +363,10 @@ static int menuItem(int id, double x, double y, double w, double h,
 }
 
 /*
- * ��������shortcutkey
+ * 函数名：shortcutkey
  *
- * ���ܣ��Ӳ˵���ǩ����ȡ����ݼ�����д��ĸ
- *       Ҫ���ݼ���־ Ctrl-X λ�ڱ�ǩ�Ľ�β����
+ * 功能：从菜单标签中提取“快捷键”大写字母
+ *       要求快捷键标志 Ctrl-X 位于标签的结尾部分
  */
 static char ToUpperLetter(char c) {
   return (c >= 'a' && c <= 'z' ? c - 'a' + 'A' : c);
@@ -383,21 +383,21 @@ static char shortcutkey(char *s) {
 }
 
 /*
- * ��������menuList
+ * 函数名：menuList
  *
- * ���ܣ���ʾһ����˵�
+ * 功能：显示一个组菜单
  *
- * �÷���choice = menuList(GenUUID(0),x,y,w,h,labels,n);
+ * 用法：choice = menuList(GenUUID(0),x,y,w,h,labels,n);
  *
- *   id  - �˵���Ψһ��
- *   x,y,w,h - �˵�����λ�úʹ�С
- *   wlist,h - �˵��б��Ŀ��Ⱥ͸߶�
- *   labels[] - ��ǩ���֣�[0]�ǲ˵����[1...n-1]�ǲ˵��б�
- *   n   - �˵���ĸ���
+ *   id  - 菜单的唯一号
+ *   x,y,w,h - 菜单类别的位置和大小
+ *   wlist,h - 菜单列表的宽度和高度
+ *   labels[] - 标签文字，[0]是菜单类别，[1...n-1]是菜单列表
+ *   n   - 菜单项的个数
  *
- * ����ֵ
- *   -1    - �û�û�е�������²��ͷţ���ť
- *   >=0   - �û�ѡ�еĲ˵��� index ����labels[]�У�
+ * 返回值
+ *   -1    - 用户没有点击（按下并释放）按钮
+ *   >=0   - 用户选中的菜单项 index （在labels[]中）
  *
  */
 int menuList(int id, double x, double y, double w, double wlist, double h,
@@ -406,7 +406,7 @@ int menuList(int id, double x, double y, double w, double wlist, double h,
   int result = 0;
   int k = -1;
 
-  // ������ݼ�
+  // 处理快捷键
 
   if (gs_UIState.keyModifiers & KMOD_CTRL) {
     for (k = 1; k < n; k++) {
@@ -418,12 +418,12 @@ int menuList(int id, double x, double y, double w, double wlist, double h,
     }
   }
 
-  if (k > 0 && k < n) {  // �ɹ�ƥ���ݼ�
+  if (k > 0 && k < n) {  // 成功匹配快捷键
     unfoldMenu = 0;
     return k;
   }
 
-  // �������
+  // 处理鼠标
 
   if (inBox(gs_UIState.mousex, gs_UIState.mousey, x, x + w, y, y + h))
     gs_UIState.actingMenu = id;
@@ -452,24 +452,24 @@ void drawMenuBar(double x, double y, double w, double h) {
 }
 
 /*
- * ��������textbox
+ * 函数名：textbox
  *
- * ���ܣ���ʾһ���ı��༭����ʾ�ͱ༭�ı��ַ���
+ * 功能：显示一个文本编辑框，显示和编辑文本字符串
  *
- * �÷���textbox(GenUUID(0),x,y,w,h,textbuf,buflen);
- *       ����
+ * 用法：textbox(GenUUID(0),x,y,w,h,textbuf,buflen);
+ *       或者
          if( textbox(GenUUID(0),x,y,w,h,textbuf,buflen) ) {
- *           �ı��ַ������༭�޸��ˣ�ִ����Ӧ���
+ *           文本字符串被编辑修改了，执行相应语句
  *       }
  *
- *   id  - Ψһ�ţ�һ����GenUUID(0), ����GenUUID��k)��k��ѭ��������
- *   x,y - �ı���λ��
- *   w,h - �ı���Ŀ��Ⱥ͸߶�
- *   textbuf - ���༭���ı��ַ�������\0��β��
- *   buflen - �ɴ洢���ı��ַ�������󳤶�
- * ����ֵ
- *   0 - �ı�û�б��༭
- *   1 - ���༭��
+ *   id  - 唯一号，一般用GenUUID(0), 或用GenUUID（k)（k是循环变量）
+ *   x,y - 文本框位置
+ *   w,h - 文本框的宽度和高度
+ *   textbuf - 被编辑的文本字符串（以\0结尾）
+ *   buflen - 可存储的文本字符串的最大长度
+ * 返回值
+ *   0 - 文本没有被编辑
+ *   1 - 被编辑了
  */
 int textbox(int id, double x, double y, double w, double h, char textbuf[],
             int buflen) {
@@ -552,7 +552,7 @@ int textbox(int id, double x, double y, double w, double h, char textbuf[],
   return textChanged;
 }
 
-/* ��һ������ */
+/* 画一个矩形 */
 void drawRectangle(double x, double y, double w, double h, int fillflag) {
   MovePen(x, y);
   if (fillflag) StartFilledRegion(1);
@@ -565,7 +565,7 @@ void drawRectangle(double x, double y, double w, double h, int fillflag) {
   if (fillflag) EndFilledRegion();
 }
 
-/* ��һ�����Σ��������ڲ�������ʾһ���ַ�����ǩlabel */
+/* 画一个矩形，并在其内部居中显示一个字符串标签label */
 void drawBox(double x, double y, double w, double h, int fillflag, char *label,
              char labelAlignment, char *labelColor) {
   double fa = GetFontAscent();
@@ -584,7 +584,7 @@ void drawBox(double x, double y, double w, double h, int fillflag, char *label,
   }
 }
 
-/* ��ʾ�ַ�����ǩ */
+/* 显示字符串标签 */
 void drawLabel(double x, double y, char *label) {
   if (label && strlen(label) > 0) {
     MovePen(x, y);

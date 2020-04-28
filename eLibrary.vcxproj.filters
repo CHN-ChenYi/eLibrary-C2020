@@ -11,9 +11,6 @@
     <Filter Include="Source\libgraphics">
       <UniqueIdentifier>{b5b34c9c-8353-42bd-8c0a-2cce462bec93}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\simpleGUI">
-      <UniqueIdentifier>{fc5bc457-e4e0-4d59-82ea-0e183951bcc4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\model">
       <UniqueIdentifier>{02f1ad4e-1079-4a92-9ce6-68b91a57275f}</UniqueIdentifier>
     </Filter>
@@ -42,9 +39,6 @@
     </ClCompile>
     <ClCompile Include="Source\libgraphics\strlib.c">
       <Filter>Source\libgraphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\simpleGUI\imgui.c">
-      <Filter>Source\simpleGUI</Filter>
     </ClCompile>
     <ClCompile Include="Source\model\placeholder.c">
       <Filter>Source\model</Filter>
@@ -80,9 +74,6 @@
     </ClInclude>
     <ClInclude Include="Source\libgraphics\strlib.h">
       <Filter>Source\libgraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\simpleGUI\imgui.h">
-      <Filter>Source\simpleGUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

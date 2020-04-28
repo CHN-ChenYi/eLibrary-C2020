@@ -1902,7 +1902,6 @@ void loadImage(const char *image, LibImage *mapbuf) {
   DeleteDC(hmapdc);
   GlobalFree(global);
   CloseHandle(file);
-  return 0;
 }
 
 void DrawImage(LibImage *pImage, double x, double y, double width,

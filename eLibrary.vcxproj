@@ -26,7 +26,6 @@
     <ClCompile Include="Source\libgraphics\simpio.c" />
     <ClCompile Include="Source\libgraphics\strlib.c" />
     <ClCompile Include="Source\model\placeholder.c" />
-    <ClCompile Include="Source\simpleGUI\imgui.c" />
     <ClCompile Include="Source\template\placeholder.c" />
     <ClCompile Include="Source\view\hash.c" />
     <ClCompile Include="Source\view\main.c" />
@@ -40,7 +39,6 @@
     <ClInclude Include="Source\libgraphics\random.h" />
     <ClInclude Include="Source\libgraphics\simpio.h" />
     <ClInclude Include="Source\libgraphics\strlib.h" />
-    <ClInclude Include="Source\simpleGUI\imgui.h" />
     <ClInclude Include="Source\view\hash.h" />
   </ItemGroup>
   <ItemGroup>

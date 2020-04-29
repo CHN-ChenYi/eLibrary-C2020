@@ -1,9 +1,9 @@
-#ifndef HASH_H
-#define HASH_H
+#ifndef HASH_H_
+#define HASH_H_
 
 #include <stdint.h>
 
-// Calculate the SHA-256 hash of src and store the result in dst
+// Calculates the SHA-256 hash of src and stores the result in dst
 // Note that dst must has at least 32 Byte
 // Example:
 //   uint32_t sha[8];
@@ -16,4 +16,4 @@
 void Sha256Sum(uint32_t *const dst, const uint8_t *const src,
                const uint32_t len);
 
-#endif  // HASH_H
+#endif  // HASH_H_

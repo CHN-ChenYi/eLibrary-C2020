@@ -10,6 +10,6 @@ void Main() {
   try {
     loadImage("./Resource/test.jpg", &img);
     except(ErrorException) puts("oops");
-  }
-  endtry DrawImage(&img, cx - 1, cy - 1.5, 2, 3);
+  } endtry
+  DrawImage(&img, cx - 1, cy - 1.5, 2, 3);
 }

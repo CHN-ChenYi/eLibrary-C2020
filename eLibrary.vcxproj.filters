@@ -49,6 +49,9 @@
     <ClCompile Include="Source\view\main.c">
       <Filter>Source\view</Filter>
     </ClCompile>
+    <ClCompile Include="Source\view\hash.c">
+      <Filter>Source\view</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\libgraphics\exception.h">
@@ -74,6 +77,9 @@
     </ClInclude>
     <ClInclude Include="Source\libgraphics\strlib.h">
       <Filter>Source\libgraphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\view\hash.h">
+      <Filter>Source\view</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

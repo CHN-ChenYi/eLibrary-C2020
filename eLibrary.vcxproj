@@ -25,7 +25,7 @@
     <ClCompile Include="Source\libgraphics\random.c" />
     <ClCompile Include="Source\libgraphics\simpio.c" />
     <ClCompile Include="Source\libgraphics\strlib.c" />
-    <ClCompile Include="Source\model\placeholder.c" />
+    <ClCompile Include="Source\model\list.c" />
     <ClCompile Include="Source\template\placeholder.c" />
     <ClCompile Include="Source\view\hash.c" />
     <ClCompile Include="Source\view\main.c" />
@@ -39,6 +39,9 @@
     <ClInclude Include="Source\libgraphics\random.h" />
     <ClInclude Include="Source\libgraphics\simpio.h" />
     <ClInclude Include="Source\libgraphics\strlib.h" />
+    <ClInclude Include="Source\model\basictype.h" />
+    <ClInclude Include="Source\model\list.h" />
+    <ClInclude Include="Source\model\model.h" />
     <ClInclude Include="Source\view\hash.h" />
   </ItemGroup>
   <ItemGroup>
@@ -118,7 +121,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_X86_;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\Source\libgraphics;.\Source\simpleGUI</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Source\libgraphics;.\Source\simpleGUI;.\Source\model;.\Source\view;.\Source\template</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -132,7 +135,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_AMD64_;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\Source\libgraphics;.\Source\simpleGUI</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Source\libgraphics;.\Source\simpleGUI;.\Source\model;.\Source\view;.\Source\template</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -148,7 +151,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_X86_;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\Source\libgraphics;.\Source\simpleGUI</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Source\libgraphics;.\Source\simpleGUI;.\Source\model;.\Source\view;.\Source\template</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -166,7 +169,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_AMD64_;NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\Source\libgraphics;.\Source\simpleGUI</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Source\libgraphics;.\Source\simpleGUI;.\Source\model;.\Source\view;.\Source\template</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

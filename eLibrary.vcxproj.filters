@@ -40,14 +40,14 @@
     <ClCompile Include="Source\libgraphics\strlib.c">
       <Filter>Source\libgraphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\model\placeholder.c">
-      <Filter>Source\model</Filter>
-    </ClCompile>
     <ClCompile Include="Source\template\placeholder.c">
       <Filter>Source\template</Filter>
     </ClCompile>
     <ClCompile Include="Source\view\main.c">
       <Filter>Source\view</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\model\list.c">
+      <Filter>Source\model</Filter>
     </ClCompile>
     <ClCompile Include="Source\view\hash.c">
       <Filter>Source\view</Filter>
@@ -77,6 +77,15 @@
     </ClInclude>
     <ClInclude Include="Source\libgraphics\strlib.h">
       <Filter>Source\libgraphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\model\basictype.h">
+      <Filter>Source\model</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\model\model.h">
+      <Filter>Source\model</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\model\list.h">
+      <Filter>Source\model</Filter>
     </ClInclude>
     <ClInclude Include="Source\view\hash.h">
       <Filter>Source\view</Filter>

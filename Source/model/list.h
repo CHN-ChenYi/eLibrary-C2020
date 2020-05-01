@@ -33,8 +33,7 @@ const ListNode *InsertList(List *const list, ListNode *const pos,
 const ListNode *EraseList(List *const list, const ListNode *const node);
 
 // Sorts the list in the specified cmp function which returns whether lhs <= rhs
-// Note that iterators remain valid
-// TODO: (TO/GA) test whether iterators are still valid
+// Note that iterators remain valid after sorting
 // The implementation is merge sort, so it's stable
 void SortList(const List *const list,
               bool (*cmp)(const void *const lhs, const void *const rhs));

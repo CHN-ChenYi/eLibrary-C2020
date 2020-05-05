@@ -10,7 +10,6 @@ typedef struct ListNode {
 
 typedef struct List {
   int size;
-  size_t size_of_value;  // the size in bytes of value
   ListNode *dummy_head, *dummy_tail;
 } List;
 

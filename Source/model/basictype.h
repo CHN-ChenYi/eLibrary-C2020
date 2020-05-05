@@ -1,38 +1,40 @@
 #ifndef BASICTYPE_H_
 #define BASICTYPE_H_
 
+#include "graphics.h"
+
 typedef char* String;
-typedef char** StringList; // To be replaced to actual list type.
 
-struct Book{
-  String book_id;
+typedef struct Book {
+  int uid;
+  String id;
   String title;
-  StringList keywords;
-  StringList authors;
+  String authors[3];
   String press;
-  String published_date;
+  String keywords[5];
+  LibImage cover;
+  unsigned int number_on_the_shelf;
   unsigned int available_borrowed_days;
-};
+} Book;
 
-enum Identity {
-               NORMAL_USER = 0, ADMINISTRATOR = 1
-};
+typedef enum Identity { NORMAL_USER = 0, ADMINISTRATOR = 1 } Identity;
 
-struct User{
-  String user_id;
-  String name;
+typedef struct User {
+  int uid;
+  String username;
+  String password;
   String gender;
   String department;
-  enum Identity whoami;
+  Identity whoami;
+} User;
 
-};
-
-struct BorrowRecord{
-  String record_id;
-  String book_id;
-  String user_id;
+typedef struct BorrowRecord {
+  int uid;
+  String book_uid;
+  String user_uid;
   String borrowed_date;
+  String expected_return_date;
   String returned_date;
-};
+} BorrowRecord;
 
-#endif // BASICTYPE_H_
+#endif  // BASICTYPE_H_

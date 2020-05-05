@@ -1,9 +1,10 @@
 #ifndef BASICTYPE_H_
 #define BASICTYPE_H_
 
-#include "graphics.h"
-#include "genlib.h"
 #include <stdint.h>
+
+#include "genlib.h"
+#include "graphics.h"
 
 typedef struct Book {
   int uid;
@@ -19,7 +20,7 @@ typedef struct Book {
 } Book;
 
 typedef enum Identity { NORMAL_USER = 0, ADMINISTRATOR } Identity;
-typedef enum Gender {Male = 0, Female};
+typedef enum Gender { Male = 0, Female } Gender;
 
 typedef struct User {
   int uid;

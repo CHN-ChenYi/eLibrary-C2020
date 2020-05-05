@@ -2,14 +2,11 @@
 #include "basictype.h"
 #include "list.h"
 
+void DrawUI(Page current_page, void* info);
+
 User CurrentUser;  // 当前登陆的用户
 
-/* 终端信息栏 */
-struct Terminal {
-  char* output;
-};
-
-enum {
+typedef enum {
   kLendAndBorrow,       // 借还书界面
   kSearch,              // 搜索结果界面
   kManual,              // 帮助/关于界面
@@ -20,12 +17,16 @@ enum {
   kBookDisplay,         // 图书显示/新增/修改界面
   kBorrowDisplay,       // 借还书界面
   kStatistics           // 统计界面
-} CurrentPage;
+} Page;
 
+/* 终端信息栏 */
+struct Terminal {
+  char* output;
+};
 
 /* 借书还书界面 */
 struct LendAndBorrow {
-  int type;
+  enum {kLend, kBorrow} Type;         // 借书还是还书
   Book detail;                        // 书籍信息
   List* book_list;                    // 待借/还书列表
   void (*search_callback) ();         // 搜索按钮
@@ -35,10 +36,10 @@ struct LendAndBorrow {
 
 /* 搜索界面 */
 struct Search {
-  char *keyword;                      // 搜索关键词
-  List* search_result;                // 结果链表
-  void (*search_callback) ();         // 搜索按钮
-  void (*return_callback) ();         // 返回按钮
+  char *keyword;                                    // 搜索关键词
+  List* search_result;                              // 结果链表
+  void (*search_callback) (char* keyword);          // 搜索按钮
+  void (*return_callback) ();                       // 返回按钮
 };
 
 /* 用户手册/帮助界面 */

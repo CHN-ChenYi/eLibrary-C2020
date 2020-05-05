@@ -1,15 +1,22 @@
 #include "exception.h"
 #include "graphics.h"
 
+void Draw(LibImage img, const double cx, const double cy) {
+  const double ratio = 1.0 * img.height / img.width;
+  DrawImage(&img, cx - 1, cy - ratio, 2, 2 * ratio);
+}
+
 void Main() {
   InitGraphics();
   InitConsole();
-  const double cx = GetWindowWidth() / 2;
-  const double cy = GetWindowHeight() / 2;
   LibImage img;
   try {
-    loadImage("./Resource/test.jpg", &img);
+    char path[200];
+    SelectFile("JPG image (*.jpg|*.jpeg|*.jpe)\0*.jpg;*.jpeg;*.jpe\0", path,
+               200 - 1);
+    puts(path);
+    loadImage(path, &img);
     except(ErrorException) puts("oops");
   } endtry
-  DrawImage(&img, cx - 1, cy - 1.5, 2, 3);
+  Draw(img, GetWindowWidth() / 2, GetWindowHeight() / 2);
 }

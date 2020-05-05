@@ -106,4 +106,5 @@ struct BorrowDisplay {
 /* 统计界面 */
 struct Statistics {
   List* borrow_record;                // 借还次数统计
+  void (*return_callback) ();         // 返回按钮
 };

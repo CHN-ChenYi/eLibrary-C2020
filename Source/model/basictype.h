@@ -3,30 +3,31 @@
 
 #include "graphics.h"
 #include "genlib.h"
-
-typedef char* String;
+#include <stdint.h>
 
 typedef struct Book {
   int uid;
-  String id;
-  String title;
-  String authors[3];
-  String category;
-  String press;
-  String keywords[5];
+  char id[20];
+  char title[200];
+  char authors[3][200];
+  char category[50];
+  char press[200];
+  char keywords[5][50];
   LibImage cover;
   unsigned int number_on_the_shelf;
   unsigned int available_borrowed_days;
 } Book;
 
 typedef enum Identity { NORMAL_USER = 0, ADMINISTRATOR } Identity;
+typedef enum Gender {Male = 0, Female};
 
 typedef struct User {
   int uid;
-  String username;
-  String password;
-  String gender;
-  String department;
+  char username[50];
+  char salt[10];
+  uint32_t password[8];
+  enum Gender gender;
+  char department[200];
   Identity whoami;
   bool verified;
 } User;
@@ -37,12 +38,12 @@ typedef struct BorrowRecord {
   int uid;
   int book_uid;
   int user_uid;
-  String book_name;
-  String user_name;
-  String borrowed_date;
+  char book_name[200];
+  char user_name[50];
+  char borrowed_date[10];
   BookStatus book_status;
   // if book_status == BORROWED, returned_date stores the expected returned date
-  String returned_date;
+  char returned_date[10];
 } BorrowRecord;
 
 #endif  // BASICTYPE_H_

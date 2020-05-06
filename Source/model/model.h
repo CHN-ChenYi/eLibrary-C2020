@@ -19,8 +19,14 @@ enum DBErrno {
       DB_FAIL
 };
 
-struct DB{
+enum Model{
+      Book,
+      User,
+      BorrowRecord
+};
 
+struct DB{
+      String location;
 
 };
 typedef struct DB DB
@@ -41,65 +47,50 @@ int OpenDBConnection(DB* db);
 int CloseDBConnection(DB* db);
 // Create
 /*
-  Create*
+  Create
 
   It's used to create data in the DB
 
   Parameters:
-  struct DB pointer
-
-  (book,user,record)
-  The pointer pointing to the actual memory that will be used to stord data.
+  db - pointer pointing to struct DB
+  instance - pointer pointing to the model instance(book,user,record,etc...)
+  model - see enum Model
 
   Return value:
   1 if error appears, 0 otherwise.
  */
 // return 1 if error appears, 0 otherwise.
-int CreateBook(DB* db, Book* book);
-int CreateUser(DB* db, User* user);
-int CreateBorrowRecord(DB* db, BorrowRecord* record);
+int Create(DB* db, void* instance, Model model)
+
 
 // Request
 // For many functions in this section, the first parameter is the pointer pointing to the actual instance in memory(the item you want) and will be free when the DB is closed in order to prevent memory leakage. As a result, you should not access to these instances after the DB is closed.
 /*
-  Get*ById
+  GetById
   It's used to get data by it's id. The faster way to retrieve data.
 
   Parameters:
-  struct DB pointer
 
-  (book,user,record)
-  The pointer pointing to the actual memory that will be used to stord data.
-
-  *_id
-  *'s id.
+  db - pointer pointing to struct DB
+  instance - pointer pointing to the model instance(book,user,record,etc...)
+  id - *_id
+  model - see enum Model
 
   Return value:
   DBErrno
  */
-
-int GetBookById(DB* db, Book* book, String book_id);
-int GetUserById(User* user, String user_id);
-int GetBorrowRecordById(BorrowRecord* record, String record_id);
-
-/* int GetBooksByTitle(IdList* book_list, String title); */
-/* int GetBooksByUID(IdList* book_list, String uid); */
-/* int GetBooksByKeyword(IdList* book_list, String keyword); */
-/* int GetBooksByAuthor(IdList* book_list, String author); */
-/* int GetBorrowRecordsByUID(IdList* record_list, String user_id); */
-/* int GetBorrowRecordByBID(IdList* record_list, String book_id); */
+int GetById(DB* db, void* instance, String id, Model model);
 
 /*
- Filter*
+ Filter
 
  Get data by one or more arguments.
 
  Parameters:
 
- struct DB pointer
-
- *_list
- The pointer pointing to the list used to store a series of data
+ db - pointer pointing to struct DB
+ instance - pointer pointing to the model instance(book,user,record,etc...)
+ model - see enum Model
 
  queries
 
@@ -127,25 +118,21 @@ int GetBorrowRecordById(BorrowRecord* record, String record_id);
  Return value:
  DBErrno
 */
-int FilterBooks(DB* db, IdList* book_list, String queries);
-int FilterUsers(DB* db, IdList* user_list, String queries);
-int FilterBorrowRecords(DB* db, IdList* record_list, String queries);
+int Filter(DB* db, void* list, String queries, Model model)
 
 /*
-  Get*NextPK
+  GetNextPK
   It's used to get The smallest prime key that isn't mapped to a row in database.
 
   Parameter:
-  struct DB pointer
+  db - pointer pointing to struct DB
+  model - see enum Model
 
   Return value:
   -1 if error appears, the prime key, unsigned int
  */
 
-
-int GetBookNextPK(DB* db);
-int GetUserNextPK(DB* db);
-int GetBorrowRecordNextPK(DB* db);
+int GetNextPK(DB* db, Model model);
 
 // Update
 /*
@@ -153,17 +140,16 @@ int GetBorrowRecordNextPK(DB* db);
   It's used to perform update operation on a row in database.
 
   Parameter:
-  struct DB pointer
-
-  *_id
+  db - pointer pointing to struct DB
+  instance - pointer pointing to the model instance(book,user,record,etc...)
+  id  - *_id
+  model - see enum Model
 
   Return value:
   DBErrno
  */
 
-int UpdateBook(DB* db, String book_id);
-int UpdateUser(DB* db, String user_id);
-int UpdateBorrowRecord(DB* db, String record_id);
+int Update(DB* db, void* instance, String id, Model model);
 
 // Delete
 /*
@@ -171,15 +157,13 @@ int UpdateBorrowRecord(DB* db, String record_id);
   It's used to perform delete operation on a row in database.
 
   Parameter:
-  struct DB pointer
-
-  *_id
+  db - pointer pointing to struct DB
+  id - *_id
+  model - see enum Model
 
   Return value:
   DBErrno
 */
 
-int DeleteBook(DB* db, String book_id);
-int DeleteUser(DB* db, String record_id);
-int DeleteBorrowRecord(DB* db, String record_id);
+int Delete(DB* db, String id, Model model);
 #endif // MODEL_H_

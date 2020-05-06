@@ -19,14 +19,14 @@ typedef struct Book {
 } Book;
 
 typedef enum Identity { NORMAL_USER = 0, ADMINISTRATOR } Identity;
-typedef enum Gender { Male = 0, Female } Gender;
+typedef enum Gender { MALE = 0, FEMALE } Gender;
 
 typedef struct User {
   int uid;
   char username[50];
   char salt[10];
   uint32_t password[8];
-  enum Gender gender;
+  Gender gender;
   char department[200];
   Identity whoami;
   bool verified;

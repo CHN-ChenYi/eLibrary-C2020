@@ -26,7 +26,7 @@ enum Model{
 };
 
 struct DB{
-
+      String location;
 
 };
 typedef struct DB DB

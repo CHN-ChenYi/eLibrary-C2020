@@ -2,12 +2,9 @@
 #define MODEL_H_
 
 #include "basictype.h"
-typedef struct Book Book;
-typedef struct User User;
-typedef struct BorrowRecord BorrowRecord;
 typedef char* String;
 enum DBErrno {
-      DB_SUCCESS,
+      DB_SUCCESS = 0,
 
       DB_NOT_FOUND,
       DB_NOT_OPEN,
@@ -17,15 +14,15 @@ enum DBErrno {
 
       DB_FAIL
 };
-
 enum Model{
-      Book,
+      Book = 0,
       User,
       BorrowRecord
 };
+typedef enum Model Model;
 
 struct DB{
-      String location;
+      String filename; // described in https://www.hwaci.com/sw/sqlite/c3ref/open.html#urifilenameexamples
 };
 typedef struct DB DB;
 // Open and close the DB.

@@ -35,7 +35,8 @@ typedef enum {
   kStatistics,          // 统计界面
   kInitLibrary,         // 新建图书库
   kOpenLibrary,         // 打开图书库
-  kReturn               // 回到上一个界面
+  kReturn,              // 回到上一个界面
+  kLogout               // 用户登出
 } Page;
 
 /* 借书还书界面 */

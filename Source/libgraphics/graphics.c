@@ -1927,8 +1927,8 @@ void DrawImage(LibImage *pImage, double x, double y, double width,
   InvalidateRect(graphicsWindow, &r, TRUE);
 }
 
-void SelectFile(const char *const filter, char *const path,
-                const int max_length) {
+void SelectFile(const char *const filter, const char *const extension,
+                const bool new_file, char *const path, const int max_length) {
   OPENFILENAME ofn;  // common dialog box structure
 
   // Initialize OPENFILENAME
@@ -1942,7 +1942,9 @@ void SelectFile(const char *const filter, char *const path,
   ofn.nMaxFile = max_length;
   ofn.lpstrFilter = filter;
   ofn.nFilterIndex = 1;
-  ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NONETWORKBUTTON;
+  ofn.lpstrDefExt = extension;
+  ofn.Flags = OFN_PATHMUSTEXIST | OFN_NONETWORKBUTTON | OFN_EXTENSIONDIFFERENT;
+  if (!new_file) ofn.Flags |= OFN_FILEMUSTEXIST;
 
   // Display the Open dialog box.
   if (!GetOpenFileName(&ofn))

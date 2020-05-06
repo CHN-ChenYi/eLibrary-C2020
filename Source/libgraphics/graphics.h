@@ -178,6 +178,7 @@ void cancelTimerEvent();
 /*================ New Added Image Function ===================*/
 
 #include <windef.h>
+#include "genlib.h"
 
 typedef struct {
   HBITMAP hbitmap;
@@ -196,6 +197,8 @@ void DrawImage(LibImage *pImage, double x, double y, double width,
 // max_length is the length of the longest string that path can store
 // filter e.g. "All\0*.*\0Text\0*.TXT\0"
 //             "JPG image\0*.jpg;*.jpeg;*.jpe\0"
-void SelectFile(const char *const filter, char *const path,
-                const int max_length);
+// extension stores the default extension (without '.' and no more than 3 chars)
+// new_file means whether user can choose a file that doesn't exist
+void SelectFile(const char *const filter, const char *const extension,
+                const bool new_file, char *const path, const int max_length);
 #endif

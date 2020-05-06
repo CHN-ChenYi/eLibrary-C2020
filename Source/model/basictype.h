@@ -14,7 +14,6 @@ typedef struct Book {
   char category[50];
   char press[200];
   char keywords[5][50];
-  LibImage cover;
   unsigned int number_on_the_shelf;
   unsigned int available_borrowed_days;
 } Book;

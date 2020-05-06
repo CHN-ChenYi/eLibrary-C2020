@@ -192,13 +192,19 @@ void loadImage(const char *image, LibImage *mapbuf);
 void DrawImage(LibImage *pImage, double x, double y, double width,
                double height);
 
-// Creates an Open dialog box that lets the user specify a file be opened.
-// The path of that file would be stored in char *const path
+// Creates an Open dialog box that lets the user specify a file to be opened.
+// The path of that file would be stored in char path[]
 // max_length is the length of the longest string that path can store
 // filter e.g. "All\0*.*\0Text\0*.TXT\0"
 //             "JPG image\0*.jpg;*.jpeg;*.jpe\0"
 // extension stores the default extension (without '.' and no more than 3 chars)
 // new_file means whether user can choose a file that doesn't exist
-void SelectFile(const char *const filter, const char *const extension,
-                const bool new_file, char *const path, const int max_length);
+void SelectFile(const char filter[], const char extension[],
+                const bool new_file, char path[], const int max_length);
+
+// Creates an Open dialog box that lets the user specify a folder to be opened.
+// The path of that folder would be stored in char path[]
+// path[] must be at least MAX_PATH characters in size
+void SelectFolder(const char hint_text[], char path[]);
+
 #endif

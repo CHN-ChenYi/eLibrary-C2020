@@ -23,6 +23,7 @@ void DrawUI(Page cur_page, User *cur_user, void *info, char *terminal);
 void NavigationCallback(Page nav_page, User *cur_user, char *terminal);
 
 typedef enum {
+  kWelcome,         // 欢迎界面
   kLendAndBorrow,   // 借还书
   kSearch,          // 搜索
   kManual,          // 帮助

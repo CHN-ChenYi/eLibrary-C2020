@@ -23,20 +23,24 @@ void DrawUI (Page cur_page, User* cur_user, void* info, char* terminal);
 void NavigationCallback (Page nav_page, User* cur_user, char* terminal);
 
 typedef enum {
-  kLendAndBorrow,       // 借还书界面
-  kSearch,              // 搜索结果界面
-  kManual,              // 帮助/关于界面
-  kUserLogIn,           // 用户登陆界面
+  kLendAndBorrow,       // 借还书
+  kSearch,              // 搜索
+  kManual,              // 帮助
+  kAbout,               // 关于
+  kUserRegister,        // 用户注册
+  kUserLogIn,           // 用户登陆
+  kLogout,              // 用户登出
   kUserModify,          // 用户信息修改
-  kUserManagement,      // 用户管理界面（管理员）
-  kLibrary,             // 图书库界面
-  kBookDisplay,         // 图书显示/新增/修改界面
-  kBorrowDisplay,       // 借还书界面（管理员）
-  kStatistics,          // 统计界面
-  kInitLibrary,         // 新建图书库
-  kOpenLibrary,         // 打开图书库
-  kReturn,              // 回到上一个界面
-  kLogout               // 用户登出
+  kUserManagement,      // 用户删除/审核（管理员）
+  kLibrary,             // 图书库显示
+  kInitLibrary,         // 图书库新建
+  kOpenLibrary,         // 图书库打开
+  kBookDisplay,         // 图书显示
+  kBookInit,            // 图书新增
+  kBookModify,          // 图书修改/删除
+  kBorrowDisplay,       // 借还书统计（管理员）
+  kStatistics,          // 统计
+  kReturn               // 回到上一个界面
 } Page;
 
 /* 借书还书界面 */
@@ -55,14 +59,14 @@ struct Search {
 };
 
 /* 用户手册/关于界面 */
-struct Manual {
+struct ManualAndAbout {
   enum {kManual, kAbout} Type;    // 用户手册/关于
   char *title;
   char *content;
 };
 
 /* 用户登陆/注册界面 */
-struct UserLogIn {
+struct LoginOrRegister {
   enum {kLogin, kRegister} Type;  // 登录还是注册
   User *user;                     // 当前正在登陆/注册的这个用户
   char password[50];              // 注册/登陆的密码
@@ -84,15 +88,17 @@ struct UserModify {
 
 /* 审核、修改、删除用户 */
 struct UserManagement {
-  List *to_be_verified;                             // 待审核用户列表
-  List *users;                                      // 已添加用户列表
-  void (*callback) (ListNode* user, bool approve);  // 审核通过或者拒绝
+  List *to_be_verified;                                     // 待审核用户列表
+  List *users;                                              // 已添加用户列表
+  void (*approve_callback) (ListNode* user, bool approve);  // 审核通过或者拒绝
+  void (*delete_callback) (ListNode* user);                 // 删除
 };
 
 /* 图书库界面 */
 struct Library {
   enum {kPicture, kList} Type;              // 图片模式还是列表模式
   List *books;                              // 图书库的图书
+  List *book_covers;                        // 图书库的书的封面
   void (*sort_callback) ();                 // 排序按钮
   void (*book_callback) (ListNode* book);   // 图书详细信息按钮
   void (*switch_callback) ();               // 切换模式
@@ -100,11 +106,13 @@ struct Library {
 
 /* 图书显示、新建、修改 */
 struct BookDisplay {
-  enum {kDisplay, kInit} Type;            // 当前状态：显示或修改/新建
+  enum {kDisplay, kModify, kInit} Type;   // 当前状态：显示或修改/新建
   Book *book;                             // 当前书籍
+  LibImage book_cover;                    // 当前书籍封面
   void (*admin_callback) ();              // 查看图书借阅次数按钮（管理员）
-  void (*delete_callback) (Book* book);   // 删除
-  void (*borrow_callback) (Book* book);   // 借书按钮
+  void (*cover_callback) ();              // 修改图书封面
+  void (*delete_callback) (Book *book);   // 删除
+  void (*borrow_callback) (Book *book);   // 借书按钮
 };
 
 /* 图书借还界面显示 */

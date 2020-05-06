@@ -2,9 +2,21 @@
 #include "basictype.h"
 #include "list.h"
 
-void DrawUI(Page current_page, void* info);
+/*
+ * 界面绘制函数
+ * cur_page: 当前界面（当前的用户
+ * cur_user: 当前登陆的用户（若为NULL，则未登录）
+ *     info: 一个结构体指针，其类型由cur_page决定
+ */
+void DrawUI (Page cur_page, User* cur_user, void* info);
 
-User CurrentUser;  // 当前登陆的用户
+/*
+ * 顶部菜单点击
+ * nav_page: 导航到哪个界面
+ * cur_user: 当前登陆的界面
+ *     info: 当前界面的信息  
+ */
+void Navigation (Page nav_page, User* cur_user, void* info);
 
 typedef enum {
   kLendAndBorrow,       // 借还书界面
@@ -15,7 +27,7 @@ typedef enum {
   kUserManagement,      // 用户管理界面（管理员）
   kLibrary,             // 图书库界面
   kBookDisplay,         // 图书显示/新增/修改界面
-  kBorrowDisplay,       // 借还书界面
+  kBorrowDisplay,       // 借还书界面（管理员）
   kStatistics           // 统计界面
 } Page;
 
@@ -26,27 +38,27 @@ struct Terminal {
 
 /* 借书还书界面 */
 struct LendAndBorrow {
-  enum {kLend, kBorrow} Type;         // 借书还是还书
-  Book detail;                        // 书籍信息
-  List* book_list;                    // 待借/还书列表
-  void (*search_callback) ();         // 搜索按钮
-  void (*button_callback) ();         // 确定/放弃按钮
-  void (*return_callback) ();         // 返回按钮
+  enum {kLend, kBorrow} Type;                 // 借书还是还书
+  Book book;                                  // 书籍信息
+  List* book_list;                            // 待借/还书列表
+  void (*search_callback) (char* keyword);    // 搜索按钮
+  void (*button_callback) ();                 // 确定/放弃按钮
+  void (*return_callback) ();                 // 返回按钮
 };
 
 /* 搜索界面 */
 struct Search {
-  char *keyword;                                    // 搜索关键词
-  List* search_result;                              // 结果链表
-  void (*search_callback) (char* keyword);          // 搜索按钮
-  void (*return_callback) ();                       // 返回按钮
+  char *keyword;                              // 搜索关键词
+  List* search_result;                        // 结果链表
+  void (*search_callback) (char* keyword);    // 搜索按钮
+  void (*return_callback) ();                 // 返回按钮
 };
 
 /* 用户手册/帮助界面 */
 struct Manual {
   char *title;
   char *content;
-  void (*return_callback) ();         // 返回按钮
+  void (*return_callback) ();     // 返回按钮
 };
 
 /* 用户登陆/注册界面 */
@@ -81,18 +93,18 @@ struct UserManagement {
 
 /* 图书库界面 */
 struct Library {
-  enum{kPicture, kList} Type;             // 图片模式还是列表模式
-  List* books;                            // 图书库的图书
-  void (*sort_callback) ();               // 排序按钮
-  void (*book_callback) ();               // 图书详细信息按钮
-  void (*return_callback) ();             // 返回按钮
+  enum{kPicture, kList} Type;               // 图片模式还是列表模式
+  List* books;                              // 图书库的图书
+  void (*sort_callback) ();                 // 排序按钮
+  void (*book_callback) (ListNode* book);   // 图书详细信息按钮
+  void (*return_callback) ();               // 返回按钮
 };
 
 /* 图书显示、新建、修改 */
 struct BookDisplay {
   enum {kDisplay, kInit, kModify} Type;   // 当前状态：显示/新建/删除
   Book book;                              // 当前书籍
-  void (*admin_callback) ();              // 管理员查看图书借阅次数按钮
+  void (*admin_callback) ();              // 查看图书借阅次数按钮（管理员）
   void (*return_callback) ();             // 返回按钮
 };
 

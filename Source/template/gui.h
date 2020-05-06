@@ -2,6 +2,9 @@
 #include "basictype.h"
 #include "list.h"
 
+#ifndef GUI_H_
+#define GUI_H_
+
 /*
  * 界面绘制函数
  * cur_page: 当前界面（当前的用户
@@ -38,9 +41,7 @@ typedef enum {
 
 /* 借书还书界面 */
 struct LendAndBorrow {
-  enum {kLend, kBorrow} Type;                 // 借书还是还书
-  Book *book;                                 // 书籍信息
-  List *book_list;                            // 待借/还书列表
+  List *book_list;                            // 待还书列表
   void (*search_callback) (char* keyword);    // 搜索按钮
   void (*return_callback) (ListNode* book);   // 还书按钮
 };
@@ -113,3 +114,5 @@ struct BorrowDisplay {
 struct Statistics {
   List *borrow_record;                // 借还次数统计
 };
+
+#endif  // GUI_H_

@@ -5,8 +5,7 @@
 typedef struct Book Book;
 typedef struct User User;
 typedef struct BorrowRecord BorrowRecord;
-typedef StringList IdList;
-
+typedef char* String;
 enum DBErrno {
       DB_SUCCESS,
 
@@ -27,9 +26,8 @@ enum Model{
 
 struct DB{
       String location;
-
 };
-typedef struct DB DB
+typedef struct DB DB;
 // Open and close the DB.
 /*
   Open(Close)DBConnection
@@ -60,7 +58,7 @@ int CloseDBConnection(DB* db);
   1 if error appears, 0 otherwise.
  */
 // return 1 if error appears, 0 otherwise.
-int Create(DB* db, void* instance, Model model)
+int Create(DB* db, void* instance, Model model);
 
 
 // Request
@@ -73,13 +71,13 @@ int Create(DB* db, void* instance, Model model)
 
   db - pointer pointing to struct DB
   instance - pointer pointing to the model instance(book,user,record,etc...)
-  id - *_id
+  id - uid
   model - see enum Model
 
   Return value:
   DBErrno
  */
-int GetById(DB* db, void* instance, String id, Model model);
+int GetById(DB* db, void* instance, int id, Model model);
 
 /*
  Filter
@@ -118,7 +116,7 @@ int GetById(DB* db, void* instance, String id, Model model);
  Return value:
  DBErrno
 */
-int Filter(DB* db, void* list, String queries, Model model)
+int Filter(DB* db, void* list, String queries, Model model);
 
 /*
   GetNextPK
@@ -142,14 +140,14 @@ int GetNextPK(DB* db, Model model);
   Parameter:
   db - pointer pointing to struct DB
   instance - pointer pointing to the model instance(book,user,record,etc...)
-  id  - *_id
+  id  - uid
   model - see enum Model
 
   Return value:
   DBErrno
  */
 
-int Update(DB* db, void* instance, String id, Model model);
+int Update(DB* db, void* instance, int id, Model model);
 
 // Delete
 /*
@@ -158,12 +156,12 @@ int Update(DB* db, void* instance, String id, Model model);
 
   Parameter:
   db - pointer pointing to struct DB
-  id - *_id
+  id - uid
   model - see enum Model
 
   Return value:
   DBErrno
 */
 
-int Delete(DB* db, String id, Model model);
+int Delete(DB* db, int id, Model model);
 #endif // MODEL_H_

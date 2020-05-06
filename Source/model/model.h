@@ -19,7 +19,11 @@ enum DBErrno {
       DB_FAIL
 };
 
+struct DB{
 
+
+};
+typedef struct DB DB
 // Open and close the DB.
 /*
   Open(Close)DBConnection
@@ -28,13 +32,13 @@ enum DBErrno {
   You should call the open function when you want to access to the DB, then close it when you don't need to.
 
   Parameters:
-  none
+  struct DB pointer
 
   Return value:
   DBErrno
  */
-int OpenDBConnection(void);
-int CloseDBConnection(void);
+int OpenDBConnection(DB* db);
+int CloseDBConnection(DB* db);
 // Create
 /*
   Create*
@@ -42,6 +46,7 @@ int CloseDBConnection(void);
   It's used to create data in the DB
 
   Parameters:
+  struct DB pointer
 
   (book,user,record)
   The pointer pointing to the actual memory that will be used to stord data.
@@ -50,9 +55,9 @@ int CloseDBConnection(void);
   1 if error appears, 0 otherwise.
  */
 // return 1 if error appears, 0 otherwise.
-int CreateBook(Book* book);
-int CreateUser(User* user);
-int CreateBorrowRecord(BorrowRecord* record);
+int CreateBook(DB* db, Book* book);
+int CreateUser(DB* db, User* user);
+int CreateBorrowRecord(DB* db, BorrowRecord* record);
 
 // Request
 // For many functions in this section, the first parameter is the pointer pointing to the actual instance in memory(the item you want) and will be free when the DB is closed in order to prevent memory leakage. As a result, you should not access to these instances after the DB is closed.
@@ -61,6 +66,7 @@ int CreateBorrowRecord(BorrowRecord* record);
   It's used to get data by it's id. The faster way to retrieve data.
 
   Parameters:
+  struct DB pointer
 
   (book,user,record)
   The pointer pointing to the actual memory that will be used to stord data.
@@ -72,7 +78,7 @@ int CreateBorrowRecord(BorrowRecord* record);
   DBErrno
  */
 
-int GetBookById(Book* book, String book_id);
+int GetBookById(DB* db, Book* book, String book_id);
 int GetUserById(User* user, String user_id);
 int GetBorrowRecordById(BorrowRecord* record, String record_id);
 
@@ -89,6 +95,8 @@ int GetBorrowRecordById(BorrowRecord* record, String record_id);
  Get data by one or more arguments.
 
  Parameters:
+
+ struct DB pointer
 
  *_list
  The pointer pointing to the list used to store a series of data
@@ -119,25 +127,25 @@ int GetBorrowRecordById(BorrowRecord* record, String record_id);
  Return value:
  DBErrno
 */
-int FilterBooks(IdList* book_list, String queries);
-int FilterUsers(IdList* user_list, String queries);
-int FilterBorrowRecords(IdList* record_list, String queries);
+int FilterBooks(DB* db, IdList* book_list, String queries);
+int FilterUsers(DB* db, IdList* user_list, String queries);
+int FilterBorrowRecords(DB* db, IdList* record_list, String queries);
 
 /*
   Get*NextPK
   It's used to get The smallest prime key that isn't mapped to a row in database.
 
   Parameter:
-  none
+  struct DB pointer
 
   Return value:
   -1 if error appears, the prime key, unsigned int
  */
 
 
-int GetBookNextPK(void);
-int GetUserNextPK(void);
-int GetBorrowRecordNextPK(void);
+int GetBookNextPK(DB* db);
+int GetUserNextPK(DB* db);
+int GetBorrowRecordNextPK(DB* db);
 
 // Update
 /*
@@ -145,15 +153,17 @@ int GetBorrowRecordNextPK(void);
   It's used to perform update operation on a row in database.
 
   Parameter:
+  struct DB pointer
+
   *_id
 
   Return value:
   DBErrno
  */
 
-int UpdateBook(String book_id);
-int UpdateUser(String user_id);
-int UpdateBorrowRecord(String record_id);
+int UpdateBook(DB* db, String book_id);
+int UpdateUser(DB* db, String user_id);
+int UpdateBorrowRecord(DB* db, String record_id);
 
 // Delete
 /*
@@ -161,13 +171,15 @@ int UpdateBorrowRecord(String record_id);
   It's used to perform delete operation on a row in database.
 
   Parameter:
+  struct DB pointer
+
   *_id
 
   Return value:
   DBErrno
 */
 
-int DeleteBook(String book_id);
-int DeleteUser(String record_id);
-int DeleteBorrowRecord(String record_id);
+int DeleteBook(DB* db, String book_id);
+int DeleteUser(DB* db, String record_id);
+int DeleteBorrowRecord(DB* db, String record_id);
 #endif // MODEL_H_

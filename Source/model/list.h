@@ -14,7 +14,7 @@ typedef struct List {
 } List;
 
 // Malloc a list, init it and return a pointer points to it
-List *NewList(const size_t size_of_value);
+List *NewList();
 
 // Free the list
 void DeleteList(const List *const list);

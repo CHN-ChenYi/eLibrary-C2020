@@ -67,7 +67,6 @@ struct ManualAndAbout {
 
 /* 用户登陆/注册界面 */
 struct LoginOrRegister {
-  enum {kLogin, kRegister} Type;  // 登录还是注册
   User *user;                     // 当前正在登陆/注册的这个用户
   char password[50];              // 注册/登陆的密码
   char repeat_password[50];       // 重复新密码
@@ -106,7 +105,6 @@ struct Library {
 
 /* 图书显示、新建、修改 */
 struct BookDisplay {
-  enum {kDisplay, kModify, kInit} Type;   // 当前状态：显示或修改/新建
   Book *book;                             // 当前书籍
   LibImage book_cover;                    // 当前书籍封面
   void (*admin_callback) ();              // 查看图书借阅次数按钮（管理员）
@@ -123,9 +121,9 @@ struct BorrowDisplay {
 
 /* 统计界面 */
 struct Statistics {
-  List *catalogs;                     // 图书分类
-  List *borrow_record;                // 借还次数统计
-  void (*select_callback) ();         // 选中某图书分类
+  List *catalogs;                               // 图书分类
+  List *borrow_record;                          // 借还次数统计
+  void (*select_callback) (ListNode* catalog);  // 选中某图书分类
 };
 
 #endif  // GUI_H_

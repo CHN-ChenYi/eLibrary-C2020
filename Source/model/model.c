@@ -1,7 +1,9 @@
 #include"model.h"
+#include"sqlite3.h"
+#include<stdio.h>
 
 int OpenDBConnection(DB* db){
-
+    
 }
 
 int CloseDBConnection(DB* db){

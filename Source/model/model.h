@@ -48,14 +48,14 @@ int CloseDBConnection(DB* db);
 
   Parameters:
   db - pointer pointing to struct DB
-  instance - pointer pointing to the model instance(book,user,record,etc...)
+  handle - pointer pointing to the handle pointer(book,user,record,etc...)
   model - see enum Model
 
   Return value:
   1 if error appears, 0 otherwise.
  */
 // return 1 if error appears, 0 otherwise.
-int Create(DB* db, void* instance, Model model);
+int Create(DB* db, void** handle, Model model);
 
 
 // Request
@@ -67,14 +67,14 @@ int Create(DB* db, void* instance, Model model);
   Parameters:
 
   db - pointer pointing to struct DB
-  instance - pointer pointing to the model instance(book,user,record,etc...)
+  handle - pointer pointing to the handle pointer(book,user,record,etc...)
   id - uid
   model - see enum Model
 
   Return value:
   DBErrno
  */
-int GetById(DB* db, void* instance, int id, Model model);
+int GetById(DB* db, void** handle, int id, Model model);
 
 /*
  Filter
@@ -84,7 +84,7 @@ int GetById(DB* db, void* instance, int id, Model model);
  Parameters:
 
  db - pointer pointing to struct DB
- instance - pointer pointing to the model instance(book,user,record,etc...)
+ list_handle - pointer pointing to the list_handle pointer(book,user,record,etc...)
  model - see enum Model
 
  queries
@@ -113,7 +113,7 @@ int GetById(DB* db, void* instance, int id, Model model);
  Return value:
  DBErrno
 */
-int Filter(DB* db, void* list, String queries, Model model);
+int Filter(DB* db, void** list_handle, String queries, Model model);
 
 /*
   GetNextPK
@@ -136,7 +136,7 @@ int GetNextPK(DB* db, Model model);
 
   Parameter:
   db - pointer pointing to struct DB
-  instance - pointer pointing to the model instance(book,user,record,etc...)
+  handle - pointer pointing to the handle pointer(book,user,record,etc...)
   id  - uid
   model - see enum Model
 
@@ -144,7 +144,7 @@ int GetNextPK(DB* db, Model model);
   DBErrno
  */
 
-int Update(DB* db, void* instance, int id, Model model);
+int Update(DB* db, void** handle, int id, Model model);
 
 // Delete
 /*

@@ -18,10 +18,9 @@ void DrawUI (Page cur_page, User* cur_user, void* info, char* terminal);
  * 顶部菜单点击
  * nav_page: 导航到哪个界面
  * cur_user: 当前登陆的界面
- *     info: 当前界面的信息  
  * terminal: 终端输出
  */
-void NavigationCallback (Page nav_page, User* cur_user, void* info, char* terminal);
+void NavigationCallback (Page nav_page, User* cur_user, char* terminal);
 
 typedef enum {
   kLendAndBorrow,       // 借还书界面
@@ -73,6 +72,7 @@ struct UserLogIn {
 /* 用户信息修改 */
 struct UserModify {
   User *user;                   // 用户信息
+  List *books;                  // 借书 
   char old_password[50];        // 旧密码
   char new_password[50];        // 新密码
   char repeat_password[50];     // 重复新密码
@@ -83,9 +83,9 @@ struct UserModify {
 
 /* 审核、修改、删除用户 */
 struct UserManagement {
-  List *to_be_verified;               // 待审核用户列表
-  List *users;                        // 已添加用户列表
-  void (*callback) (ListNode* user);  // 审核通过或者拒绝
+  List *to_be_verified;                             // 待审核用户列表
+  List *users;                                      // 已添加用户列表
+  void (*callback) (ListNode* user, bool approve);  // 审核通过或者拒绝
 };
 
 /* 图书库界面 */
@@ -94,13 +94,15 @@ struct Library {
   List *books;                              // 图书库的图书
   void (*sort_callback) ();                 // 排序按钮
   void (*book_callback) (ListNode* book);   // 图书详细信息按钮
+  void (*switch_callback) ();               // 切换模式
 };
 
 /* 图书显示、新建、修改 */
 struct BookDisplay {
-  enum {kDisplay, kInit, kModify} Type;   // 当前状态：显示/新建/删除
+  enum {kDisplay, kInit} Type;            // 当前状态：显示或修改/新建
   Book *book;                             // 当前书籍
   void (*admin_callback) ();              // 查看图书借阅次数按钮（管理员）
+  void (*delete_callback) (Book* book);   // 删除
   void (*borrow_callback) (Book* book);   // 借书按钮
 };
 
@@ -112,7 +114,9 @@ struct BorrowDisplay {
 
 /* 统计界面 */
 struct Statistics {
+  List *catalogs;                     // 图书分类
   List *borrow_record;                // 借还次数统计
+  void (*select_callback) ();         // 选中某图书分类
 };
 
 #endif  // GUI_H_

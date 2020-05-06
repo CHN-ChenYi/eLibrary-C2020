@@ -1927,8 +1927,8 @@ void DrawImage(LibImage *pImage, double x, double y, double width,
   InvalidateRect(graphicsWindow, &r, TRUE);
 }
 
-void SelectFile(const char *const filter, const char *const extension,
-                const bool new_file, char *const path, const int max_length) {
+void SelectFile(const char filter[], const char extension[],
+                const bool new_file, char path[], const int max_length) {
   OPENFILENAME ofn;  // common dialog box structure
 
   // Initialize OPENFILENAME
@@ -1949,4 +1949,25 @@ void SelectFile(const char *const filter, const char *const extension,
   // Display the Open dialog box.
   if (!GetOpenFileName(&ofn))
     Error("The user cancels or closes the file dialog box or an error occurs");
+}
+
+#include <shlobj_core.h>
+void SelectFolder(const char hint_text[], char path[]) {
+  BROWSEINFO bInfo;
+
+  // Initialize OPENFILENAME
+  memset(&bInfo, 0x00, sizeof(bInfo));
+  bInfo.hwndOwner = graphicsWindow;
+  bInfo.lpszTitle = TEXT(hint_text);
+  bInfo.ulFlags = BIF_RETURNONLYFSDIRS | BIF_DONTGOBELOWDOMAIN |
+                  BIF_NEWDIALOGSTYLE | BIF_UAHINT;
+
+  // Display the Open dialog box.
+  LPITEMIDLIST lpDlist = SHBrowseForFolder(&bInfo);
+  if (!lpDlist)
+    Error("The user chooses the cancel button in the folder dialog box");
+
+  // Convert the result into path
+  if (!SHGetPathFromIDList(lpDlist, path))
+    Error("Failed to convert an item identifier list to a file system path");
 }

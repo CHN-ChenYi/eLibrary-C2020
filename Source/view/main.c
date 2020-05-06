@@ -12,12 +12,19 @@ void Main() {
   InitConsole();
   LibImage img;
   try {
-    char path[200];
+    char path[MAX_PATH + 1];
     SelectFile("JPG image (*.jpg|*.jpeg|*.jpe)\0*.jpg;*.jpeg;*.jpe\0", "jpg",
-               FALSE, path, 200 - 1);
+               FALSE, path, MAX_PATH);
     puts(path);
     loadImage(path, &img);
     except(ErrorException) puts("oops");
   } endtry;
   Draw(img, GetWindowWidth() / 2, GetWindowHeight() / 2);
+
+  char path[MAX_PATH + 1];
+  try {
+    SelectFolder("请选择保存图书库的文件夹", path);
+    except(ErrorException) puts("oops");
+  } endtry;
+  puts(path);
 }

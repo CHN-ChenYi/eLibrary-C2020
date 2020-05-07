@@ -1,36 +1,34 @@
-#ifndef MODEL_H_
+﻿#ifndef MODEL_H_
 #define MODEL_H_
 
 #include "basictype.h"
 typedef char* String;
+
 enum DBErrno {
-      DB_SUCCESS = 0,
+  DB_SUCCESS = 0,
 
-      DB_NOT_FOUND,
-      DB_NOT_OPEN,
-      DB_FAIL_ON_WRITING,
-      DB_NOT_EXISTS,
-      DB_ALREADY_EXISTS,
+  DB_NOT_FOUND,
+  DB_NOT_OPEN,
+  DB_FAIL_ON_WRITING,
+  DB_NOT_EXISTS,
+  DB_ALREADY_EXISTS,
 
-      DB_FAIL
+  DB_FAIL
 };
-enum Model{
-      Book = 0,
-      User,
-      BorrowRecord
-};
-typedef enum Model Model;
+typedef enum Model { BOOK = 0, USER, BORROWRECORD } Model;
 
-struct DB{
-      String filename; // described in https://www.hwaci.com/sw/sqlite/c3ref/open.html#urifilenameexamples
-};
-typedef struct DB DB;
+typedef struct DB {
+  // described in
+  // https://www.hwaci.com/sw/sqlite/c3ref/open.html#urifilenameexamples
+  String filename;
+} DB;
 // Open and close the DB.
 /*
   Open(Close)DBConnection
 
   It's used to open(close) the DB.
-  You should call the open function when you want to access to the DB, then close it when you don't need to.
+  You should call the open function when you want to access to the DB, then
+  close it when you don't need to.
 
   Parameters:
   struct DB pointer
@@ -57,9 +55,11 @@ int CloseDBConnection(DB* db);
 // return 1 if error appears, 0 otherwise.
 int Create(DB* db, void** handle, Model model);
 
-
 // Request
-// For many functions in this section, the first parameter is the pointer pointing to the actual instance in memory(the item you want) and will be free when the DB is closed in order to prevent memory leakage. As a result, you should not access to these instances after the DB is closed.
+// For many functions in this section, the first parameter is the pointer
+// pointing to the actual instance in memory(the item you want) and will be free
+// when the DB is closed in order to prevent memory leakage. As a result, you
+// should not access to these instances after the DB is closed.
 /*
   GetById
   It's used to get data by it's id. The faster way to retrieve data.
@@ -84,8 +84,8 @@ int GetById(DB* db, void** handle, int id, Model model);
  Parameters:
 
  db - pointer pointing to struct DB
- list_handle - pointer pointing to the list_handle pointer(book,user,record,etc...)
- model - see enum Model
+ list_handle - pointer pointing to the list_handle
+ pointer(book,user,record,etc...) model - see enum Model
 
  queries
 
@@ -96,7 +96,8 @@ int GetById(DB* db, void** handle, int id, Model model);
  "gender=male"
 
  Ex 2.
- Assume we want to get books that are published by "Cambridge" on March 17, 2013, and have one of the keyword "Math":
+ Assume we want to get books that are published by "Cambridge" on March 17,
+ 2013, and have one of the keyword "Math":
  "press=Cambridge&keyword=Math&published_date=2013-03-17"
 
  Ex 3.
@@ -107,8 +108,8 @@ int GetById(DB* db, void** handle, int id, Model model);
  You can also add a ;(semicolon) in front of the = for case-insensitive search.
 
  Ex 4.
- Assume we want to get books that are published by O Reilly and related to C(so you might get books about C/C++/C#/Objective-C!)
- "press=O Reilly&keyword;=C"
+ Assume we want to get books that are published by O Reilly and related to C(so
+ you might get books about C/C++/C#/Objective-C!) "press=O Reilly&keyword;=C"
 
  Return value:
  DBErrno
@@ -117,7 +118,8 @@ int Filter(DB* db, void** list_handle, String queries, Model model);
 
 /*
   GetNextPK
-  It's used to get The smallest prime key that isn't mapped to a row in database.
+  It's used to get The smallest prime key that isn't mapped to a row in
+  database.
 
   Parameter:
   db - pointer pointing to struct DB
@@ -161,4 +163,4 @@ int Update(DB* db, void** handle, int id, Model model);
 */
 
 int Delete(DB* db, int id, Model model);
-#endif // MODEL_H_
+#endif  // MODEL_H_

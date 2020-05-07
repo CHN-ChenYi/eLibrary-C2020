@@ -1,4 +1,4 @@
-#ifndef BASICTYPE_H_
+﻿#ifndef BASICTYPE_H_
 #define BASICTYPE_H_
 
 #include <stdint.h>

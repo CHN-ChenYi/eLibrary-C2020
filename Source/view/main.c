@@ -1,4 +1,4 @@
-#include "exception.h"
+ï»¿#include "exception.h"
 #include "genlib.h"
 #include "graphics.h"
 
@@ -23,7 +23,7 @@ void Main() {
 
   char path[MAX_PATH + 1];
   try {
-    SelectFolder("ÇëÑ¡Ôñ±£´æÍ¼Êé¿âµÄÎÄ¼ş¼Ğ", path);
+    SelectFolder("è¯·é€‰æ‹©ä¿å­˜å›¾ä¹¦åº“çš„æ–‡ä»¶å¤¹", path);
     except(ErrorException) puts("oops");
   } endtry;
   puts(path);

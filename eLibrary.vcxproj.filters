@@ -40,9 +40,6 @@
     <ClCompile Include="Source\libgraphics\strlib.c">
       <Filter>Source\libgraphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\template\placeholder.c">
-      <Filter>Source\template</Filter>
-    </ClCompile>
     <ClCompile Include="Source\view\main.c">
       <Filter>Source\view</Filter>
     </ClCompile>
@@ -89,6 +86,9 @@
     </ClInclude>
     <ClInclude Include="Source\view\hash.h">
       <Filter>Source\view</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\template\gui.h">
+      <Filter>Source\template</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

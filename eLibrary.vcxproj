@@ -26,6 +26,7 @@
     <ClCompile Include="Source\libgraphics\simpio.c" />
     <ClCompile Include="Source\libgraphics\strlib.c" />
     <ClCompile Include="Source\model\list.c" />
+    <ClCompile Include="Source\model\model.c" />
     <ClCompile Include="Source\view\hash.c" />
     <ClCompile Include="Source\view\main.c" />
   </ItemGroup>

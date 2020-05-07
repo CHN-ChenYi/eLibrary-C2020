@@ -11,11 +11,10 @@ static inline void CombineListNode(ListNode *const left,
   right->pre = left;
 }
 
-List *NewList(const size_t size_of_value) {
+List *NewList() {
   List *list = (List *)malloc(sizeof(List));
   if (!list) Error("Malloc failed in NewList");
   list->size = 0;
-  list->size_of_value = size_of_value;
   list->dummy_head = (ListNode *)malloc(sizeof(ListNode));
   if (!list->dummy_head) Error("Malloc failed in NewList");
   list->dummy_tail = (ListNode *)malloc(sizeof(ListNode));

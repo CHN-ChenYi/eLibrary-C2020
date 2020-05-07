@@ -1920,4 +1920,54 @@ void DrawImage(LibImage *pImage, double x, double y, double width,
   StretchBlt(osdc, px_x, px_y, px_width, px_height, hbitmapdc, 0, 0,
              pImage->width, pImage->height, SRCCOPY);
   DeleteDC(hbitmapdc);
+
+  // fflush
+  RECT r;
+  SetLineBB(&r, x, y, width, height);
+  InvalidateRect(graphicsWindow, &r, TRUE);
+}
+
+void SelectFile(const char filter[], const char extension[],
+                const bool new_file, char path[], const int max_length) {
+  OPENFILENAME ofn;  // common dialog box structure
+
+  // Initialize OPENFILENAME
+  memset(&ofn, 0x00, sizeof(ofn));
+  ofn.lStructSize = sizeof(ofn);
+  ofn.hwndOwner = graphicsWindow;
+  ofn.lpstrFile = path;
+  // Set lpstrFile[0] to '\0' so that GetOpenFileName does not
+  // use the contents of szFile to initialize itself.
+  ofn.lpstrFile[0] = '\0';
+  ofn.nMaxFile = max_length;
+  ofn.lpstrFilter = filter;
+  ofn.nFilterIndex = 1;
+  ofn.lpstrDefExt = extension;
+  ofn.Flags = OFN_PATHMUSTEXIST | OFN_NONETWORKBUTTON | OFN_EXTENSIONDIFFERENT;
+  if (!new_file) ofn.Flags |= OFN_FILEMUSTEXIST;
+
+  // Display the Open dialog box.
+  if (!GetOpenFileName(&ofn))
+    Error("The user cancels or closes the file dialog box or an error occurs");
+}
+
+#include <shlobj_core.h>
+void SelectFolder(const char hint_text[], char path[]) {
+  BROWSEINFO bInfo;
+
+  // Initialize OPENFILENAME
+  memset(&bInfo, 0x00, sizeof(bInfo));
+  bInfo.hwndOwner = graphicsWindow;
+  bInfo.lpszTitle = TEXT(hint_text);
+  bInfo.ulFlags = BIF_RETURNONLYFSDIRS | BIF_DONTGOBELOWDOMAIN |
+                  BIF_NEWDIALOGSTYLE | BIF_UAHINT;
+
+  // Display the Open dialog box.
+  LPITEMIDLIST lpDlist = SHBrowseForFolder(&bInfo);
+  if (!lpDlist)
+    Error("The user chooses the cancel button in the folder dialog box");
+
+  // Convert the result into path
+  if (!SHGetPathFromIDList(lpDlist, path))
+    Error("Failed to convert an item identifier list to a file system path");
 }

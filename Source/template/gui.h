@@ -25,7 +25,8 @@ void NavigationCallback(Page nav_page, User *cur_user, char *terminal);
 typedef enum {
   kWelcome,         // 欢迎界面
   kLendAndBorrow,   // 借还书
-  kSearch,          // 搜索
+  kBookSearch,      // 图书搜索
+  kUserSearch,      // 用户搜索（管理员）
   kManual,          // 帮助
   kAbout,           // 关于
   kUserRegister,    // 用户注册
@@ -46,17 +47,26 @@ typedef enum {
 
 /* 借书还书界面 */
 struct LendAndBorrow {
-  List *book_list;                          // 待还书列表
+  List *books;                              // 待还书列表
+  List *borrow_records;                     // 记录还书日期
   void (*search_callback)(char *keyword);   // 搜索按钮
   void (*return_callback)(ListNode *book);  // 还书按钮
 };
 
-/* 搜索界面 */
-struct Search {
+/* 图书搜索界面 */
+struct BookSearch {
   char *keyword;                           // 搜索关键词
-  List *search_result;                     // 结果链表
+  List *book_result;                       // 结果链表
   void (*search_callback)(char *keyword);  // 搜索按钮
   void (*borrow_callback)(Book *book);     // 借书按钮
+};
+
+/* 用户搜索界面 */
+struct UserSearch {
+  char *keyword;                           // 搜索关键词
+  List *user_result;                       // 结果链表
+  void (*search_callback)(char *keyword);  // 搜索按钮
+  void (*info_callback)(User *user);       // 用户详细信息按钮
 };
 
 /* 用户手册/关于界面 */
@@ -82,7 +92,6 @@ struct UserModify {
   char new_password[50];       // 新密码
   char repeat_password[50];    // 重复新密码
   void (*confirm_callback)();  // 确认按钮
-  void (*admin_callback)();    // 管理员修改他人账户按钮
 };
 
 /* 审核、修改、删除用户 */
@@ -95,10 +104,11 @@ struct UserManagement {
 
 /* 图书库界面 */
 struct Library {
-  enum { kPicture, kList } Type;          // 图片模式还是列表模式
-  List *books;                            // 图书库的图书
+  enum { kPicture, kList } Type;  // 图片模式还是列表模式
+  typedef enum { kId, kTitle, kAuthor } SortKeyword;  // 排序关键字
+  List *books;                                        // 图书库的图书
   List *book_covers;                      // 图书库的书的封面
-  void (*sort_callback)();                // 排序按钮
+  void (*sort_callback)(SortKeyword);     // 排序按钮
   void (*book_callback)(ListNode *book);  // 图书详细信息按钮
   void (*switch_callback)();              // 切换模式
 };

@@ -63,9 +63,10 @@ struct BookSearch {
 
 /* 用户搜索界面 */
 struct UserSearch {
-  char *keyword;                      // 搜索关键词
-  List *user_result;                  // 结果链表
-  void (*info_callback)(User *user);  // 用户详细信息按钮
+  char *keyword;                           // 搜索关键词
+  List *user_result;                       // 结果链表
+  void (*search_callback)(char *keyword);  // 搜索按钮
+  void (*info_callback)(User *user);       // 用户详细信息按钮
 };
 
 /* 用户手册/关于界面 */

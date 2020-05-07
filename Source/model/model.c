@@ -1,35 +1,20 @@
-#include"model.h"
-#include"sqlite3.h"
+﻿#include"model.h"
 #include<stdio.h>
 
-int OpenDBConnection(DB* db){
-    
+int OpenDBConnection(DB* db) { return 0; }
+
+int CloseDBConnection(DB* db) { return 0; }
+
+int Create(DB* db, void** handle, Model model) { return 0; }
+
+int GetById(DB* db, void** handle, int id, Model model) { return 0; }
+
+int Filter(DB* db, void** list_handle, String queries, Model model) {
+  return 0;
 }
 
-int CloseDBConnection(DB* db){
+int GetNextPK(DB* db, Model model) { return 0; }
 
-}
+int Update(DB* db, void** handle, int id, Model model) { return 0; }
 
-int Create(DB* db, void* instance, Model model){
-
-}
-
-int GetById(DB* db, void* instance, int id, Model model){
-
-}
-
-int Filter(DB* db, void* list, String queries, Model model){
-
-}
-
-int GetNextPK(DB* db, Model model){
-
-}
-
-int Update(DB* db, void* instance, int id, Model model){
-
-}
-
-int Delete(DB* db, int id, Model model){
-
-}
+int Delete(DB* db, int id, Model model) { return 0; }

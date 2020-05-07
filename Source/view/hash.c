@@ -1,4 +1,4 @@
-#include "hash.h"
+﻿#include "hash.h"
 #include "exception.h"
 
 #include <string.h>

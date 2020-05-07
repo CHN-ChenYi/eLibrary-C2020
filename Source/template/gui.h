@@ -1,28 +1,11 @@
-#include "basictype.h"
+﻿#include "basictype.h"
 #include "graphics.h"
 #include "list.h"
 
 #ifndef GUI_H_
 #define GUI_H_
 
-/*
- * 界面绘制函数
- * cur_page: 当前界面（当前的用户
- * cur_user: 当前登陆的用户（若为NULL，则未登录）
- *     info: 一个结构体指针，其类型由cur_page决定
- * terminal: 终端输出
- */
-void DrawUI(Page cur_page, User *cur_user, void *info, char *terminal);
-
-/*
- * 顶部菜单点击
- * nav_page: 导航到哪个界面
- * cur_user: 当前登陆的界面
- * terminal: 终端输出
- */
-void NavigationCallback(Page nav_page, User *cur_user, char *terminal);
-
-typedef enum {
+typedef enum Page {
   kWelcome,         // 欢迎界面
   kLendAndBorrow,   // 借还书
   kBookSearch,      // 图书搜索
@@ -44,6 +27,23 @@ typedef enum {
   kStatistics,      // 统计
   kReturn           // 回到上一个界面
 } Page;
+
+/*
+ * 界面绘制函数
+ * cur_page: 当前界面（当前的用户
+ * cur_user: 当前登陆的用户（若为NULL，则未登录）
+ *     info: 一个结构体指针，其类型由cur_page决定
+ * terminal: 终端输出
+ */
+void DrawUI(Page cur_page, User *cur_user, void *info, char *terminal);
+
+/*
+ * 顶部菜单点击
+ * nav_page: 导航到哪个界面
+ * cur_user: 当前登陆的界面
+ * terminal: 终端输出
+ */
+void NavigationCallback(Page nav_page, User *cur_user, char *terminal);
 
 /* 借书还书界面 */
 struct LendAndBorrow {
@@ -71,7 +71,6 @@ struct UserSearch {
 
 /* 用户手册/关于界面 */
 struct ManualAndAbout {
-  enum { kManual, kAbout } Type;  // 用户手册/关于
   char *title;
   char *content;
 };
@@ -103,14 +102,14 @@ struct UserManagement {
 };
 
 /* 图书库界面 */
+typedef enum SortKeyword { kId, kTitle, kAuthor } SortKeyword;  // 关键字列表
 struct Library {
   enum { kPicture, kList } Type;  // 图片模式还是列表模式
-  typedef enum { kId, kTitle, kAuthor } SortKeyword;  // 排序关键字
-  List *books;                                        // 图书库的图书
-  List *book_covers;                      // 图书库的书的封面
-  void (*sort_callback)(SortKeyword);     // 排序按钮
-  void (*book_callback)(ListNode *book);  // 图书详细信息按钮
-  void (*switch_callback)();              // 切换模式
+  List *books;                    // 图书库的图书
+  List *book_covers;              // 图书库的书的封面
+  void (*sort_callback)(SortKeyword sortkeyword);  // 排序按钮
+  void (*book_callback)(ListNode *book);           // 图书详细信息按钮
+  void (*switch_callback)();                       // 切换模式
 };
 
 /* 图书显示、新建、修改 */

@@ -1,4 +1,4 @@
-﻿#ifndef GUI_H_
+﻿﻿#ifndef GUI_H_
 #define GUI_H_
 
 #include "basictype.h"
@@ -114,12 +114,13 @@ typedef struct Library {
 
 /* 图书显示、新建、修改 */
 typedef struct BookDisplay {
-  Book *book;                // 当前书籍
-  LibImage book_cover;       // 当前书籍封面
-  void (*admin_callback)();  // 查看图书借阅次数按钮（管理员）
-  void (*cover_callback)();  // 修改图书封面
-  void (*delete_callback)(Book *book);  // 删除
-  void (*borrow_callback)(Book *book);  // 借书按钮
+  Book *book;                  // 当前书籍
+  LibImage book_cover;         // 当前书籍封面
+  void (*admin_callback)();    // 查看图书借阅次数按钮（管理员）
+  void (*cover_callback)();    // 修改图书封面
+  void (*confirm_callback)();  // 确认按钮
+  void (*delete_callback)();   // 删除
+  void (*borrow_callback)();   // 借书按钮
 } BookDisplay;
 
 /* 图书借还界面显示 */

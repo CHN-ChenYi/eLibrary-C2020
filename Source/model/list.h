@@ -17,10 +17,12 @@ typedef struct List {
 List *NewList();
 
 // Free the list
-void DeleteList(const List *const list);
+// using void Free(void *const value) to free the pointers in the value
+void DeleteList(const List *const list, void (*Free)(void *const value));
 
 // Erases all elements from the list
-void ClearList(List *const list);
+// using void Free(void *const value) to free the pointers in the value
+void ClearList(List *const list, void (*Free)(void *const value));
 
 // Inserts elements before pos, returns a pointer points to the inserted node
 // Note that the value may be freed during the operation of list,
@@ -29,7 +31,9 @@ const ListNode *InsertList(List *const list, ListNode *const pos,
                            void *const value);
 
 // Erases node and returns a pointer points to the node after it
-const ListNode *EraseList(List *const list, const ListNode *const node);
+// using void Free(void *const value) to free the pointers in the value
+const ListNode *EraseList(List *const list, const ListNode *const node,
+                          void (*Free)(void *const value));
 
 // Sorts the list in the specified cmp function which returns whether lhs <= rhs
 // Note that iterators remain valid after sorting

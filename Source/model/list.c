@@ -25,16 +25,16 @@ List *NewList() {
   return list;
 }
 
-void DeleteList(const List *const list) {
-  ClearList((List *const)list);
+void DeleteList(const List *const list, void (*Free)(void *const value)) {
+  ClearList((List *const)list, Free);
   free(list->dummy_head);
   free(list->dummy_tail);
   free((void *)list);
 }
 
-void ClearList(List *const list) {
+void ClearList(List *const list, void (*Free)(void *const value)) {
   const ListNode *now = list->dummy_head->nxt;
-  while (now != list->dummy_tail) now = EraseList(list, now);
+  while (now != list->dummy_tail) now = EraseList(list, now, Free);
   list->size = 0;
 }
 
@@ -50,12 +50,14 @@ const ListNode *InsertList(List *const list, ListNode *const pos,
   return new_node;
 }
 
-const ListNode *EraseList(List *const list, const ListNode *const node) {
+const ListNode *EraseList(List *const list, const ListNode *const node,
+                          void (*Free)(void *const value)) {
   if (node == list->dummy_head) Error("Can't erase dummy_head");
   if (node == list->dummy_tail) Error("Can't erase dummy_tail");
   const ListNode *ret = node->nxt;
   CombineListNode(node->pre, node->nxt);
   list->size--;
+  if (Free) Free(node->value);
   free(node->value);
   free((void *)node);
   return ret;

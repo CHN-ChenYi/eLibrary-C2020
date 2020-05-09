@@ -43,7 +43,7 @@ void DrawUI(Page cur_page, User *cur_user, void *info, char *terminal);
  * cur_user: 当前登陆的界面
  * terminal: 终端输出
  */
-void NavigationCallback(Page nav_page, User *cur_user, char *terminal);
+void NavigationCallback(Page nav_page, User *cur_user);
 
 /* 借书还书界面 */
 typedef struct LendAndBorrow {
@@ -135,5 +135,19 @@ typedef struct Statistics {
   List *borrow_record;                         // 借还次数统计
   void (*select_callback)(ListNode *catalog);  // 选中某图书分类
 } Statistics;
+
+typedef union State {
+  LendAndBorrow *lend_and_borrow;
+  BookSearch *book_search;
+  UserSearch *user_search;
+  ManualAndAbout *manual_and_about;
+  LoginOrRegister *login_or_register;
+  UserModify *user_modify;
+  UserManagement *user_management;
+  Library *library;
+  BookDisplay *book_display;
+  BorrowDisplay *borrow_display;
+  Statistics *statistics;
+} State;
 
 #endif  // GUI_H_

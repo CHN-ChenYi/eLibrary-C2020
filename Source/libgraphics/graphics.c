@@ -325,15 +325,22 @@ void InitGraphics(void) {
   InitGraphicsState();
 }
 
-void MovePen(double x, double y) {
+/*
+ * Note MovePen & Drawline has been modified
+ * to make them consistent with wingdi
+ */
+
+void MovePen(int x, int y) {
   InitCheck();
   if (regionState == RegionActive) regionState = PenHasMoved;
-  cx = x;
-  cy = y;
+  cx = InchesX(x);
+  cy = GetWindowsHeight() - InchesY(y);
 }
 
-void DrawLine(double dx, double dy) {
+void DrawLine(int pdx, int pdy) {
   InitCheck();
+  double dx = InchesX(pdx);
+  double dy = -InchesY(pdy);
   switch (regionState) {
     case NoRegion:
       DisplayLine(cx, cy, dx, dy);
@@ -2034,14 +2041,4 @@ void DrawShadedRectangle(ColorPoint* lower_right, ColorPoint* upper_left) {
   gRect.UpperLeft = 1;
 
   GradientFill(osdc, vertex, 2, &gRect, 1, GRADIENT_FILL_RECT_H);
-}
-
-// convert x cordinate to pixels consistent with wingdi
-int ConvertX(double x) {
-  return PixelsX(x);
-}
-
-// convert y cordinate to pixels consistend with wingdi
-int ConvertY(double y) {
-  return PixelsY(GetWindowHeight() - y);
 }

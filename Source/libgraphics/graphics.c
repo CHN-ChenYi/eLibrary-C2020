@@ -325,38 +325,6 @@ void InitGraphics(void) {
   InitGraphicsState();
 }
 
-/*
- * Note MovePen & Drawline has been modified
- * to make them consistent with wingdi
- */
-
-void MovePen(int x, int y) {
-  InitCheck();
-  if (regionState == RegionActive) regionState = PenHasMoved;
-  cx = InchesX(x);
-  cy = GetWindowsHeight() - InchesY(y);
-}
-
-void DrawLine(int pdx, int pdy) {
-  InitCheck();
-  double dx = InchesX(pdx);
-  double dy = -InchesY(pdy);
-  switch (regionState) {
-    case NoRegion:
-      DisplayLine(cx, cy, dx, dy);
-      break;
-    case RegionStarting:
-    case RegionActive:
-      DisplayLine(cx, cy, dx, dy);
-      regionState = RegionActive;
-      break;
-    case PenHasMoved:
-      Error("Region segments must be contiguous");
-  }
-  cx += dx;
-  cy += dy;
-}
-
 void DrawArc(double r, double start, double sweep) {
   DrawEllipticalArc(r, r, start, sweep);
 }
@@ -378,6 +346,39 @@ double GetWindowHeight(void) {
   windowHeight = InchesY(height);
   return (windowHeight);
 }
+
+/*
+ * Note MovePen & Drawline has been modified
+ * to make them consistent with wingdi
+ */
+
+void MovePen(int x, int y) {
+  InitCheck();
+  if (regionState == RegionActive) regionState = PenHasMoved;
+  cx = InchesX(x);
+  cy = GetWindowHeight() - InchesY(y);
+}
+
+void DrawLine(int pdx, int pdy) {
+  InitCheck();
+  double dx = InchesX(pdx);
+  double dy = -InchesY(pdy);
+  switch (regionState) {
+  case NoRegion:
+    DisplayLine(cx, cy, dx, dy);
+    break;
+  case RegionStarting:
+  case RegionActive:
+    DisplayLine(cx, cy, dx, dy);
+    regionState = RegionActive;
+    break;
+  case PenHasMoved:
+    Error("Region segments must be contiguous");
+  }
+  cx += dx;
+  cy += dy;
+}
+
 
 double GetCurrentX(void) {
   InitCheck();

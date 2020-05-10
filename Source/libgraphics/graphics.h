@@ -66,7 +66,7 @@ void InitConsole(void);
  * then moved to its new position.
  */
 
-void MovePen(double x, double y);
+void MovePen(int x, int y);
 
 /*
  * Function: DrawLine
@@ -78,7 +78,7 @@ void MovePen(double x, double y);
  * becomes the new current point.
  */
 
-void DrawLine(double dx, double dy);
+void DrawLine(int pdx, int pdy);
 
 /*
  * Function: DrawArc

@@ -31,5 +31,24 @@ typedef struct InputBox {
 void DrawButton(Button* button, int mouse_x, int highlight);
 void DrawInputBox(InputBox* input_box, int highlight);
 
+/* Event handlers */
+void MouseMoveEventHandler(int x, int y, int mouse_button, int event);
+
 /* Others */
 Color ColorConvert(char* color, double alpha);
+
+/* Singly linked circular list for components */
+typedef struct ComponentListNode* PTCNode;
+typedef enum { kButton, kInput } TypeOfComp;
+struct ComponentListNode {
+  TypeOfComp type;  // The type of the component
+  void* component;  // pointer to the component
+  PTCNode next;
+};
+
+typedef PTCNode CompList;
+
+void InitComponents();
+void InsertComp(void* component, TypeOfComp type);
+void FreeCompList();
+void DrawComponents();

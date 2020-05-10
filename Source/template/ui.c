@@ -1,6 +1,7 @@
 #include "gui.h"
 #include "ui.h"
 #include "graphics.h"
+#include "extgraph.h"
 #include <wingdi.h>
 #include <Windows.h>
 
@@ -22,31 +23,18 @@ Color ColorConvert(char* color, double alpha) {
 }
 /* End of color handling */
 
-/* Handle the difference between scale & pixels */
-
-int ScaleToPixelX(double x) {
-  return 
-}
-
 /* Singly linked circular list for components */
-typedef struct ComponentListNode* PTCNode;
-typedef enum {kButton, kInput} TypeOfComp;
-struct ComponentListNode {
-  TypeOfComp type;  // The type of the component
-  void* component;  // pointer to the component
-  PTCNode next;
-};
 
-typedef PTCNode CompList;
 static PTCNode Focus;
+static CompList cur_list;  // The list of all the components on the current page.
 
 // Add a new component into the list
-void InsertComp(void* component, TypeOfComp type, CompList L) {
+void InsertComp(void* component, TypeOfComp type) {
   PTCNode new_node = (PTCNode)malloc(sizeof(struct ComponentListNode));
   new_node->component = component;
   new_node->type = type;
-  new_node->next = L->next;
-  L->next = new_node;
+  new_node->next = cur_list->next;
+  cur_list->next = new_node;
 }
 
 // Make a new list
@@ -59,13 +47,19 @@ CompList NewCompList() {
 }
 
 // Free the list
-void FreeCompList(CompList L) {
-  for (PTCNode p = L, next = L->next; p != NULL; p = next, next = p->next) {
+void FreeCompList() {
+  for (PTCNode p = cur_list, next = cur_list->next; p != NULL; p = next, next = p->next) {
     free(p);
   }
 }
 
-CompList cur_list;  // The list of all the components on the current page.
+void InitComponents() {
+  if (cur_list != NULL) {
+    FreeCompList(cur_list);
+  }
+  cur_list = NewCompList();
+  Focus = cur_list;
+}
 
 /* End of linked list */
 
@@ -76,7 +70,9 @@ CompList cur_list;  // The list of all the components on the current page.
  */
 
 // Move focus to the next components
-void MoveFocus() { Focus = Focus->next; }
+void MoveFocus() {
+  Focus = Focus->next;
+}
 
 int Inbox(int x, int y, Rect* rect) {
   if (rect->left >= x) return 0;
@@ -88,21 +84,21 @@ int Inbox(int x, int y, Rect* rect) {
 
 // Handle the mouse movement on components
 void MouseMoveEventHandler(int x, int y, int mouse_button, int event) {
+  Rect* rect = NULL;
+  Button* button = NULL;
+  InputBox* input_box = NULL;
   for (PTCNode p = cur_list->next; p != cur_list; p = p->next) {
-    Rect* rect;
-    Button* button;
-    InputBox* input_box;
     switch (p->type) {
       case kButton:
         button = (Button*)p->component;
-        rect = &button->position;
+        rect = &(button->position);
         if (Inbox(x, y, rect)) {
           DrawButton(button, x, 1);
         }
         break;
       case kInput:
         input_box = (InputBox*)p->component;
-        rect = &input_box->position;
+        rect = &(input_box->position);
         if (Inbox(x, y, rect)) {
           DrawInputBox(input_box, 1);
         }
@@ -130,5 +126,30 @@ void DrawButton(Button* button, int mouse_x, int highlight) {
 }
 
 void DrawInputBox(InputBox* input_box, int highlight) {
-  
+  MovePen(input_box->position.left, input_box->position.top);
+  if (highlight) {
+    SetPenSize(1);
+    SetPenColor("red");
+  } else {
+    SetPenSize(1);
+    SetPenColor("black");
+  }
+  SetPenSize(1);
+  DrawLine(input_box->position.right - input_box->position.left, 0);
+  DrawLine(0, input_box->position.bottom - input_box->position.top);
+  DrawLine(input_box->position.left - input_box->position.right, 0);
+  DrawLine(0, input_box->position.top - input_box->position.bottom);
+}
+
+void DrawComponents() {
+  for (PTCNode p = cur_list->next; p != cur_list; p = p->next) {
+    switch (p->type) {
+      case kButton:
+        DrawButton((Button*)p->component, -1, 0);
+        break;
+      case kInput:
+        DrawInputBox((InputBox*)p->component, 0);
+        break;
+    }
+  }
 }

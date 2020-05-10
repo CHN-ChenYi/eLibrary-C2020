@@ -186,7 +186,6 @@ typedef struct {
   int height;
 } LibImage;
 
-/* return -1 when there's an exception */
 void loadImage(const char *image, LibImage *mapbuf);
 
 void DrawImage(LibImage *pImage, double x, double y, double width,

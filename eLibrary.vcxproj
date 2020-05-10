@@ -27,6 +27,7 @@
     <ClCompile Include="Source\libgraphics\strlib.c" />
     <ClCompile Include="Source\model\list.c" />
     <ClCompile Include="Source\model\model.c" />
+    <ClCompile Include="Source\template\ui.c" />
     <ClCompile Include="Source\view\hash.c" />
     <ClCompile Include="Source\view\main.c" />
     <ClCompile Include="Source\view\view.c" />
@@ -44,6 +45,7 @@
     <ClInclude Include="Source\model\list.h" />
     <ClInclude Include="Source\model\model.h" />
     <ClInclude Include="Source\template\gui.h" />
+    <ClInclude Include="Source\template\ui.h" />
     <ClInclude Include="Source\view\hash.h" />
     <ClInclude Include="Source\view\view.h" />
   </ItemGroup>

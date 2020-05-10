@@ -1971,3 +1971,77 @@ void SelectFolder(const char hint_text[], char path[]) {
   if (!SHGetPathFromIDList(lpDlist, path))
     Error("Failed to convert an item identifier list to a file system path");
 }
+
+#pragma comment(lib, "MSImg32")
+#include "ui.h"
+
+void DrawShadedTriangle(ColorPoint* A, ColorPoint* B, ColorPoint* C) {
+  // Create an array of TRIVERTEX structures that describe 
+  // positional and color values for each vertex given.
+
+  TRIVERTEX vertex[3];
+  vertex[0].x     = A->x;
+  vertex[0].y     = A->y;
+  vertex[0].Red   = A->color.R;
+  vertex[0].Green = A->color.G;
+  vertex[0].Blue  = A->color.B;
+  vertex[0].Alpha = A->color.Alpha;
+
+  vertex[1].x     = B->x;
+  vertex[1].y     = B->y; 
+  vertex[1].Red   = B->color.R;
+  vertex[1].Green = B->color.G;
+  vertex[1].Blue  = B->color.B;
+  vertex[1].Alpha = B->color.Alpha;
+
+  vertex[2].x     = C->x;
+  vertex[2].y     = C->y;
+  vertex[2].Red   = C->color.R;
+  vertex[2].Green = C->color.G;
+  vertex[2].Blue  = C->color.B;
+  vertex[2].Alpha = C->color.Alpha;
+
+  // Create a GRADIENT_RECT structure that 
+  // references the TRIVERTEX vertices. 
+  GRADIENT_TRIANGLE gTri;
+  gTri.Vertex1 = 0;
+  gTri.Vertex2 = 1;
+  gTri.Vertex3 = 2;
+
+  // Draw a shaded triangle. 
+  GradientFill(osdc, vertex, 3, &gTri, 1, GRADIENT_FILL_TRIANGLE);
+}
+
+// Draw a shaded Rectangle with its lower right corner & upperleft corner given
+void DrawShadedRectangle(ColorPoint* lower_right, ColorPoint* upper_left) {
+  TRIVERTEX vertex[2];
+  vertex[0].x = lower_right->x;
+  vertex[0].y = lower_right->y;
+  vertex[0].Red = lower_right->color.R;
+  vertex[0].Green = lower_right->color.G;
+  vertex[0].Blue = lower_right->color.B;
+  vertex[0].Alpha = lower_right->color.Alpha;
+
+  vertex[1].x = upper_left->x;
+  vertex[1].y = upper_left->y;
+  vertex[1].Red = upper_left->color.R;
+  vertex[1].Green = upper_left->color.G;
+  vertex[1].Blue = upper_left->color.B;
+  vertex[1].Alpha = upper_left->color.Alpha;
+
+  GRADIENT_RECT gRect;
+  gRect.LowerRight = 0;
+  gRect.UpperLeft = 1;
+
+  GradientFill(osdc, vertex, 2, &gRect, 1, GRADIENT_FILL_RECT_H);
+}
+
+// convert x cordinate to pixels consistent with wingdi
+int ConvertX(double x) {
+  return PixelsX(x);
+}
+
+// convert y cordinate to pixels consistend with wingdi
+int ConvertY(double y) {
+  return PixelsY(GetWindowHeight() - y);
+}

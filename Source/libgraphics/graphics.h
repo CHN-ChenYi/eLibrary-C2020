@@ -207,4 +207,10 @@ void SelectFile(const char filter[], const char extension[],
 // path[] must be at least MAX_PATH characters in size
 void SelectFolder(const char hint_text[], char path[]);
 
+#include "ui.h"
+// Draw a shaded trangle decided by the three vertices A, B, C
+void DrawShadedTriangle(ColorPoint* A, ColorPoint* B, ColorPoint* C);
+// Draw a shaded rectangle decided by the lower left point and the upper right point.
+void DrawShadedRectangle(ColorPoint* A, ColorPoint* B);
+
 #endif

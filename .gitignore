@@ -3,3 +3,4 @@ Debug/
 Release/
 .vs/
 .vscode/
+*.log

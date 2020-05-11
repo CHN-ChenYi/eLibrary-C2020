@@ -1906,6 +1906,12 @@ void loadImage(const char *image, LibImage *mapbuf) {
 
 void DrawImage(LibImage *pImage, double x, double y, double width,
                double height) {
+  if (!pImage) {
+    Error("Can't draw a null image");
+    return;
+  }
+  if (pImage->height == 0 && pImage->width == 0)
+    return;
   HDC hbitmapdc;
   int px_width, px_height, px_x, px_y;
   px_width = PixelsX(width);

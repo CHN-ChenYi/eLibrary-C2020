@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "gui.h"
 #include "list.h"
@@ -22,9 +23,25 @@ static User user;
 static char lib_path[MAX_PATH + 1];
 static size_t lib_path_len, username_len;
 static DB book_db, user_db, borrowrecord_db;
+static FILE *log_file;
+
+inline void Log(char *const msg) {
+  time_t cur_time = time(0);
+  char *time = asctime(gmtime(&cur_time));
+  size_t len = strlen(time);
+  while (len && (time[len - 1] == '\r' || time[len - 1] == '\n'))
+    time[--len] = '\0';
+  // As DST is not always one hour, calculating loacl time zone is expensive
+  // So we choose to output UTC time
+  fprintf(log_file, "[%s UTC] %s\n", time, msg);
+}
 
 void Init() {
+  InitConsole();
+  InitGraphics();
   history_list = NewList();
+  fopen_s(&log_file, ".\\eLibrary.log", "a+");
+  Log("[Info] Start");
   DrawUI(kWelcome, &user, NULL, "");
 }
 
@@ -32,7 +49,7 @@ static inline History *const HistoryTop() {
   return (History*)history_list->dummy_tail->pre->value;
 }
 
-static inline void HistoryPushBack(History *new_history) {
+static inline void HistoryPushBack(History *const new_history) {
   InsertList(history_list, history_list->dummy_tail, new_history);
   while (history_list->size > HISTORY_MAX)
     EraseList(history_list, history_list->dummy_head->nxt,
@@ -81,8 +98,8 @@ static void BookDisplay_CoverCallback() {
     SelectFile("JPG image (*.jpg|*.jpeg|*.jpe)\0*.jpg;*.jpeg;*.jpe\0", "jpg",
                FALSE, image_path, MAX_PATH);
     except(ErrorException) {
-      char *msg = malloc(sizeof(char) * (25 + username_len));
-      sprintf(msg, "%s: Fail to open the image", user.username);
+      char *msg = malloc(sizeof(char) * (34 + username_len));
+      sprintf(msg, "[Error] [%s] Fail to open the image", user.username);
       DrawUI(kBookDisplay, &user, HistoryTop()->state.book_display, msg);
       return;
     }
@@ -94,16 +111,14 @@ static void BookDisplay_CoverCallback() {
   sprintf(command, "copy /Y \"%s\" \"%s\\image\\%d.jpg\"", image_path, lib_path,
           uid);
 
-  if (system(command)) {
-    char *msg = malloc(sizeof(char) * (42 + username_len + 10));
-    sprintf(msg, "%s: Fail to change the book(uid = %d)'s cover", user.username,
+  char *msg = malloc(sizeof(char) * (51 + username_len + 10));
+  if (system(command))
+    sprintf(msg, "[Error] [%s] Fail to change the book(uid = %d)'s cover", user.username,
             uid);
-    DrawUI(kBookDisplay, &user, HistoryTop()->state.book_display, msg);
-  } else {
-    char *msg = malloc(sizeof(char) * (34 + username_len + 10));
-    sprintf(msg, "%s: Change the book(uid = %d)'s cover", user.username, uid);
-    DrawUI(kBookDisplay, &user, HistoryTop()->state.book_display, msg);
-  }
+  else
+    sprintf(msg, "[Error] [%s] Change the book(uid = %d)'s cover", user.username, uid);
+  Log(msg);
+  DrawUI(kBookDisplay, &user, HistoryTop()->state.book_display, msg); // TODO:(TO/GA) 副作用？
   free(command);
 }
 
@@ -144,15 +159,16 @@ static void BookDisplayOrInit(Book *book, bool type) {
 
   HistoryPushBack(new_history);
 
-  char *msg = malloc(sizeof(char) * (25 + username_len));
+  char *msg = malloc(sizeof(char) * (33 + username_len));
   if (type) {
-    sprintf(msg, "%s: Open book init page", user.username);
+    sprintf(msg, "[Info] [%s] Open book init page", user.username);
   } else {
     if (user.whoami == ADMINISTRATOR)
-      sprintf(msg, "%s: Open book modify page", user.username);
+      sprintf(msg, "[Info] [%s] Open book modify page", user.username);
     else
-      sprintf(msg, "%s: Open book display page", user.username);
+      sprintf(msg, "[Info] [%s] Open book display page", user.username);
   }
+  Log(msg);
   DrawUI(new_history->page, &user, new_history->state.book_display, msg);
 }
 
@@ -174,22 +190,23 @@ static inline void Navigation_LendAndBorrow(Page nav_page, User *cur_user) {
   List *borrow_records_list = NewList();
   char *query = malloc(sizeof(char) * (31 + 10));
   sprintf(query, "user_uid=%d&book_status=BORROWED", user.uid);
-  Filter(&borrowrecord_db, &borrow_records_list, query, USER); // TODO:(TO/GA) error handle
+  Filter(&borrowrecord_db, borrow_records_list, query, USER); // TODO:(TO/GA) error handle
   new_history->state.lend_and_borrow->borrow_records = borrow_records_list;
 
   List *books = NewList();
   for (ListNode *cur_node = borrow_records_list->dummy_head;
        cur_node != borrow_records_list->dummy_tail; cur_node = cur_node->nxt) {
     Book *book = malloc(sizeof(Book));
-    GetById(&book_db, &book, ((BorrowRecord*)cur_node->value)->book_uid, BORROWRECORD);
+    GetById(&book_db, book, ((BorrowRecord*)cur_node->value)->book_uid, BORROWRECORD);
     InsertList(books, books->dummy_tail, book);
   }
   new_history->state.lend_and_borrow->books = books;
 
   HistoryPushBack(new_history);
 
-  char *msg = malloc(sizeof(char) * (26 + username_len));
-  sprintf(msg, "%s: Open Page LendAndBorrow", user.username);
+  char *msg = malloc(sizeof(char) * (34 + username_len));
+  sprintf(msg, "[Info] [%s] Open Page LendAndBorrow", user.username);
+  Log(msg);
   DrawUI(kLendAndBorrow, &user, new_history->state.lend_and_borrow, msg);
 }
 
@@ -217,11 +234,12 @@ static inline void Navigation_ManualOrAbout(Page nav_page, User *cur_user, bool 
   }
   HistoryPushBack(new_history);
 
-  char *msg = malloc(sizeof(char) * (19 + username_len));
+  char *msg = malloc(sizeof(char) * (27 + username_len));
   if (type)
-    sprintf(msg, "%s: Open Page About", user.username);
+    sprintf(msg, "[Info] [%s] Open Page About", user.username);
   else
-    sprintf(msg, "%s: Open Page Manual", user.username);
+    sprintf(msg, "[Info] [%s] Open Page Manual", user.username);
+  Log(msg);
   DrawUI(kAbout, &user, new_history->state.manual_and_about, msg);
 }
 
@@ -242,8 +260,9 @@ static inline void Navigation_UserLogInOrRegister(Page nav_page, User *cur_user,
       LoginOrRegister_LoginCallback;
   HistoryPushBack(new_history);
 
-  char *msg = malloc(sizeof(char) * 43);
-  sprintf("Clear history, log out and try to %s", type ? "register" : "log in");
+  char *msg = malloc(sizeof(char) * 38);
+  sprintf(msg, "[Info] Clear history, try to %s", type ? "register" : "log in");
+  Log(msg);
   DrawUI(new_history->page, &user, new_history->state.login_or_register, msg);
 }
 
@@ -256,8 +275,9 @@ static inline void Navigation_UserLogOut(Page nav_page, User *cur_user) {
   new_history->page = kWelcome;
   HistoryPushBack(new_history);
 
-  char *msg = malloc(sizeof(char) * (28 + username_len));
-  sprintf(msg, "%s%s", user.username, ": Clear history and log out");
+  char *msg = malloc(sizeof(char) * (36 + username_len));
+  sprintf(msg, "[Info] [%s] Clear history and log out", user.username);
+  Log(msg);
   DrawUI(kWelcome, &user, new_history->state.login_or_register, msg);
 }
 
@@ -267,9 +287,10 @@ static inline void Navigation_UserModify(Page nav_page, User *cur_user, User *sh
 
 static inline void Navigation_UserManagement(Page nav_page, User *cur_user) {
   if (user.whoami != ADMINISTRATOR) {
-    char *msg = malloc(sizeof(char) * (44 + username_len));
-    sprintf(msg, "%s: Don't have the permission to manage users",
+    char *msg = malloc(sizeof(char) * (49 + username_len));
+    sprintf(msg, "[Error] [%s] Permission denied. Can't manage users",
             user.username);
+    Log(msg);
     // 因为指针类型长度固定，所以这里的 HistoryTop()->state.book_display
     // 是随便写的，反正都一样
     DrawUI(HistoryTop()->page, &user, HistoryTop()->state.book_display,
@@ -283,17 +304,18 @@ static inline void Navigation_UserManagement(Page nav_page, User *cur_user) {
   new_history->state.user_management->delete_callback = UserManagement_DeleteCallback;
   
   List *to_be_verified = NewList();
-  Filter(&user_db, &to_be_verified, "verified=FALSE", USER);
+  Filter(&user_db, to_be_verified, "verified=FALSE", USER);
   new_history->state.user_management->to_be_verified = to_be_verified;
 
   List *verified = NewList();
-  Filter(&user_db, &verified, "verified=TRUE", USER);
+  Filter(&user_db, verified, "verified=TRUE", USER);
   new_history->state.user_management->users = verified;
 
   HistoryPushBack(new_history);
 
-  char *msg = malloc(sizeof(char) * (28 + username_len));
-  sprintf(msg, "%s: Open user management page", user.username);
+  char *msg = malloc(sizeof(char) * (36 + username_len));
+  sprintf(msg, "[Info] [%s] Open Page User Management", user.username);
+  Log(msg);
   DrawUI(kUserManagement, &user, new_history->state.user_management, msg);
 }
 
@@ -307,7 +329,7 @@ static inline void Navigation_Library(Page nav_page, User *cur_user) {
   new_history->state.library->switch_callback = Library_SwitchCallback;
 
   List *books = NewList();
-  Filter(&book_db, &books, "number_on_the_shelf!=0", BOOK);
+  Filter(&book_db, books, "number_on_the_shelf!=0", BOOK);
   new_history->state.library->books = books;
 
   List *book_covers = NewList();
@@ -324,31 +346,34 @@ static inline void Navigation_Library(Page nav_page, User *cur_user) {
 
   HistoryPushBack(new_history);
 
-  char *msg = malloc(sizeof(char) * (31 + username_len));
-  sprintf(msg, "%s: Open books page (image mode)", user.username);
+  char *msg = malloc(sizeof(char) * (41 + username_len));
+  sprintf(msg, "[Info] [%s] Open Page Library (image mode)", user.username);
+  Log(msg);
   DrawUI(kLibrary, &user, new_history->state.library, msg);
 }
 
 // type == 0 => Open
 static inline void Navigation_OpenOrInitLibrary(Page nav_page, User *cur_user, bool type) {
   if (!cur_user->uid) {
+    char *msg = malloc(sizeof(char) * 70);
     if (type)
-      DrawUI(kWelcome, &user, NULL,
-             "Can't init any library. Please Login first");
+      sprintf(msg, "[Error] Permission denied. Can't init any library. Please Login first");
     else
-      DrawUI(kWelcome, &user, NULL,
-             "Can't open any library. Please Login first");
+      sprintf(msg, "[Error] Permission denied. Can't open any library. Please Login first");
+    Log(msg);
+    DrawUI(kWelcome, &user, NULL, msg);
     return;
   }
 
   try {
     SelectFolder("请选择保存图书库的文件夹", lib_path);
     except(ErrorException) {
-      char *msg = malloc(sizeof(char) * (29 + username_len));
+      char *msg = malloc(sizeof(char) * (56 + username_len));
       if (type)
-        sprintf(msg, "%s: Fail to init the library", user.username);
+        sprintf(msg, "[Error] [%s] Fail to init the library. Path doesn't exist", user.username);
       else
-        sprintf(msg, "%s: Fail to open the library", user.username);
+        sprintf(msg, "[Error] [%s] Fail to open the library. Path doesn't exist", user.username);
+      Log(msg);
       // 因为指针类型长度固定，所以这里的 HistoryTop()->state.book_display
       // 是随便写的，反正都一样
       DrawUI(HistoryTop()->page, &user, HistoryTop()->state.book_display,
@@ -371,8 +396,9 @@ static inline void Navigation_OpenOrInitLibrary(Page nav_page, User *cur_user, b
     sprintf(command, "mkdir \"%s\\image\"", lib_path);
     if (system(command)) {
       free(command);
-      char *msg = malloc(sizeof(char) * (29 + username_len));
-      sprintf(msg, "%s: Fail to init the library", user.username);
+      char *msg = malloc(sizeof(char) * (63 + username_len));
+      sprintf(msg, "[Error] [%s] Fail to init the library. Can't create image folder", user.username);
+      Log(msg);
       // 因为指针类型长度固定，所以这里的 HistoryTop()->state.book_display
       // 是随便写的，反正都一样
       DrawUI(HistoryTop()->page, &user, HistoryTop()->state.book_display,
@@ -403,15 +429,15 @@ static inline void Navigation_OpenOrInitLibrary(Page nav_page, User *cur_user, b
   new_history->page = kWelcome;
   HistoryPushBack(new_history);
 
-  len += sizeof(char) * (strlen(": Clear history and init library from ") -
-                         strlen("file:\\\\\\borrowrecord.db") + username_len);
+  len = sizeof(char) * (47 + lib_path_len + username_len);
   char *msg = malloc(len);
   if (type)
-    sprintf(msg, "%s%s%s", user.username,
-            ": Clear history and init library from ", lib_path);
+    sprintf(msg, "[Info] [%s] Clear history and init library from %s",
+            user.username, lib_path);
   else
-    sprintf(msg, "%s%s%s", user.username,
-            ": Clear history and open library from ", lib_path);
+    sprintf(msg, "[Info] [%s] Clear history and open library from %s",
+            user.username, lib_path);
+  Log(msg);
   DrawUI(kWelcome, &user, NULL, msg);
 }
 
@@ -489,6 +515,7 @@ void NavigationCallback(Page nav_page, User *cur_user) { // TODO:(TO/GA) cur_use
       Navigation_Return(nav_page, cur_user);
       break;
     default:
+      Log("Debug: Unknown nav_page in NavigationCallback");
       Error("Unknown nav_page");
   }
 }

@@ -22,7 +22,7 @@ void Main() {
   InitConsole();
 
   Button *button1 = CreateButton((Rect){100, 500, 100, 200}, "Fuck you!");
-  Button *button2 = CreateButton((Rect) { 100, 500, 300, 400 }, "Fuck you!");
+  Button *button2 = CreateButton((Rect){100, 500, 300, 400}, "Fuck you!");
   Button *button3 = CreateButton((Rect){100, 500, 500, 600}, "Fuck you!");
 
   InputBox *input_box = CreateInputBox((Rect){100, 500, 100, 500}, "Fuck you!");
@@ -30,10 +30,7 @@ void Main() {
   InsertComp(button1, kButton);
   InsertComp(button2, kButton);
   InsertComp(button3, kButton);
-  InsertComp(input_box, kInput);
-  DrawComponents();
+  //InsertComp(input_box, kInput);
+  //DrawComponents();
   registerMouseEvent(MouseMoveEventHandler);
-  //MovePen(100, 100);
-  //DrawLine(100, 100);
-
 }

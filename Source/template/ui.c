@@ -94,6 +94,8 @@ void MouseMoveEventHandler(int x, int y, int mouse_button, int event) {
         rect = &(button->position);
         if (Inbox(x, y, rect)) {
           DrawButton(button, x, 1);
+        } else {
+          DrawButton(button, x, 0);
         }
         break;
       case kInput:
@@ -101,6 +103,8 @@ void MouseMoveEventHandler(int x, int y, int mouse_button, int event) {
         rect = &(input_box->position);
         if (Inbox(x, y, rect)) {
           DrawInputBox(input_box, 1);
+        } else {
+          DrawInputBox(input_box, 0);
         }
         break;
     }

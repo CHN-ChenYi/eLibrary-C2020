@@ -1983,6 +1983,17 @@ void SelectFolder(const char hint_text[], char path[]) {
 #pragma comment(lib, "MSImg32")
 #include "ui.h"
 
+void FlushDistrict(int min_x, int min_y, int max_x, int max_y) {
+  double x = InchesX(min_x);
+  double y = GetWindowHeight() - InchesY(max_y);
+  double dx = InchesX(max_x - min_x);
+  double dy = InchesY(max_y - min_y);
+
+  RECT r;
+  SetLineBB(&r, x, y, dx, dy);
+  InvalidateRect(graphicsWindow, &r, TRUE);
+}
+
 void DrawShadedTriangle(ColorPoint* A, ColorPoint* B, ColorPoint* C) {
   // Create an array of TRIVERTEX structures that describe 
   // positional and color values for each vertex given.
@@ -2018,6 +2029,12 @@ void DrawShadedTriangle(ColorPoint* A, ColorPoint* B, ColorPoint* C) {
 
   // Draw a shaded triangle. 
   GradientFill(osdc, vertex, 3, &gTri, 1, GRADIENT_FILL_TRIANGLE);
+
+  int min_x = min(A->x, min(B->x, C->x));
+  int min_y = min(A->y, min(B->y, C->y));
+  int max_x = max(A->x, max(B->x, C->x));
+  int max_y = max(A->y, max(B->y, C->y));
+  FlushDistrict(min_x, min_y, max_x, max_y);
 }
 
 // Draw a shaded Rectangle with its lower right corner & upperleft corner given
@@ -2042,4 +2059,5 @@ void DrawShadedRectangle(ColorPoint* lower_right, ColorPoint* upper_left) {
   gRect.UpperLeft = 1;
 
   GradientFill(osdc, vertex, 2, &gRect, 1, GRADIENT_FILL_RECT_H);
+  FlushDistrict(upper_left->x, upper_left->y, lower_right->x, lower_right->y);
 }

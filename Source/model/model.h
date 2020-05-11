@@ -1,4 +1,4 @@
-﻿#ifndef MODEL_H_
+#ifndef MODEL_H_
 #define MODEL_H_
 
 #include "basictype.h"
@@ -32,12 +32,13 @@ typedef struct DB {
 
   Parameters:
   struct DB pointer
+  Model(book, user, borrowrecord)
 
   Return value:
   DBErrno
  */
-int OpenDBConnection(DB* db);
-int CloseDBConnection(DB* db);
+int OpenDBConnection(DB* db, Model model);
+int CloseDBConnection(DB* db, Model model);
 // Create
 /*
   Create
@@ -46,7 +47,7 @@ int CloseDBConnection(DB* db);
 
   Parameters:
   db - pointer pointing to struct DB
-  handle - pointer pointing to the handle(book,user,record,etc...)
+  handle - pointer pointing to the handle (book,user,record,etc...)
   model - see enum Model
 
   Return value:
@@ -138,7 +139,8 @@ int GetNextPK(DB* db, Model model);
 
   Parameter:
   db - pointer pointing to struct DB
-  handle - pointer pointing to the handle(book,user,record,etc...)
+  handle - pointer pointing to the handle (book,user,record,etc...)
+
   id  - uid
   model - see enum Model
 

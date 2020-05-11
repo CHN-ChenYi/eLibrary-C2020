@@ -45,6 +45,73 @@ void Init() {
   DrawUI(kWelcome, &user, NULL, "");
 }
 
+static void FreeHistory(void *const history_) {
+  History *const history = history_;
+  switch (history->page) {
+    case kWelcome: // 欢迎界面
+      break;
+    case kLendAndBorrow:  // 借还书
+      DeleteList(history->state.lend_and_borrow->books, NULL);
+      DeleteList(history->state.lend_and_borrow->borrow_records, NULL);
+      break;
+    case kBookSearch:  // 图书搜索
+      free(history->state.book_search->keyword);
+      DeleteList(history->state.book_search->book_result, NULL);
+      break;
+    case kUserSearch:  // 用户搜索（管理员）
+      free(history->state.user_search->keyword);
+      DeleteList(history->state.user_search->user_result, NULL);
+      break;
+    case kManual:  // 帮助
+    case kAbout:   // 关于
+      free(history->state.manual_and_about->title);
+      free(history->state.manual_and_about->content);
+      break;
+    case kUserRegister:  // 用户注册
+    case kUserLogIn:     // 用户登陆
+      break;
+    // case kLogout:  // 用户登出
+      // break;
+    case kUserModify:  // 用户信息修改
+      DeleteList(history->state.user_modify->books, NULL);
+      break;
+    case kUserManagement:  // 用户删除/审核（管理员）
+      DeleteList(history->state.user_management->to_be_verified, NULL);
+      DeleteList(history->state.user_management->users, NULL);
+      break;
+    case kLibrary:  // 图书库显示
+      DeleteList(history->state.library->books, NULL);
+      DeleteList(history->state.library->book_covers, free);
+      break;
+    // case kInitLibrary:  // 图书库新建
+      // break;
+    // case kOpenLibrary:  // 图书库打开
+      // break;
+    case kBookDisplay:  // 图书显示
+      free(history->state.borrow_display->book_name); // TODO:(TO/GA) 这玩意儿有可能和之前的东西是共享的...要么统一深拷贝？
+      break;
+    case kBookInit:  // 图书新增
+    case kBookModify:  // 图书修改/删除
+      free(history->state.book_display->book);
+      break;
+    // Navigation_BookModify(nav_page, cur_user);
+    // break;
+    // case kBorrowDisplay:  // 借还书统计（管理员）
+    // Navigation_BorrowDisplay(nav_page, cur_user);
+    // break;
+    case kStatistics:  // 统计
+      DeleteList(history->state.statistics->catalogs, free);
+      DeleteList(history->state.statistics->borrow_record, NULL);
+      break;
+    // case kReturn:  // 回到上一个界面
+      // break;
+    default:
+      Log("[Debug] Unknown page in FreeHistory");
+      Error("Unknown nav_page");
+  }
+  free(history);
+}
+
 static inline History *const HistoryTop() {
   return (History*)history_list->dummy_tail->pre->value;
 }
@@ -53,16 +120,15 @@ static inline void HistoryPushBack(History *const new_history) {
   InsertList(history_list, history_list->dummy_tail, new_history);
   while (history_list->size > HISTORY_MAX)
     EraseList(history_list, history_list->dummy_head->nxt,
-              NULL);  // TODO:(TO/GA) how to free all the states?
+              FreeHistory);
 }
 
 static inline void ClearHistory() {
-  ClearList(history_list, NULL);  // TODO:(TO/GA) how to free all the states?
+  ClearList(history_list,
+            FreeHistory);
 }
 
-static inline void ReturnHistory(ListNode *go_back_to, const char *const msg) {
-
-}
+static inline void ReturnHistory(ListNode *go_back_to, const char *const msg);
 
 static void LendAndBorrow_SearchCallback(char *keyword) {}
 
@@ -116,13 +182,16 @@ static void BookDisplay_CoverCallback() {
           uid);
 
   char *msg = malloc(sizeof(char) * (51 + username_len + 10));
-  if (system(command))
-    sprintf(msg, "[Error] [%s] Fail to change the book(uid = %d)'s cover", user.username,
-            uid);
-  else
-    sprintf(msg, "[Error] [%s] Change the book(uid = %d)'s cover", user.username, uid);
+  if (system(command)) {
+    sprintf(msg, "[Error] [%s] Fail to change the book(uid = %d)'s cover",
+            user.username, uid);
+    free(command);
+    ReturnHistory(history_list->dummy_tail->pre, msg);
+    return;
+  }
+  sprintf(msg, "[Info] [%s] Change the book(uid = %d)'s cover", user.username, uid);
   Log(msg);
-  DrawUI(kBookDisplay, &user, HistoryTop()->state.book_display, msg); // TODO:(TO/GA) 副作用？
+  DrawUI(kBookDisplay, &user, HistoryTop()->state.book_display, msg);
   free(command);
 }
 
@@ -159,7 +228,6 @@ static void BookDisplayOrInit(Book *book, bool type) {
     sprintf(image_path, "\"%s\\image\\%d.jpg\"", lib_path, book->uid);
     loadImage(image_path, &new_history->state.book_display->book_cover);
   }
-  // TODO:(TO/GA) DrawImage 在没load的时候会挂的
 
   HistoryPushBack(new_history);
 
@@ -293,11 +361,7 @@ static inline void Navigation_UserManagement() {
     char *msg = malloc(sizeof(char) * (49 + username_len));
     sprintf(msg, "[Error] [%s] Permission denied. Can't manage users",
             user.username);
-    Log(msg);
-    // 因为指针类型长度固定，所以这里的 HistoryTop()->state.book_display
-    // 是随便写的，反正都一样
-    DrawUI(HistoryTop()->page, &user, HistoryTop()->state.book_display,
-           msg);  // TODO: (TO/GA) 可能因为什么东西没刷新而挂掉
+    ReturnHistory(history_list->dummy_tail->pre, msg);
     return;
   }
   History *new_history = malloc(sizeof(History));
@@ -376,11 +440,7 @@ static inline void Navigation_OpenOrInitLibrary(bool type) {
         sprintf(msg, "[Error] [%s] Fail to init the library. Path doesn't exist", user.username);
       else
         sprintf(msg, "[Error] [%s] Fail to open the library. Path doesn't exist", user.username);
-      Log(msg);
-      // 因为指针类型长度固定，所以这里的 HistoryTop()->state.book_display
-      // 是随便写的，反正都一样
-      DrawUI(HistoryTop()->page, &user, HistoryTop()->state.book_display,
-             msg);  // TODO: (TO/GA) 有可能因为什么东西没刷新而挂掉
+      ReturnHistory(history_list->dummy_tail->pre, msg);
       return;
     }
   }
@@ -401,11 +461,7 @@ static inline void Navigation_OpenOrInitLibrary(bool type) {
       free(command);
       char *msg = malloc(sizeof(char) * (63 + username_len));
       sprintf(msg, "[Error] [%s] Fail to init the library. Can't create image folder", user.username);
-      Log(msg);
-      // 因为指针类型长度固定，所以这里的 HistoryTop()->state.book_display
-      // 是随便写的，反正都一样
-      DrawUI(HistoryTop()->page, &user, HistoryTop()->state.book_display,
-             msg);  // TODO: (TO/GA) 有可能因为什么东西没刷新而挂掉
+      ReturnHistory(history_list->dummy_tail->pre, msg);
       return;
     }
     free(command);
@@ -484,20 +540,28 @@ static inline void Navigation_Statistics() {
 
   HistoryPushBack(new_history);
 
-  char *msg = malloc(sizeof(char) * 31);
+  char *msg = malloc(sizeof(char) * (31 + username_len));
   sprintf(msg, "[Info] [%s] Open Page Statistics", user.username);
   Log(msg);
   DrawUI(kStatistics, &user, new_history->state.statistics, msg);
 }
 
 static inline void Navigation_Return() {
-  char *msg = malloc(sizeof(char) * 18);
-  sprintf(msg, "[Info] [%s] Go back", user.username);
-  ReturnHistory(history_list->dummy_tail->pre, msg);
+  if (history_list->size < 2) {
+    char *msg = malloc(sizeof(char) * (44 + username_len));
+    sprintf(msg, "[Error] [%s] There's no history to go back to", user.username);
+    ReturnHistory(history_list->dummy_tail->pre, msg);
+  }else {
+    char *msg = malloc(sizeof(char) * (18 + username_len));
+    sprintf(msg, "[Info] [%s] Go back", user.username);
+    ReturnHistory(history_list->dummy_tail->pre->pre, msg);
+  }
 }
 
 void NavigationCallback(Page nav_page, User *cur_user) { // TODO:(TO/GA) cur_user 这个参数好像没用？
   switch (nav_page) {
+    // case kWelcome: // 欢迎界面
+      // break;
     case kLendAndBorrow:  // 借还书
       Navigation_LendAndBorrow();
       break;
@@ -538,16 +602,13 @@ void NavigationCallback(Page nav_page, User *cur_user) { // TODO:(TO/GA) cur_use
       Navigation_OpenOrInitLibrary(0);
       break;
     // case kBookDisplay:  // 图书显示
-      // Navigation_BookDisplay(nav_page, cur_user);
       // break;
     case kBookInit:  // 图书新增
-      Navigation_BookInit(nav_page, cur_user);
+      Navigation_BookInit();
       break;
     // case kBookModify:  // 图书修改/删除
-      // Navigation_BookModify(nav_page, cur_user);
       // break;
     // case kBorrowDisplay:  // 借还书统计（管理员）
-      // Navigation_BorrowDisplay(nav_page, cur_user);
       // break;
     case kStatistics:  // 统计
       Navigation_Statistics();
@@ -556,7 +617,14 @@ void NavigationCallback(Page nav_page, User *cur_user) { // TODO:(TO/GA) cur_use
       Navigation_Return();
       break;
     default:
-      Log("Debug: Unknown nav_page in NavigationCallback");
+      Log("[Debug] Unknown nav_page in NavigationCallback");
       Error("Unknown nav_page");
   }
+}
+
+static inline void ReturnHistory(ListNode *go_back_to, const char *const msg) {
+  while (history_list->dummy_tail->pre != go_back_to)
+    EraseList(history_list, history_list->dummy_tail->pre,
+              FreeHistory);
+  // TODO:(TO/GA) finish it
 }

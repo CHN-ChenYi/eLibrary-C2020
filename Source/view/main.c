@@ -3,20 +3,6 @@
 #include "graphics.h"
 #include "ui.h"
 
-Button *CreateButton(Rect rect, char *caption) {
-  Button *ret = malloc(sizeof(Button));
-  ret->position = rect;
-  strcpy(ret->caption, caption);
-  return ret;
-}
-
-InputBox *CreateInputBox(Rect rect, char *context) {
-  InputBox *ret = malloc(sizeof(InputBox));
-  ret->position = rect;
-  strcpy(ret->context, context);
-  return ret;
-}
-
 void Main() {
   InitGraphics();
   InitConsole();
@@ -31,6 +17,6 @@ void Main() {
   InsertComp(button2, kButton);
   InsertComp(button3, kButton);
   //InsertComp(input_box, kInput);
-  //DrawComponents();
+  DrawComponents();
   registerMouseEvent(MouseMoveEventHandler);
 }

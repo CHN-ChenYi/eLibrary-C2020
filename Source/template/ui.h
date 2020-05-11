@@ -1,31 +1,35 @@
 #pragma once
 
-// 带透明度的颜色，均为十六进制
-// 范围均为：[0, 65536)
+// Color with alpha value consistent with wingdi
 typedef struct Color {
   int R, G, B;
   int Alpha;
 } Color;
 
+// point with color and position specified
 typedef struct ColorPoint {
   int x, y;
   Color color;
 } ColorPoint;
-
 
 typedef struct Rect {
   int left, right, top, bottom;
 } Rect;
 
 typedef struct Button {
-  Rect position;       // 位置
-  char caption[10];    // 字幕
+  Rect position;       // position
+  char caption[10];    // label on the button
 } Button;
 
 typedef struct InputBox {
-  Rect position;
-  char context[500];
+  Rect position;      // position
+  char context[500];  // context (already input)
+  int cursor;         // position of the cursor
 } InputBox;
+
+/* Create UI components */
+Button* CreateButton(Rect rect, char* caption);
+InputBox* CreateInputBox(Rect rect, char* context);
 
 /* Draw UI components */
 void DrawButton(Button* button, int mouse_x, int highlight);

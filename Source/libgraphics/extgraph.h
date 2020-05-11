@@ -83,9 +83,11 @@ void DrawTextString(string text);
  * ---------------------------------
  * This function returns the width of the text string if displayed
  * at the current font and size.
+ * 
+ * Modified: return pixels rather than inches
  */
 
-double TextStringWidth(string text);
+int TextStringWidth(string text);
 
 /*
  * Function: SetFont

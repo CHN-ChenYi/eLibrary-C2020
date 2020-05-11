@@ -449,12 +449,13 @@ void DrawTextString(string text) {
   cx += TextStringWidth(text);
 }
 
-double TextStringWidth(string text) {
+/* A slite modify: return pixels instead of inches */
+int TextStringWidth(string text) {
   RECT r;
 
   InitCheck();
   SetTextBB(&r, cx, cy, text);
-  return (InchesX(RectWidth(&r)));
+  return (RectWidth(&r));
 }
 
 void SetFont(string font) {

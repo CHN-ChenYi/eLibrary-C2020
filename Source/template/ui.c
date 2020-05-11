@@ -23,6 +23,23 @@ Color ColorConvert(char* color, double alpha) {
 }
 /* End of color handling */
 
+/* Draw Components */
+Button* CreateButton(Rect rect, char* caption) {
+  Button* ret = malloc(sizeof(Button));
+  ret->position = rect;
+  strcpy(ret->caption, caption);
+  return ret;
+}
+
+InputBox* CreateInputBox(Rect rect, char* context) {
+  InputBox* ret = malloc(sizeof(InputBox));
+  ret->position = rect;
+  ret->cursor = 0;
+  strcpy(ret->context, context);
+  return ret;
+}
+
+
 /* Singly linked circular list for components */
 
 static PTCNode Focus;
@@ -49,6 +66,7 @@ CompList NewCompList() {
 // Free the list
 void FreeCompList() {
   for (PTCNode p = cur_list, next = cur_list->next; p != NULL; p = next, next = p->next) {
+    free(p->component);
     free(p);
   }
 }
@@ -127,18 +145,22 @@ void DrawButton(Button* button, int mouse_x, int highlight) {
   } else {
     DrawShadedRectangle(&lower_right, &upper_left); 
   }
+  int middle_x = (button->position.left + button->position.right
+                  - TextStringWidth(button->caption)) >> 1;
+  int middle_y = (button->position.top + button->position.bottom) >> 1;
+  MovePen(middle_x, middle_y);
+  DrawTextString(button->caption);
 }
 
 void DrawInputBox(InputBox* input_box, int highlight) {
   MovePen(input_box->position.left, input_box->position.top);
   if (highlight) {
-    SetPenSize(1);
+    SetPenSize(2);
     SetPenColor("red");
   } else {
-    SetPenSize(1);
+    SetPenSize(2);
     SetPenColor("black");
   }
-  SetPenSize(1);
   DrawLine(input_box->position.right - input_box->position.left, 0);
   DrawLine(0, input_box->position.bottom - input_box->position.top);
   DrawLine(input_box->position.left - input_box->position.right, 0);

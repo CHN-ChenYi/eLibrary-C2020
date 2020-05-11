@@ -41,4 +41,12 @@ const ListNode *EraseList(List *const list, const ListNode *const node,
 void SortList(const List *const list,
               bool (*cmp)(const void *const lhs, const void *const rhs));
 
+// Unique a sorted list
+// Note that iterators remain valid after sorting
+// cmp returns whether lhs == rhs
+// using void Free(void *const value) to free the pointers in the value
+void UniqueList(const List *const list,
+                bool (*cmp)(const void *const lhs, const void *const rhs),
+                void (*Free)(void *const value));
+
 #endif  // LIST_H_

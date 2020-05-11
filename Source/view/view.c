@@ -60,6 +60,10 @@ static inline void ClearHistory() {
   ClearList(history_list, NULL);  // TODO:(TO/GA) how to free all the states?
 }
 
+static inline void ReturnHistory(ListNode *go_back_to, const char *const msg) {
+
+}
+
 static void LendAndBorrow_SearchCallback(char *keyword) {}
 
 static void LendAndBorrow_ReturnCallback(ListNode *book) {}
@@ -180,7 +184,7 @@ static void Library_SwitchCallback() {}
 
 static void Statistics_SelectCallback() {}
 
-static inline void Navigation_LendAndBorrow(Page nav_page, User *cur_user) {
+static inline void Navigation_LendAndBorrow() {
   History *new_history = malloc(sizeof(History));
   new_history->page = kLendAndBorrow;
   new_history->state.lend_and_borrow = malloc(sizeof(LendAndBorrow));
@@ -210,16 +214,16 @@ static inline void Navigation_LendAndBorrow(Page nav_page, User *cur_user) {
   DrawUI(kLendAndBorrow, &user, new_history->state.lend_and_borrow, msg);
 }
 
-static inline void Navigation_BookSearch(Page nav_page, User *cur_user) {
+static inline void Navigation_BookSearch() {
   BookSearch_SearchCallback(NULL);
 }
 
-static inline void Navigation_UserSearch(Page nav_page, User *cur_user) {
+static inline void Navigation_UserSearch() {
   UserSearch_SearchCallback(NULL);
 }
 
 // type = 0 => Manual
-static inline void Navigation_ManualOrAbout(Page nav_page, User *cur_user, bool type) {
+static inline void Navigation_ManualOrAbout(bool type) {
   History *new_history = malloc(sizeof(History));
   new_history->state.manual_and_about = malloc(sizeof(ManualAndAbout));
   // TODO:(TO/GA) finish it
@@ -244,9 +248,8 @@ static inline void Navigation_ManualOrAbout(Page nav_page, User *cur_user, bool 
 }
 
 // type = 0 => LogIn
-static inline void Navigation_UserLogInOrRegister(Page nav_page, User *cur_user,
-                                                  bool type) {
-  memset(&user, 0x00, sizeof(cur_user));
+static inline void Navigation_UserLogInOrRegister(bool type) {
+  memset(&user, 0x00, sizeof(user));
 
   ClearHistory();
   History *new_history = malloc(sizeof(History));
@@ -266,7 +269,7 @@ static inline void Navigation_UserLogInOrRegister(Page nav_page, User *cur_user,
   DrawUI(new_history->page, &user, new_history->state.login_or_register, msg);
 }
 
-static inline void Navigation_UserLogOut(Page nav_page, User *cur_user) {
+static inline void Navigation_UserLogOut() {
   memset(&user, 0x00, sizeof(user));
   username_len = 0;
 
@@ -281,11 +284,11 @@ static inline void Navigation_UserLogOut(Page nav_page, User *cur_user) {
   DrawUI(kWelcome, &user, new_history->state.login_or_register, msg);
 }
 
-static inline void Navigation_UserModify(Page nav_page, User *cur_user, User *show_user) {
+static inline void Navigation_UserModify() {
   UserSearch_InfoCallback(&user);
 }
 
-static inline void Navigation_UserManagement(Page nav_page, User *cur_user) {
+static inline void Navigation_UserManagement() {
   if (user.whoami != ADMINISTRATOR) {
     char *msg = malloc(sizeof(char) * (49 + username_len));
     sprintf(msg, "[Error] [%s] Permission denied. Can't manage users",
@@ -319,7 +322,7 @@ static inline void Navigation_UserManagement(Page nav_page, User *cur_user) {
   DrawUI(kUserManagement, &user, new_history->state.user_management, msg);
 }
 
-static inline void Navigation_Library(Page nav_page, User *cur_user) {
+static inline void Navigation_Library() {
   History *new_history = malloc(sizeof(History));
   new_history->page = kLibrary;
   new_history->state.library = malloc(sizeof(Library));
@@ -329,7 +332,7 @@ static inline void Navigation_Library(Page nav_page, User *cur_user) {
   new_history->state.library->switch_callback = Library_SwitchCallback;
 
   List *books = NewList();
-  Filter(&book_db, books, "number_on_the_shelf!=0", BOOK);
+  Filter(&book_db, books, "", BOOK);
   new_history->state.library->books = books;
 
   List *book_covers = NewList();
@@ -353,8 +356,8 @@ static inline void Navigation_Library(Page nav_page, User *cur_user) {
 }
 
 // type == 0 => Open
-static inline void Navigation_OpenOrInitLibrary(Page nav_page, User *cur_user, bool type) {
-  if (!cur_user->uid) {
+static inline void Navigation_OpenOrInitLibrary(bool type) {
+  if (!user.uid) {
     char *msg = malloc(sizeof(char) * 70);
     if (type)
       sprintf(msg, "[Error] Permission denied. Can't init any library. Please Login first");
@@ -384,9 +387,9 @@ static inline void Navigation_OpenOrInitLibrary(Page nav_page, User *cur_user, b
   endtry;
   lib_path_len = strlen(lib_path);
 
-  CloseDBConnection(&book_db);
-  CloseDBConnection(&user_db);
-  CloseDBConnection(&borrowrecord_db);
+  CloseDBConnection(&book_db, BOOK);
+  CloseDBConnection(&user_db, USER);
+  CloseDBConnection(&borrowrecord_db, BORROWRECORD);
 
   size_t len;
   
@@ -411,18 +414,18 @@ static inline void Navigation_OpenOrInitLibrary(Page nav_page, User *cur_user, b
   len = sizeof(char) * (lib_path_len + strlen("file:\\\\\\book.db") + 2 + 1);
   book_db.filename = malloc(len);
   sprintf(book_db.filename, "\"%s%s%s\"", "file:\\\\", lib_path, "\\book.db");
-  OpenDBConnection(&book_db);  // TODO:(TO/GA) 异常处理
+  OpenDBConnection(&book_db, BOOK);  // TODO:(TO/GA) 异常处理
 
   user_db.filename = malloc(len);
   sprintf(user_db.filename, "\"%s%s%s\"", "file:\\\\", lib_path, "\\user.db");
-  OpenDBConnection(&user_db);
+  OpenDBConnection(&user_db, USER);
 
   len += sizeof(char) *
          (strlen("file:\\\\\\borrowrecord.db") - strlen("file:\\\\\\book.db"));
   borrowrecord_db.filename = malloc(len);
   sprintf(borrowrecord_db.filename, "\"%s%s%s\"", "file:\\\\", lib_path,
           "\\borrowrecord.db");
-  OpenDBConnection(&borrowrecord_db);
+  OpenDBConnection(&borrowrecord_db, BORROWRECORD);
 
   ClearHistory();
   History *new_history = malloc(sizeof(History));
@@ -441,60 +444,98 @@ static inline void Navigation_OpenOrInitLibrary(Page nav_page, User *cur_user, b
   DrawUI(kWelcome, &user, NULL, msg);
 }
 
-static inline void Navigation_BookInit(Page nav_page, User *cur_user) {
+static inline void Navigation_BookInit() {
   Book *book = malloc(sizeof(Book));
   book->uid = GetNextPK(&book_db, BOOK);
   BookDisplayOrInit(book, 1);
 }
 
-static inline void Navigation_Statistics(Page nav_page, User *cur_user) {
-
+static bool StrLess(const void *const lhs, const void *rhs) {
+  return strcmp(lhs, rhs) <= 0;
+}
+static bool StrSame(const void *const lhs, const void *rhs) {
+  return strcmp(lhs, rhs) == 0;
+}
+static void StrFree(void *p) {
+  free(p);
 }
 
-static inline void Navigation_Return(Page nav_page, User *cur_user) {
+static inline void Navigation_Statistics() {
+  History *new_history = malloc(sizeof(History));
+  new_history->page = kStatistics;
+  new_history->state.statistics = malloc(sizeof(Statistics));
+  new_history->state.statistics->select_callback = Statistics_SelectCallback;
 
+  List *book = NewList(), *category = NewList();
+  Filter(&book_db, book, "", BOOK);
+  for (ListNode *cur_node = book->dummy_head->nxt; cur_node != book->dummy_tail; cur_node = cur_node->nxt) {
+    char *str = malloc(sizeof(char) * (strlen(((Book*)cur_node->value)->category) + 1));
+    strcpy(str, ((Book *)cur_node->value)->category);
+    InsertList(category, category->dummy_tail, str);
+  }
+  DeleteList(book, NULL);
+  SortList(category, StrLess);
+  UniqueList(category, StrSame, StrFree);
+  new_history->state.statistics->catalogs = category;
+
+  List *borrow_record = NewList();
+  Filter(&borrowrecord_db, borrow_record, "", BORROWRECORD);
+  new_history->state.statistics->borrow_record = borrow_record;
+
+  HistoryPushBack(new_history);
+
+  char *msg = malloc(sizeof(char) * 31);
+  sprintf(msg, "[Info] [%s] Open Page Statistics", user.username);
+  Log(msg);
+  DrawUI(kStatistics, &user, new_history->state.statistics, msg);
+}
+
+static inline void Navigation_Return() {
+  char *msg = malloc(sizeof(char) * 18);
+  sprintf(msg, "[Info] [%s] Go back", user.username);
+  ReturnHistory(history_list->dummy_tail->pre, msg);
 }
 
 void NavigationCallback(Page nav_page, User *cur_user) { // TODO:(TO/GA) cur_user 这个参数好像没用？
   switch (nav_page) {
     case kLendAndBorrow:  // 借还书
-      Navigation_LendAndBorrow(nav_page, cur_user);  // TODO:(TO/GA) nav_page 这个参数好像没用？
+      Navigation_LendAndBorrow();
       break;
     case kBookSearch:  // 图书搜索
-      Navigation_BookSearch(nav_page, cur_user);
+      Navigation_BookSearch();
       break;
     case kUserSearch:  // 用户搜索（管理员）
-      Navigation_UserSearch(nav_page, cur_user);
+      Navigation_UserSearch();
       break;
     case kManual:  // 帮助
-      Navigation_ManualOrAbout(nav_page, cur_user, 0);
+      Navigation_ManualOrAbout(0);
       break;
     case kAbout:  // 关于
-      Navigation_ManualOrAbout(nav_page, cur_user, 1);
+      Navigation_ManualOrAbout(1);
       break;
     case kUserRegister:  // 用户注册
-      Navigation_UserLogInOrRegister(nav_page, cur_user, 1);
+      Navigation_UserLogInOrRegister(1);
       break;
     case kUserLogIn:  // 用户登陆
-      Navigation_UserLogInOrRegister(nav_page, cur_user, 0);
+      Navigation_UserLogInOrRegister(0);
       break;
     case kLogout:  // 用户登出
-      Navigation_UserLogOut(nav_page, cur_user);
+      Navigation_UserLogOut();
       break;
     case kUserModify:  // 用户信息修改
-      Navigation_UserModify(nav_page, cur_user, &user);
+      Navigation_UserModify();
       break;
     case kUserManagement:  // 用户删除/审核（管理员）
-      Navigation_UserManagement(nav_page, cur_user);
+      Navigation_UserManagement();
       break;
     case kLibrary:  // 图书库显示
-      Navigation_Library(nav_page, cur_user);
+      Navigation_Library();
       break;
     case kInitLibrary:  // 图书库新建
-      Navigation_OpenOrInitLibrary(nav_page, cur_user, 1);
+      Navigation_OpenOrInitLibrary(1);
       break;
     case kOpenLibrary:  // 图书库打开
-      Navigation_OpenOrInitLibrary(nav_page, cur_user, 0);
+      Navigation_OpenOrInitLibrary(0);
       break;
     // case kBookDisplay:  // 图书显示
       // Navigation_BookDisplay(nav_page, cur_user);
@@ -509,10 +550,10 @@ void NavigationCallback(Page nav_page, User *cur_user) { // TODO:(TO/GA) cur_use
       // Navigation_BorrowDisplay(nav_page, cur_user);
       // break;
     case kStatistics:  // 统计
-      Navigation_Statistics(nav_page, cur_user);
+      Navigation_Statistics();
       break;
     case kReturn:  // 回到上一个界面
-      Navigation_Return(nav_page, cur_user);
+      Navigation_Return();
       break;
     default:
       Log("Debug: Unknown nav_page in NavigationCallback");

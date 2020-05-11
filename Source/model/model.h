@@ -1,4 +1,4 @@
-﻿#ifndef MODEL_H_
+#ifndef MODEL_H_
 #define MODEL_H_
 
 #include "basictype.h"
@@ -140,6 +140,7 @@ int GetNextPK(DB* db, Model model);
   Parameter:
   db - pointer pointing to struct DB
   handle - pointer pointing to the handle (book,user,record,etc...)
+
   id  - uid
   model - see enum Model
 

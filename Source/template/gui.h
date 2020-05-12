@@ -47,10 +47,10 @@ void NavigationCallback(Page nav_page, User *cur_user);
 
 /* 借书还书界面 */
 typedef struct LendAndBorrow {
-  List *books;                              // 待还书列表
-  List *borrow_records;                     // 记录还书日期
-  void (*search_callback)(char *keyword);   // 搜索按钮
-  void (*return_callback)(ListNode *book);  // 还书按钮
+  List *books;                             // 待还书列表
+  List *borrow_records;                    // 记录还书日期
+  void (*search_callback)(char *keyword);  // 搜索按钮
+  void (*return_callback)(ListNode *book, ListNode *borrow_record);  // 还书按钮
 } LendAndBorrow;
 
 /* 图书搜索界面 */

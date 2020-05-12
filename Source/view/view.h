@@ -5,6 +5,4 @@
 
 void Init();
 
-inline void Log(char *const msg);
-
 #endif  // !VIEW_H_

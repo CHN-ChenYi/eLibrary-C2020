@@ -45,8 +45,13 @@ void SortList(const List *const list,
 // Note that iterators remain valid after sorting
 // cmp returns whether lhs == rhs
 // using void Free(void *const value) to free the pointers in the value
-void UniqueList(const List *const list,
+void UniqueList(List *const list,
                 bool (*cmp)(const void *const lhs, const void *const rhs),
                 void (*Free)(void *const value));
+
+// Deep copy a list
+// copy the value using function Duplicate
+List *DuplicateList(const List *const list,
+                    void *const (*Duplicate)(void *const value));
 
 #endif  // LIST_H_

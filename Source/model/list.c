@@ -115,16 +115,24 @@ void SortList(const List *const list,
   }
 }
 
-void UniqueList(const List *const list,
+void UniqueList(List *const list,
                 bool (*cmp)(const void *const lhs, const void *const rhs),
                 void (*Free)(void *const value)) {
-  if (list->size < 2)
-    return;
-  for (ListNode *cur_node = list->dummy_head->nxt->nxt;
+  if (list->size < 2) return;
+  for (const ListNode *cur_node = list->dummy_head->nxt->nxt;
        cur_node != list->dummy_tail;) {
     if (cmp(cur_node->value, cur_node->pre->value))
       cur_node = EraseList(list, cur_node, Free);
     else
       cur_node = cur_node->nxt;
   }
+}
+
+List *DuplicateList(const List *const list,
+                    void *const (*Duplicate)(void *const value)) {
+  List *ret = NewList();
+  for (ListNode *cur_node = list->dummy_head->nxt; cur_node != list->dummy_tail;
+       cur_node = cur_node->nxt)
+    InsertList(ret, ret->dummy_tail, Duplicate(cur_node->value));
+  return ret;
 }

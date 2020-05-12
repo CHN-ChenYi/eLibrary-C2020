@@ -498,9 +498,10 @@ double GetFontDescent(void) {
   return (InchesY(fontTable[currentFont].descent));
 }
 
-double GetFontHeight(void) {
+/* Modified: return pixels rather than inches */
+int GetFontHeight(void) {
   InitCheck();
-  return (InchesY(fontTable[currentFont].height));
+  return (fontTable[currentFont].height);
 }
 
 /* Section 5 -- Mouse support */
@@ -1993,6 +1994,18 @@ void FlushDistrict(int min_x, int min_y, int max_x, int max_y) {
   RECT r;
   SetLineBB(&r, x, y, dx, dy);
   InvalidateRect(graphicsWindow, &r, TRUE);
+}
+
+// Clear a district
+void ClearDistrict(Rect* rect) {
+  double x = InchesX(rect->left);
+  double y = GetWindowHeight() - InchesY(rect->bottom);
+  double dx = InchesX(rect->right - rect->left);
+  double dy = InchesY(rect->bottom - rect->top);
+  RECT r;
+  SetRect(&r, x, y, dx, dy);
+  InvalidateRect(graphicsWindow, &r, TRUE);
+  BitBlt(osdc, x, y, dx, dy, NULL, 0, 0, WHITENESS);
 }
 
 void DrawShadedTriangle(ColorPoint* A, ColorPoint* B, ColorPoint* C) {

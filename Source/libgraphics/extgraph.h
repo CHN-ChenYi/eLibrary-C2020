@@ -198,7 +198,7 @@ int GetStyle(void);
 
 double GetFontAscent(void);
 double GetFontDescent(void);
-double GetFontHeight(void);
+int GetFontHeight(void);
 
 /* Section 5 -- Mouse support */
 

@@ -23,23 +23,6 @@ Color ColorConvert(char* color, double alpha) {
 }
 /* End of color handling */
 
-/* Draw Components */
-Button* CreateButton(Rect rect, char* caption) {
-  Button* ret = malloc(sizeof(Button));
-  ret->position = rect;
-  strcpy(ret->caption, caption);
-  return ret;
-}
-
-InputBox* CreateInputBox(Rect rect, char* context) {
-  InputBox* ret = malloc(sizeof(InputBox));
-  ret->position = rect;
-  ret->cursor = 0;
-  strcpy(ret->context, context);
-  return ret;
-}
-
-
 /* Singly linked circular list for components */
 
 static PTCNode Focus;
@@ -81,17 +64,12 @@ void InitComponents() {
 
 /* End of linked list */
 
-/*
- * Handle events about the components
- * MoveFocus(): Move to the next components
- * Inbox(x, y, button): check whether (x, y) is inside
- */
-
 // Move focus to the next components
 void MoveFocus() {
   Focus = Focus->next;
 }
 
+// Check whether (x, y) is in rectangle rect
 int Inbox(int x, int y, Rect* rect) {
   if (rect->left >= x) return 0;
   if (rect->right <= x) return 0;
@@ -100,44 +78,78 @@ int Inbox(int x, int y, Rect* rect) {
   return 1;
 }
 
-// Handle the mouse movement on components
-void MouseMoveEventHandler(int x, int y, int mouse_button, int event) {
-  Rect* rect = NULL;
-  Button* button = NULL;
-  InputBox* input_box = NULL;
-  for (PTCNode p = cur_list->next; p != cur_list; p = p->next) {
-    switch (p->type) {
-      case kButton:
-        button = (Button*)p->component;
-        rect = &(button->position);
-        if (Inbox(x, y, rect)) {
-          DrawButton(button, x, 1);
-        } else {
-          DrawButton(button, x, 0);
-        }
-        break;
-      case kInput:
-        input_box = (InputBox*)p->component;
-        rect = &(input_box->position);
-        if (Inbox(x, y, rect)) {
-          DrawInputBox(input_box, 1);
-        } else {
-          DrawInputBox(input_box, 0);
-        }
-        break;
-    }
-  }
-}
-
 /* End of input events*/
 
-void DrawButton(Button* button, int mouse_x, int highlight) {
+/* Create components */
+Button* CreateButton(Rect rect, char* caption, int font_size, int id) {
+  Button* ret = malloc(sizeof(Button));
+  ret->id = id;
+  ret->position = rect;
+  ret->status = kNormal;
+  ret->font_size = font_size;
+  strcpy(ret->caption, caption);
+  return ret;
+}
+
+InputBox* CreateInputBox(Rect rect, int font_size, int id) {
+  InputBox* ret = malloc(sizeof(InputBox));
+  ret->id = id;
+  ret->position = rect;
+  ret->cursor = 0;
+  ret->status = kNormal;
+  ret->font_size = font_size;
+  memset(ret->context, 0, sizeof(ret->context));
+  return ret;
+}
+
+Link* CreateLink(Rect rect, char* caption, int font_size, int id) {
+  Link* ret = malloc(sizeof(Link));
+  printf("%d\n", TextStringWidth("µãÕâÀï"));
+  ret->id = id;
+  ret->position = rect;
+  ret->position.right = ret->position.left + TextStringWidth(caption);
+  SetPointSize(font_size);
+  ret->position.top = ret->position.bottom - GetPointSize();
+  ret->status = kNormal;
+  ret->font_size = font_size;
+  strcpy(ret->caption, caption);
+  return ret;
+}
+
+Label* CreateLabel(Rect rect, char* caption, int font_size, int id) {
+  Label* ret = malloc(sizeof(Label));
+  ret->id = id;
+  ret->position = rect;
+  ret->position.right = ret->position.left + TextStringWidth(caption);
+  SetPointSize(font_size);
+  ret->position.top = ret->position.bottom - GetPointSize();
+  ret->font_size = font_size;
+  strcpy(ret->caption, caption);
+  return ret;
+}
+
+/* Draw components */
+
+void DrawRectangle(Rect* rect) {
+  MovePen(rect->left, rect->top);
+  DrawLine(rect->right - rect->left, 0);
+  DrawLine(0, rect->bottom - rect->top);
+  DrawLine(rect->left - rect->right, 0);
+  DrawLine(0, rect->top - rect->bottom);
+}
+
+void DrawButton(Button* button, int mouse_x) {
+  ClearDistrict(&button->position);
+  SetFont("Consolas");
+  SetPointSize(button->font_size);
+  SetPenSize(1);
+  SetPenColor("black");
   // Some color for material design
   Color light_blue = ColorConvert("2196F3", 1);
   Color white = ColorConvert("E3F2FD", 1);
   ColorPoint upper_left = (ColorPoint){button->position.left, button->position.top, light_blue};
   ColorPoint lower_right = (ColorPoint){button->position.right, button->position.bottom, light_blue};
-  if (highlight) {
+  if (button->status == kHover || button->status == kFocus) {
     ColorPoint upper_middle = (ColorPoint){mouse_x, button->position.top, white};
     ColorPoint lower_middle = (ColorPoint){mouse_x, button->position.bottom, white};
     DrawShadedRectangle(&lower_middle, &upper_left);
@@ -145,36 +157,125 @@ void DrawButton(Button* button, int mouse_x, int highlight) {
   } else {
     DrawShadedRectangle(&lower_right, &upper_left); 
   }
+  if (button->status == kFocus) {
+    DrawRectangle(&button->position);
+  }
+  // Draw the caption string in the center
   int middle_x = (button->position.left + button->position.right
                   - TextStringWidth(button->caption)) >> 1;
-  int middle_y = (button->position.top + button->position.bottom) >> 1;
+  int middle_y = (button->position.top + button->position.bottom
+                  + GetFontHeight()) >> 1;
   MovePen(middle_x, middle_y);
   DrawTextString(button->caption);
 }
 
-void DrawInputBox(InputBox* input_box, int highlight) {
-  MovePen(input_box->position.left, input_box->position.top);
-  if (highlight) {
-    SetPenSize(2);
-    SetPenColor("red");
-  } else {
-    SetPenSize(2);
-    SetPenColor("black");
+void DrawInputBox(InputBox* input_box) {
+  ClearDistrict(&input_box->position);
+  SetPointSize(input_box->font_size);
+  SetPenSize(1);
+  switch (input_box->status) {
+    case kNormal:
+      SetPenColor("black");
+      break;
+    case kHover:
+      SetPenColor("red");
+      break;
   }
-  DrawLine(input_box->position.right - input_box->position.left, 0);
-  DrawLine(0, input_box->position.bottom - input_box->position.top);
-  DrawLine(input_box->position.left - input_box->position.right, 0);
-  DrawLine(0, input_box->position.top - input_box->position.bottom);
+  DrawRectangle(&input_box->position);
+}
+
+void DrawLink(Link* link) {
+  ClearDistrict(&link->position);
+  SetPenSize(1);
+  DrawRectangle(&link->position);
+  SetFont("Consolas");
+  SetPointSize(link->font_size);
+  SetPenSize(1);
+  switch(link->status) {
+    case kHover:
+    case kFocus:
+      SetPenColor("blue");
+      MovePen(link->position.left, link->position.bottom);
+      DrawLine(TextStringWidth(link->caption), 0);
+    case kNormal:
+      MovePen(link->position.left, link->position.bottom);
+      DrawTextString(link->caption);
+      break;
+    case kVisted:
+      SetPenColor("purple");
+      MovePen(link->position.left, link->position.bottom);
+      DrawLine(TextStringWidth(link->caption), 0);
+      MovePen(link->position.left, link->position.bottom);
+      DrawTextString(link->caption);
+      break;
+  }
+}
+
+void DrawLabel(Label* label) {
+  SetPenSize(1);
+  DrawRectangle(&label->position);
+  SetFont("Consolas");
+  SetPointSize(label->font_size);
+  SetPenSize(1);
+  SetPenColor("black");
+  MovePen(label->position.left, label->position.bottom);
+  SetPenSize(label->font_size);
+  DrawTextString(label->caption);
 }
 
 void DrawComponents() {
   for (PTCNode p = cur_list->next; p != cur_list; p = p->next) {
     switch (p->type) {
       case kButton:
-        DrawButton((Button*)p->component, -1, 0);
+        DrawButton((Button*)p->component, -1);
         break;
-      case kInput:
-        DrawInputBox((InputBox*)p->component, 0);
+      case kInputBox:
+        DrawInputBox((InputBox*)p->component);
+        break;
+      case kLabel:
+        DrawLabel((Label*)p->component);
+        break;
+      case kLink:
+        DrawLink((Link*)p->component);
+    }
+  }
+}
+
+/* Events handler */
+
+// Handle the mouse movement on components
+void MouseMoveEventHandler(int x, int y, int mouse_button, int event) {
+  Button* button = NULL;
+  InputBox* input_box = NULL;
+  Link* link = NULL;
+  for (PTCNode p = cur_list->next; p != cur_list; p = p->next) {
+    switch (p->type) {
+      case kButton:
+        button = (Button*)p->component;
+        if (Inbox(x, y, &(button->position))) {
+          button->status = kHover;
+        } else {
+          button->status = kNormal;
+        }
+        DrawButton(button, x);
+        break;
+      case kInputBox:
+        input_box = (InputBox*)p->component;
+        if (Inbox(x, y, &(input_box->position))) {
+          input_box->status = kHover;
+        } else {
+          input_box->status = kNormal;
+        }
+        DrawInputBox(input_box);
+        break;
+      case kLink:
+        link = (Link*)(p->component);
+        ComponentStatus last_status = link->status;
+        if (Inbox(x, y, &link->position)) {
+          link->status = kHover;
+        }
+        DrawLink(link);
+        link->status = last_status;
         break;
     }
   }

@@ -1,22 +1,23 @@
 ﻿#include "exception.h"
 #include "genlib.h"
 #include "graphics.h"
+#include "extgraph.h"
 #include "ui.h"
 
 void Main() {
   InitGraphics();
   InitConsole();
 
-  Button *button1 = CreateButton((Rect){100, 500, 100, 200}, "Fuck you!");
-  Button *button2 = CreateButton((Rect){100, 500, 300, 400}, "Fuck you!");
-  Button *button3 = CreateButton((Rect){100, 500, 500, 600}, "Fuck you!");
-
-  InputBox *input_box = CreateInputBox((Rect){100, 500, 100, 500}, "Fuck you!");
+  Button* button = CreateButton((Rect){100, 300, 100, 200}, "你好", 30, 1);
+  InputBox* input_box = CreateInputBox((Rect){100, 300, 350, 450}, 30, 2);
+  Link* link = CreateLink((Rect){100, 300, 500, 600}, "点这里", 30, 3);
+  Label* label = CreateLabel((Rect){100, 300, 650, 750}, "这里是label", 30, 3);
+  printf("%d\n", TextStringWidth("点这里"));
   InitComponents();
-  InsertComp(button1, kButton);
-  InsertComp(button2, kButton);
-  InsertComp(button3, kButton);
-  //InsertComp(input_box, kInput);
+  InsertComp(button, kButton);
+  InsertComp(input_box, kInputBox);
+  InsertComp(link, kLink);
+  InsertComp(label, kLabel);
   DrawComponents();
   registerMouseEvent(MouseMoveEventHandler);
 }

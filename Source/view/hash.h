@@ -16,4 +16,7 @@
 void Sha256Sum(uint32_t *const dst, const uint8_t *const src,
                const uint32_t len);
 
+// Generate a random string with specified length
+void RandStr(char *const dst, const unsigned len);
+
 #endif  // HASH_H_

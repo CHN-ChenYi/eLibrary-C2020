@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <direct.h>
 
 #include "gui.h"
 #include "list.h"
@@ -41,6 +42,13 @@ void Init() {
   history_list = NewList();
   fopen_s(&log_file, ".\\eLibrary.log", "a+");
   Log("[Info] Start");
+
+  char program_path[MAX_PATH + 1];
+  getcwd(program_path, MAX_PATH);
+  user_db.filename = malloc(sizeof(char) * (strlen(program_path) + 18));
+  sprintf(user_db.filename, "\"%s%s%s\"", "file:\\\\", lib_path, "\\user.db");
+  OpenDBConnection(&user_db, USER); // TODO: (TO/GA) 异常处理
+
   DrawUI(kWelcome, &user, NULL, "");
 }
 
@@ -212,14 +220,55 @@ static void LendAndBorrow_ReturnCallback(ListNode *book,
 }
 
 static void UserModify_ConfirmCallback() {
-  // TODO:(TO/GA) update username_len
-  // TODO:(TO/GA) finish it
-  // if (user.whoami != ADMINISTRATOR ||
-  // TopHistory()->state.user_modify->user->whoami == ADMINISTRATOR) {
-  //  uint32_t sha[8];
-  //  char *pwd_type = malloc();
-  //  sprintf(pwd_type, "%s%s", ) Sha256Sum(sha_db, ) if (memcmp())
-  //}
+  User *modified_user = TopHistory()->state.user_modify->user;
+  if (user.whoami != ADMINISTRATOR || modified_user->whoami == ADMINISTRATOR) {
+    char pwd_type[59];
+    sprintf(pwd_type, "%s%s", TopHistory()->state.user_modify->old_password,
+            modified_user->salt);
+    uint32_t sha_type[8];
+    Sha256Sum(sha_type, pwd_type, strlen(pwd_type));
+    if (memcmp(sha_type, modified_user->password, sizeof(sha_type))) {
+      char *msg = malloc(sizeof(char) * (56 + username_len));
+      sprintf(msg, "[Error] [%s] Password incorrect. Can't modify user's info",
+              user.username);
+      ReturnHistory(history_list->dummy_tail->pre, msg);
+      return;
+    }
+  }
+  if (TopHistory()->state.user_modify->new_password[0] != '\0') {
+    if (strcmp(TopHistory()->state.user_modify->new_password,
+               TopHistory()->state.user_modify->repeat_password)) {
+      char *msg = malloc(sizeof(char) * (58 + username_len));
+      sprintf(msg, "[Error] [%s] Repeat new password doesn't match new password",
+              user.username);
+      ReturnHistory(history_list->dummy_tail->pre, msg);
+      return;      
+    }
+    char new_pwd[59];
+    sprintf(new_pwd, "%s%s", TopHistory()->state.user_modify->new_password,
+            modified_user->salt);
+    Sha256Sum(modified_user->password, new_pwd, strlen(new_pwd));
+  }
+  // TODO:(TO/GA)用户名不能重
+  // TODO:(TO/GA)普通用户如何成为管理员？如果是第一个注册的是管理员的话，我是不是只要把程序换个位置就可以第一个注册成为管理员了？
+  if (modified_user->username[0] == '\0') {
+    char *msg = malloc(sizeof(char) * (51 + username_len + 10));
+    sprintf(msg, "[Error] [%s] User [uid = %d]'s username can't be blank",
+            user.username, modified_user->uid);
+    ReturnHistory(history_list->dummy_tail->pre, msg);
+    return;          
+  }
+
+  Update(&user_db, modified_user, modified_user->uid, USER);
+  if (modified_user->uid == user.uid) {
+    memcpy(&user, modified_user, sizeof(USER));
+    username_len = strlen(user.username);
+  }
+
+  char *msg = malloc(sizeof(char) * (32 + username_len + strlen(modified_user->username)));
+  sprintf(msg, "[Info] [%s] Modify user [%s]'s info", user.username,
+          modified_user->username);
+  ReturnHistory(history_list->dummy_tail->pre, msg);
 }
 
 static void UserSearch_InfoCallback(User *user);
@@ -279,14 +328,113 @@ static void UserSearch_InfoCallback(User *show_user) {
 }
 
 static void LoginOrRegister_LoginCallback() {
-  // TODO:(TO/GA) update username_len
+  if (TopHistory()->page == kUserRegister) {
+    // TODO: (TO/GA) finish it
+  } else {
+    User *new_user = TopHistory()->state.login_or_register->user;
+
+    List *users = NewList();
+    char *query = malloc(sizeof(char) * (10 + strlen(new_user->username)));
+    sprintf(query, "username=%s", new_user->username);
+    free(query);
+    if (users->size != 1) {
+      char *msg = malloc(sizeof(char) * 31);
+      sprintf(msg, "[Error] Can't find such a user",
+              user.username);
+      ReturnHistory(history_list->dummy_tail->pre, msg);
+      return;      
+    }
+    memcpy(new_user, users->dummy_head->nxt->value, sizeof(User));
+    DeleteList(users, NULL);
+
+    char pwd_type[59];
+    sprintf(pwd_type, "%s%s", TopHistory()->state.login_or_register->password,
+            new_user->salt);
+    uint32_t sha_type[8];
+    Sha256Sum(sha_type, pwd_type, strlen(pwd_type));
+    if (memcmp(sha_type, new_user->password, sizeof(sha_type))) {
+      char *msg = malloc(sizeof(char) * (45));
+      sprintf(msg, "[Error] Password incorrect. Please try again");
+      ReturnHistory(history_list->dummy_tail->pre, msg);
+      return;
+    }
+    if (new_user->verified == FALSE) {
+      char *msg = malloc(sizeof(char) * (60 + strlen(new_user->verified)));
+      sprintf(msg,
+              "[Error] [%s] You haven't been verified. Please contact admin",
+              new_user->username);
+      ReturnHistory(history_list->dummy_tail->pre, msg);
+      return;
+    }
+    memcpy(&user, new_user, sizeof(User));
+    username_len = strlen(user.username);
+
+    History *new_history = malloc(sizeof(History));
+    new_history->page = kWelcome;
+    PushBackHistory(new_history);
+
+    char *msg = malloc(sizeof(char) * (17 + username_len));
+    sprintf(msg, "[Info] [%s] Log in", user.username);
+    Log(msg);
+    DrawUI(kWelcome, &user, NULL, msg);
+  }
 }
 
-static void UserManagement_ApproveCallback(ListNode *user, bool approve) {}
+static void UserManagement_ApproveCallback(ListNode *user_node, bool approve) {
+  User *new_user = user_node->value;
+  char *msg = malloc(sizeof(char) * (27 + username_len + strlen(new_user->username)));
+  if (approve) {
+    new_user->verified = TRUE;
+    Update(&user_db, new_user, new_user->uid, USER);
+    sprintf(msg, "[Info] [%s] Approve user [%s]", user.username,
+            new_user->username);
+  } else {
+    Delete(&user_db, new_user->uid, USER);
+    sprintf(msg, "[Info] [%s] Disprove user [%s]", user.username,
+            new_user->username);
+  }
+  ReturnHistory(history_list->dummy_tail->pre, msg);
+}
 
-static void UserManagement_DeleteCallback(ListNode *user) {}
+static void UserManagement_DeleteCallback(ListNode *user_node) {
+  User *new_user = user_node->value;
+  char *msg =
+      malloc(sizeof(char) * (25 + username_len + strlen(new_user->username)));
+  Delete(&user_db, new_user->uid, USER);
+  sprintf(msg, "[Info] [%s] Delete user [%s]", user.username,
+          new_user->username);
+  ReturnHistory(history_list->dummy_tail->pre, msg);
+}
 
-static void BookDisplay_AdminCallback() {}
+static void BookDisplay_AdminCallback() {
+  if (user.whoami != ADMINISTRATOR) {
+    char *msg = malloc(sizeof(char) * (60 + username_len));
+    sprintf(msg, "[Error] [%s] Permission denied. Can't open Page BorrowDisplay",
+            user.username);
+    ReturnHistory(history_list->dummy_tail->pre, msg);
+    return;
+  }
+
+  History *new_history = malloc(sizeof(History));
+  new_history->page = kBorrowDisplay;
+  new_history->state.borrow_display = malloc(sizeof(BorrowDisplay));
+  strcpy(new_history->state.borrow_display->book_name, TopHistory()->state.book_display->book->title);
+
+  List *borrow_record = NewList();
+  char *query = malloc(sizeof(char) * 20);
+  sprintf(query, "book_uid=%d", TopHistory()->state.book_display->book->uid);
+  Filter(&borrowrecord_db, borrow_record, query, BORROWRECORD);
+  free(query);
+  new_history->state.borrow_display->borrow_record = borrow_record;
+
+  PushBackHistory(new_history);
+
+  char *msg = malloc(sizeof(char) * (46 + username_len + strlen(new_history->state.borrow_display->book_name)));
+  sprintf(msg, "[Info] [%s] Open Page BorrowDisplay for book [%s]",
+          user.username, new_history->state.borrow_display->book_name);
+  Log(msg);
+  DrawUI(kBorrowDisplay, &user, new_history->state.borrow_display, msg);
+}
 
 static void BookDisplay_CoverCallback() {
   char image_path[MAX_PATH + 1];
@@ -321,13 +469,57 @@ static void BookDisplay_CoverCallback() {
   free(command);
 }
 
-static void BookDisplay_ConfirmCallback() {}
+static void BookDisplay_ConfirmCallback() {
+  if (user.whoami != ADMINISTRATOR) {
+    char *msg = malloc(sizeof(char) * (60 + username_len));
+    sprintf(msg,
+            "[Error] [%s] Permission denied. Can't modify any book",
+            user.username);
+    ReturnHistory(history_list->dummy_tail->pre, msg);
+    return;
+  }
 
-static void BookDisplay_DeleteCallback() {}
+  Book *new_book = TopHistory()->state.book_display->book;
+  if (new_book->id[0] = '\0') {
+    char *msg = malloc(sizeof(char) * (36 + username_len));
+    sprintf(msg, "[Error] [%s] Book's id can't be blank", user.username);
+    ReturnHistory(history_list->dummy_tail->pre, msg);
+    return;  
+  }
+  if (new_book->title[0] = '\0') {
+    char *msg = malloc(sizeof(char) * (39 + username_len));
+    sprintf(msg, "[Error] [%s] Book's title can't be blank", user.username);
+    ReturnHistory(history_list->dummy_tail->pre, msg);
+    return;
+  }
+  Update(&book_db, new_book, new_book->uid, BOOK);
 
-static void BookDisplay_BorrowCallback() {}
+  char *msg = malloc(sizeof(char) * (25 + username_len + strlen(new_book->title)));
+  sprintf(msg, "[Info] [%s] Modify book [%s]", user.username, new_book->title);
+  ReturnHistory(history_list->dummy_tail->pre, msg);
+}
 
-static void Library_SortCallback(SortKeyword sort_keyword) {}
+static void BookDisplay_DeleteCallback() {
+  if (user.whoami != ADMINISTRATOR) {
+    char *msg = malloc(sizeof(char) * (60 + username_len));
+    sprintf(msg, "[Error] [%s] Permission denied. Can't modify any book",
+            user.username);
+    ReturnHistory(history_list->dummy_tail->pre, msg);
+    return;
+  }
+
+  Book *new_book = TopHistory()->state.book_display->book;
+  Delete(&book_db, new_book->uid, BOOK); // TODO:(TO/GA) 会对借还书界面产生什么影响？
+
+  char *msg =
+      malloc(sizeof(char) * (25 + username_len + strlen(new_book->title)));
+  sprintf(msg, "[Info] [%s] Delete book [%s]", user.username, new_book->title);
+  ReturnHistory(history_list->dummy_tail->pre, msg);
+}
+
+static void BookDisplay_BorrowCallback() {
+  BookSearch_BorrowCallback(TopHistory()->state.book_display->book);
+}
 
 // type = 0 => Display
 static void BookDisplayOrInit(Book *book, bool type) {
@@ -373,6 +565,20 @@ static void BookDisplayOrInit(Book *book, bool type) {
 static void Library_BookCallback(ListNode *book) {
   BookDisplayOrInit(book->value, 0);
 }
+
+static bool CmpById(const void *const lhs, const void *const rhs) {
+  return strcmp(((Book *)lhs)->id, ((Book *)rhs)->id) <= 0;
+}
+
+static bool CmpByTitle(const void *const lhs, const void *const rhs) {
+  return strcmp(((Book *)lhs)->title, ((Book *)rhs)->title) <= 0;
+}
+
+static bool CmpByAuthor(const void *const lhs, const void *const rhs) {
+  return strcmp(((Book *)lhs)->authors[0], ((Book *)rhs)->authors[0]) <= 0;
+}
+
+static void Library_SortCallback(SortKeyword sort_keyword) {}
 
 static void Library_SwitchCallback() {}
 
@@ -453,7 +659,8 @@ static inline void Navigation_UserLogInOrRegister(bool type) {
   else
     new_history->page = kUserLogIn;
   new_history->state.login_or_register = malloc(sizeof(LoginOrRegister));
-  new_history->state.login_or_register->user = &user;
+  new_history->state.login_or_register->user = malloc(sizeof(User));
+  memset(new_history->state.login_or_register->user, 0x00, sizeof(User));
   new_history->state.login_or_register->login_callback =
       LoginOrRegister_LoginCallback;
   PushBackHistory(new_history);
@@ -575,7 +782,6 @@ static inline void Navigation_OpenOrInitLibrary(bool type) {
   lib_path_len = strlen(lib_path);
 
   CloseDBConnection(&book_db, BOOK);
-  CloseDBConnection(&user_db, USER);
   CloseDBConnection(&borrowrecord_db, BORROWRECORD);
 
   size_t len;
@@ -598,10 +804,6 @@ static inline void Navigation_OpenOrInitLibrary(bool type) {
   book_db.filename = malloc(len);
   sprintf(book_db.filename, "\"%s%s%s\"", "file:\\\\", lib_path, "\\book.db");
   OpenDBConnection(&book_db, BOOK);  // TODO:(TO/GA) 异常处理
-
-  user_db.filename = malloc(len);
-  sprintf(user_db.filename, "\"%s%s%s\"", "file:\\\\", lib_path, "\\user.db");
-  OpenDBConnection(&user_db, USER);
 
   len += sizeof(char) *
          (strlen("file:\\\\\\borrowrecord.db") - strlen("file:\\\\\\book.db"));

@@ -2,6 +2,8 @@
 #include "exception.h"
 
 #include <string.h>
+#include <time.h>
+#include <stdlib.h>
 
 // Initialize array of round constants (first 32 bits of the fractional parts of
 // the cube roots of the first 64 primes)
@@ -94,4 +96,12 @@ void Sha256Sum(uint32_t *const dst, const uint8_t *const src,
   if (!dst) Error("SHA-256 Dst is a nullptr");
   memcpy(dst, h, 256 / 8);
 }
+
+void RandStr(char *const dst, const unsigned len) {
+  srand(time(0));
+  for (unsigned i = 0; i != len; i++)
+    dst[i] = '!' + rand() % 95;
+  dst[len] = '\0';
+}
+
 #undef SHA256_BLOCK_SIZE

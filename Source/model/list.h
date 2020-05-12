@@ -49,4 +49,9 @@ void UniqueList(const List *const list,
                 bool (*cmp)(const void *const lhs, const void *const rhs),
                 void (*Free)(void *const value));
 
+// Deep copy a list
+// copy the value using function Duplicate
+List *DuplicateList(const List *const list,
+                    void *const (*Duplicate)(void *const value));
+
 #endif  // LIST_H_

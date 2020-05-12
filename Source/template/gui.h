@@ -43,7 +43,7 @@ void DrawUI(Page cur_page, User *cur_user, void *info, char *terminal);
  * cur_user: 当前登陆的界面
  * terminal: 终端输出
  */
-void NavigationCallback(Page nav_page, User *cur_user);
+void NavigationCallback(Page nav_page);
 
 /* 借书还书界面 */
 typedef struct LendAndBorrow {

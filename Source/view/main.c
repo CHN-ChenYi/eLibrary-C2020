@@ -1,5 +1,3 @@
 ﻿#include "view.h"
 
-void Main() {
-  Init();
-}
+void Main() { Init(); }

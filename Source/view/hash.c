@@ -1,9 +1,10 @@
 ﻿#include "hash.h"
-#include "exception.h"
 
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <stdlib.h>
+
+#include "exception.h"
 
 // Initialize array of round constants (first 32 bits of the fractional parts of
 // the cube roots of the first 64 primes)
@@ -99,8 +100,7 @@ void Sha256Sum(uint32_t *const dst, const uint8_t *const src,
 
 void RandStr(char *const dst, const unsigned len) {
   srand(time(0));
-  for (unsigned i = 0; i != len; i++)
-    dst[i] = '!' + rand() % 95;
+  for (unsigned i = 0; i != len; i++) dst[i] = '!' + rand() % 95;
   dst[len] = '\0';
 }
 

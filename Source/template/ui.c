@@ -5,6 +5,8 @@
 #include <wingdi.h>
 #include <Windows.h>
 
+#define FONT "Consolas"
+
 /* Handling of colors */
 
 // Convert a char to a decimal number using scalar initializer
@@ -25,7 +27,7 @@ Color ColorConvert(char* color, double alpha) {
 
 /* Singly linked circular list for components */
 
-static PTCNode Focus;
+static PTCNode focus;      // The current focus
 static CompList cur_list;  // The list of all the components on the current page.
 
 // Add a new component into the list
@@ -42,7 +44,7 @@ CompList NewCompList() {
   CompList new_list = (CompList)malloc(sizeof(struct ComponentListNode));
   new_list->component = NULL;
   new_list->next = new_list;
-  new_list->type = 0;
+  new_list->type = kButton;  // terminate in search of label
   return new_list;
 }
 
@@ -59,26 +61,10 @@ void InitComponents() {
     FreeCompList(cur_list);
   }
   cur_list = NewCompList();
-  Focus = cur_list;
+  focus = cur_list;
 }
 
 /* End of linked list */
-
-// Move focus to the next components
-void MoveFocus() {
-  Focus = Focus->next;
-}
-
-// Check whether (x, y) is in rectangle rect
-int Inbox(int x, int y, Rect* rect) {
-  if (rect->left >= x) return 0;
-  if (rect->right <= x) return 0;
-  if (rect->bottom <= y) return 0;
-  if (rect->top >= y) return 0;
-  return 1;
-}
-
-/* End of input events*/
 
 /* Create components */
 Button* CreateButton(Rect rect, char* caption, int font_size, int id) {
@@ -106,7 +92,7 @@ Link* CreateLink(Rect rect, char* caption, int font_size, int id) {
   Link* ret = malloc(sizeof(Link));
   ret->id = id;
   ret->position = rect;
-  SetFont("Consolas");
+  SetFont(FONT);
   SetPointSize(font_size);
   ret->position.right = ret->position.left + TextStringWidth(caption);
   ret->position.top = ret->position.bottom - GetPointSize();
@@ -120,7 +106,7 @@ Label* CreateLabel(Rect rect, char* caption, int font_size, int id) {
   Label* ret = malloc(sizeof(Label));
   ret->id = id;
   ret->position = rect;
-  SetFont("Consolas");
+  SetFont(FONT);
   SetPointSize(font_size);
   ret->position.right = ret->position.left + TextStringWidth(caption);
   ret->position.top = ret->position.bottom - GetPointSize();
@@ -139,8 +125,19 @@ void DrawRectangle(Rect* rect) {
   DrawLine(0, rect->top - rect->bottom);
 }
 
+/* Draw a rectangle to wrap it*/
+void DrawOuter(Rect* rect) {
+  SetPenColor("red");
+  SetPenSize(1);
+  MovePen(rect->left - 5, rect->top - 5);
+  DrawLine(rect->right - rect->left + 10, 0);
+  DrawLine(0, rect->bottom - rect->top + 10);
+  DrawLine(rect->left - rect->right - 10, 0);
+  DrawLine(0, rect->top - rect->bottom - 10);
+}
+
 void DrawButton(Button* button, int mouse_x) {
-  SetFont("Consolas");
+  SetFont(FONT);
   SetPointSize(button->font_size);
   SetPenSize(1);
   SetPenColor("black");
@@ -149,16 +146,13 @@ void DrawButton(Button* button, int mouse_x) {
   Color white = ColorConvert("E3F2FD", 1);
   ColorPoint upper_left = (ColorPoint){button->position.left, button->position.top, light_blue};
   ColorPoint lower_right = (ColorPoint){button->position.right, button->position.bottom, light_blue};
-  if (button->status == kHover || button->status == kFocus) {
+  if (button->status == kHover) {
     ColorPoint upper_middle = (ColorPoint){mouse_x, button->position.top, white};
     ColorPoint lower_middle = (ColorPoint){mouse_x, button->position.bottom, white};
     DrawShadedRectangle(&lower_middle, &upper_left);
     DrawShadedRectangle(&lower_right, &upper_middle);
   } else {
     DrawShadedRectangle(&lower_right, &upper_left); 
-  }
-  if (button->status == kFocus) {
-    DrawRectangle(&button->position);
   }
   // Draw the caption string in the center
   int middle_x = (button->position.left + button->position.right
@@ -184,12 +178,11 @@ void DrawInputBox(InputBox* input_box) {
 }
 
 void DrawLink(Link* link) {
-  SetFont("Consolas");
+  SetFont(FONT);
   SetPointSize(link->font_size);
   SetPenSize(1);
   switch(link->status) {
     case kHover:
-    case kFocus:
       SetPenColor("blue");
       MovePen(link->position.left, link->position.bottom);
       DrawLine(TextStringWidth(link->caption), 0);
@@ -197,18 +190,11 @@ void DrawLink(Link* link) {
       MovePen(link->position.left, link->position.bottom);
       DrawTextString(link->caption);
       break;
-    case kVisited:
-      SetPenColor("purple");
-      MovePen(link->position.left, link->position.bottom);
-      DrawLine(TextStringWidth(link->caption), 0);
-      MovePen(link->position.left, link->position.bottom);
-      DrawTextString(link->caption);
-      break;
   }
 }
 
 void DrawLabel(Label* label) {
-  SetFont("Consolas");
+  SetFont(FONT);
   SetPointSize(label->font_size);
   SetPenSize(1);
   SetPenColor("black");
@@ -240,6 +226,15 @@ void DrawComponents() {
 
 extern void DisplayClear(void);
 
+// Check whether (x, y) is in rectangle rect
+int Inbox(int x, int y, Rect* rect) {
+  if (rect->left >= x) return 0;
+  if (rect->right <= x) return 0;
+  if (rect->bottom <= y) return 0;
+  if (rect->top >= y) return 0;
+  return 1;
+}
+
 // Display components according to the position of the mouse
 void DisplayAnimateComponents(int x, int y) {
   DisplayClear();
@@ -247,11 +242,13 @@ void DisplayAnimateComponents(int x, int y) {
   InputBox* input_box = NULL;
   Link* link = NULL;
   Label* label = NULL;
+  Rect* rect = NULL;
   for (PTCNode p = cur_list->next; p != cur_list; p = p->next) {
     switch (p->type) {
     case kButton:
       button = (Button*)p->component;
-      if (Inbox(x, y, &(button->position))) {
+      rect = &button->position;
+      if (Inbox(x, y, rect)) {
         button->status = kHover;
       } else {
         button->status = kNormal;
@@ -260,7 +257,8 @@ void DisplayAnimateComponents(int x, int y) {
       break;
     case kInputBox:
       input_box = (InputBox*)p->component;
-      if (Inbox(x, y, &(input_box->position))) {
+      rect = &input_box->position;
+      if (Inbox(x, y, rect)) {
         input_box->status = kHover;
       } else {
         input_box->status = kNormal;
@@ -269,7 +267,8 @@ void DisplayAnimateComponents(int x, int y) {
       break;
     case kLink:
       link = (Link*)(p->component);
-      if (Inbox(x, y, &link->position)) {
+      rect = &link->position;
+      if (Inbox(x, y, rect)) {
         link->status = kHover;
       } else {
         link->status = kNormal;
@@ -281,6 +280,9 @@ void DisplayAnimateComponents(int x, int y) {
       DrawLabel(label);
       break;
     }
+    if (p == focus) {
+      DrawOuter(rect);
+    }
   }
 }
 
@@ -289,50 +291,48 @@ void HandleClick(int x, int y, int mouse_button, int event) {
   InputBox* input_box = NULL;
   Link* link = NULL;
   Label* label = NULL;
+  Rect* rect = NULL;
   switch(event) {
     case BUTTON_DOWN:
-      DisplayClear();
       if (mouse_button == LEFT_BUTTON) {
         for (PTCNode p = cur_list->next; p != cur_list; p = p->next) {
           switch (p->type) {
-          case kButton:
-            button = (Button*)p->component;
-            if (Inbox(x, y, &(button->position))) {
-              button->status = kFocus;
-            }
-            else {
-              button->status = kNormal;
-            }
-            DrawButton(button, x);
-            break;
-          case kInputBox:
-            input_box = (InputBox*)p->component;
-            if (Inbox(x, y, &(input_box->position))) {
-              input_box->status = kFocus;
-            }
-            else {
-              input_box->status = kNormal;
-            }
-            DrawInputBox(input_box);
-            break;
-          case kLink:
-            link = (Link*)(p->component);
-            if (Inbox(x, y, &link->position)) {
-              link->status = kFocus;
-            }
-            DrawLink(link);
-            link->status = kVisited;
-            break;
-          case kLabel:
-            label = (Label*)(p->component);
-            DrawLabel(label);
-            break;
+            case kButton:
+              button = (Button*)p->component;
+              rect = &button->position;
+              if (Inbox(x, y, rect)) {
+                focus = p;
+                DisplayAnimateComponents(x, y);
+              }
+              break;
+            case kInputBox:
+              input_box = (InputBox*)p->component;
+              rect = &input_box->position;
+              if (Inbox(x, y, rect)) {
+                focus = p;
+                DisplayAnimateComponents(x, y);
+              }
+              break;
+            case kLink:
+              link = (Link*)(p->component);
+              rect = &link->position;
+              if (Inbox(x, y, rect)) {
+                focus = p;
+                DisplayAnimateComponents(x, y);
+              }
+              break;
           }
         }
       }
       break;
-    case BUTTON_UP:
-      break;
+  }
+}
+
+// Move focus to the next components
+void MoveFocus() {
+  focus = focus->next;
+  while(focus->type == kLabel) {
+    focus = focus->next;
   }
 }
 
@@ -340,4 +340,15 @@ void HandleClick(int x, int y, int mouse_button, int event) {
 void MouseMoveEventHandler(int x, int y, int mouse_button, int event) {
   DisplayAnimateComponents(x, y);
   HandleClick(x, y, mouse_button, event);
+}
+
+void KeyboardEventHandler(int key, int event) {
+  if(event == KEY_UP) {
+    switch (key) {
+      case VK_TAB:
+        MoveFocus();
+        break;
+    }
+  }
+  DisplayAnimateComponents(GetMouseX(), GetMouseY());
 }

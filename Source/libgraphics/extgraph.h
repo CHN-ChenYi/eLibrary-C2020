@@ -211,10 +211,12 @@ int GetFontHeight(void);
  * respectively.  The coordinate values are real numbers measured
  * in inches from the origin and therefore match the drawing
  * coordinates.
+ *
+ * Modified: return pixels instead of inches
  */
 
-double GetMouseX(void);
-double GetMouseY(void);
+int GetMouseX(void);
+int GetMouseY(void);
 
 /*
  * Functions: MouseButtonIsDown

@@ -19,4 +19,5 @@ void Main() {
   InsertComp(label, kLabel);
   DrawComponents();
   registerMouseEvent(MouseMoveEventHandler);
+  registerKeyboardEvent(KeyboardEventHandler);
 }

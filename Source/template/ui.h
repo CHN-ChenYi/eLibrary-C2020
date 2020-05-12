@@ -28,8 +28,6 @@ typedef struct Rect {
 typedef enum {
   kNormal,  // the normal status
   kHover,   // when the mouse is hovering on it
-  kFocus,   // when the current focus is on it
-  kVisited   // when we have visited the link
 } ComponentStatus;
 
 /* Button */
@@ -82,6 +80,7 @@ void DrawLabel(Label* label);
 
 /* Event handlers */
 void MouseMoveEventHandler(int x, int y, int mouse_button, int event);
+void KeyboardEventHandler(int key, int event);
 
 /* Others */
 Color ColorConvert(char* color, double alpha);

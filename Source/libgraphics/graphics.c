@@ -506,16 +506,18 @@ int GetFontHeight(void) {
 
 /* Section 5 -- Mouse support */
 
-double GetMouseX(void) {
+/* Modified: return pixels instead of Inches */
+int GetMouseX(void) {
   InitCheck();
   CheckEvents();
-  return (InchesX(mouseX));
+  return (mouseX);
 }
 
-double GetMouseY(void) {
+/* Modified: return pixels instead of Inches */
+int GetMouseY(void) {
   InitCheck();
   CheckEvents();
-  return (windowHeight - InchesY(mouseY));
+  return (mouseY);
 }
 
 bool MouseButtonIsDown(void) {

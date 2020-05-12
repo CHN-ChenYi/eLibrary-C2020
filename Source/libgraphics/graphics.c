@@ -1998,14 +1998,11 @@ void FlushDistrict(int min_x, int min_y, int max_x, int max_y) {
 
 // Clear a district
 void ClearDistrict(Rect* rect) {
-  double x = InchesX(rect->left);
-  double y = GetWindowHeight() - InchesY(rect->bottom);
-  double dx = InchesX(rect->right - rect->left);
-  double dy = InchesY(rect->bottom - rect->top);
   RECT r;
-  SetRect(&r, x, y, dx, dy);
+  SetRect(&r, rect->left, rect->top, rect->right, rect->bottom);
   InvalidateRect(graphicsWindow, &r, TRUE);
-  BitBlt(osdc, x, y, dx, dy, NULL, 0, 0, WHITENESS);
+  BitBlt(osdc, rect->left, rect->top, rect->right - rect->left, rect->bottom - rect->top,
+        NULL, 0, 0, WHITENESS);
 }
 
 void DrawShadedTriangle(ColorPoint* A, ColorPoint* B, ColorPoint* C) {

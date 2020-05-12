@@ -11,8 +11,7 @@ void Main() {
   Button* button = CreateButton((Rect){100, 300, 100, 200}, "你好", 30, 1);
   InputBox* input_box = CreateInputBox((Rect){100, 300, 350, 450}, 30, 2);
   Link* link = CreateLink((Rect){100, 300, 500, 600}, "点这里", 30, 3);
-  Label* label = CreateLabel((Rect){100, 300, 650, 750}, "这里是label", 30, 3);
-  printf("%d\n", TextStringWidth("点这里"));
+  Label* label = CreateLabel((Rect){100, 300, 650, 750}, "fuck", 30, 3);
   InitComponents();
   InsertComp(button, kButton);
   InsertComp(input_box, kInputBox);

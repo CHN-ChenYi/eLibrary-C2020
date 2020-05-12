@@ -29,7 +29,7 @@ typedef enum {
   kNormal,  // the normal status
   kHover,   // when the mouse is hovering on it
   kFocus,   // when the current focus is on it
-  kVisted   // when we have visited the link
+  kVisited   // when we have visited the link
 } ComponentStatus;
 
 /* Button */

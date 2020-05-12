@@ -104,11 +104,11 @@ InputBox* CreateInputBox(Rect rect, int font_size, int id) {
 
 Link* CreateLink(Rect rect, char* caption, int font_size, int id) {
   Link* ret = malloc(sizeof(Link));
-  printf("%d\n", TextStringWidth("µãÕâÀï"));
   ret->id = id;
   ret->position = rect;
-  ret->position.right = ret->position.left + TextStringWidth(caption);
+  SetFont("Consolas");
   SetPointSize(font_size);
+  ret->position.right = ret->position.left + TextStringWidth(caption);
   ret->position.top = ret->position.bottom - GetPointSize();
   ret->status = kNormal;
   ret->font_size = font_size;
@@ -120,8 +120,9 @@ Label* CreateLabel(Rect rect, char* caption, int font_size, int id) {
   Label* ret = malloc(sizeof(Label));
   ret->id = id;
   ret->position = rect;
-  ret->position.right = ret->position.left + TextStringWidth(caption);
+  SetFont("Consolas");
   SetPointSize(font_size);
+  ret->position.right = ret->position.left + TextStringWidth(caption);
   ret->position.top = ret->position.bottom - GetPointSize();
   ret->font_size = font_size;
   strcpy(ret->caption, caption);
@@ -139,7 +140,6 @@ void DrawRectangle(Rect* rect) {
 }
 
 void DrawButton(Button* button, int mouse_x) {
-  ClearDistrict(&button->position);
   SetFont("Consolas");
   SetPointSize(button->font_size);
   SetPenSize(1);
@@ -170,7 +170,6 @@ void DrawButton(Button* button, int mouse_x) {
 }
 
 void DrawInputBox(InputBox* input_box) {
-  ClearDistrict(&input_box->position);
   SetPointSize(input_box->font_size);
   SetPenSize(1);
   switch (input_box->status) {
@@ -185,9 +184,6 @@ void DrawInputBox(InputBox* input_box) {
 }
 
 void DrawLink(Link* link) {
-  ClearDistrict(&link->position);
-  SetPenSize(1);
-  DrawRectangle(&link->position);
   SetFont("Consolas");
   SetPointSize(link->font_size);
   SetPenSize(1);
@@ -201,7 +197,7 @@ void DrawLink(Link* link) {
       MovePen(link->position.left, link->position.bottom);
       DrawTextString(link->caption);
       break;
-    case kVisted:
+    case kVisited:
       SetPenColor("purple");
       MovePen(link->position.left, link->position.bottom);
       DrawLine(TextStringWidth(link->caption), 0);
@@ -212,8 +208,6 @@ void DrawLink(Link* link) {
 }
 
 void DrawLabel(Label* label) {
-  SetPenSize(1);
-  DrawRectangle(&label->position);
   SetFont("Consolas");
   SetPointSize(label->font_size);
   SetPenSize(1);
@@ -237,46 +231,113 @@ void DrawComponents() {
         break;
       case kLink:
         DrawLink((Link*)p->component);
+        break;
     }
   }
 }
 
 /* Events handler */
 
-// Handle the mouse movement on components
-void MouseMoveEventHandler(int x, int y, int mouse_button, int event) {
+extern void DisplayClear(void);
+
+// Display components according to the position of the mouse
+void DisplayAnimateComponents(int x, int y) {
+  DisplayClear();
   Button* button = NULL;
   InputBox* input_box = NULL;
   Link* link = NULL;
+  Label* label = NULL;
   for (PTCNode p = cur_list->next; p != cur_list; p = p->next) {
     switch (p->type) {
-      case kButton:
-        button = (Button*)p->component;
-        if (Inbox(x, y, &(button->position))) {
-          button->status = kHover;
-        } else {
-          button->status = kNormal;
-        }
-        DrawButton(button, x);
-        break;
-      case kInputBox:
-        input_box = (InputBox*)p->component;
-        if (Inbox(x, y, &(input_box->position))) {
-          input_box->status = kHover;
-        } else {
-          input_box->status = kNormal;
-        }
-        DrawInputBox(input_box);
-        break;
-      case kLink:
-        link = (Link*)(p->component);
-        ComponentStatus last_status = link->status;
-        if (Inbox(x, y, &link->position)) {
-          link->status = kHover;
-        }
-        DrawLink(link);
-        link->status = last_status;
-        break;
+    case kButton:
+      button = (Button*)p->component;
+      if (Inbox(x, y, &(button->position))) {
+        button->status = kHover;
+      } else {
+        button->status = kNormal;
+      }
+      DrawButton(button, x);
+      break;
+    case kInputBox:
+      input_box = (InputBox*)p->component;
+      if (Inbox(x, y, &(input_box->position))) {
+        input_box->status = kHover;
+      } else {
+        input_box->status = kNormal;
+      }
+      DrawInputBox(input_box);
+      break;
+    case kLink:
+      link = (Link*)(p->component);
+      if (Inbox(x, y, &link->position)) {
+        link->status = kHover;
+      } else {
+        link->status = kNormal;
+      }
+      DrawLink(link);
+      break;
+    case kLabel:
+      label = (Label*)(p->component);
+      DrawLabel(label);
+      break;
     }
   }
+}
+
+void HandleClick(int x, int y, int mouse_button, int event) {
+  Button* button = NULL;
+  InputBox* input_box = NULL;
+  Link* link = NULL;
+  Label* label = NULL;
+  switch(event) {
+    case BUTTON_DOWN:
+      DisplayClear();
+      if (mouse_button == LEFT_BUTTON) {
+        for (PTCNode p = cur_list->next; p != cur_list; p = p->next) {
+          switch (p->type) {
+          case kButton:
+            button = (Button*)p->component;
+            if (Inbox(x, y, &(button->position))) {
+              button->status = kFocus;
+            }
+            else {
+              button->status = kNormal;
+            }
+            DrawButton(button, x);
+            break;
+          case kInputBox:
+            input_box = (InputBox*)p->component;
+            if (Inbox(x, y, &(input_box->position))) {
+              input_box->status = kFocus;
+            }
+            else {
+              input_box->status = kNormal;
+            }
+            DrawInputBox(input_box);
+            break;
+          case kLink:
+            link = (Link*)(p->component);
+            if (Inbox(x, y, &link->position)) {
+              link->status = kFocus;
+            }
+            DrawLink(link);
+            link->status = kVisited;
+            break;
+          case kLabel:
+            label = (Label*)(p->component);
+            DrawLabel(label);
+            break;
+          }
+        }
+      }
+      break;
+    case BUTTON_UP:
+      break;
+  }
+}
+
+// Handle the mouse movement on components
+void MouseMoveEventHandler(int x, int y, int mouse_button, int event) {
+  DisplayAnimateComponents(x, y);
+  HandleClick(x, y, mouse_button, event);
 }

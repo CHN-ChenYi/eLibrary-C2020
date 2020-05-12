@@ -154,20 +154,16 @@ static void FreeHistory(void *const history_) {
     // case kOpenLibrary:  // 图书库打开
     // break;
     case kBookDisplay:  // 图书显示
-      free(
-          history->state.borrow_display
-              ->book_name);  // TODO:(TO/GA)
-                             // 这玩意儿有可能和之前的东西是共享的...要么统一深拷贝？
+      free(history->state.borrow_display->book_name);
       break;
     case kBookInit:    // 图书新增
     case kBookModify:  // 图书修改/删除
       free(history->state.book_display->book);
       break;
-    // Navigation_BookModify(nav_page, cur_user);
-    // break;
-    // case kBorrowDisplay:  // 借还书统计（管理员）
-    // Navigation_BorrowDisplay(nav_page, cur_user);
-    // break;
+    case kBorrowDisplay:  // 借还书统计（管理员）
+      free(history->state.borrow_display->book_name);
+      DeleteList(history->state.borrow_display->borrow_record, NULL);
+      break;
     case kStatistics:  // 统计
       DeleteList(history->state.statistics->catalogs, free);
       DeleteList(history->state.statistics->borrow_record, NULL);
@@ -1110,8 +1106,7 @@ static inline void Navigation_Return() {
   }
 }
 
-void NavigationCallback(
-    Page nav_page) {  // TODO:(TO/GA) cur_user 这个参数好像没用？
+void NavigationCallback(Page nav_page) {
   switch (nav_page) {
     // case kWelcome: // 欢迎界面
     // break;

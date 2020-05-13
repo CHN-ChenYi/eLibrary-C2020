@@ -348,7 +348,10 @@ static void inline UserSearchInfoDisplay(User *show_user, char *msg) {
   new_history->page = kUserModify;
   new_history->state.user_modify = malloc(sizeof(UserModify));
   new_history->state.user_modify->confirm_callback = UserModify_ConfirmCallback;
-  memcpy(new_history->state.user_modify->user, show_user, sizeof(User));
+
+  new_history->state.user_modify->user = malloc(sizeof(User));
+  GetById(&user_db, new_history->state.user_modify->user, show_user->uid, USER);
+  show_user = new_history->state.user_modify->user;
 
   List *borrow_record = NewList(), *books = NewList();
   char *query = malloc(sizeof(char) * (10 + 10));
@@ -658,8 +661,7 @@ static void BookDisplay_DeleteCallback() {
   }
 
   Book *new_book = TopHistory()->state.book_display->book;
-  Delete(&book_db, new_book->uid,
-         BOOK);  // TODO:(TO/GA) 会对借还书界面产生什么影响？
+  Delete(&book_db, new_book->uid, BOOK);
 
   char *msg =
       malloc(sizeof(char) * (25 + username_len + strlen(new_book->title)));
@@ -1070,7 +1072,13 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
       BookDisplay_ConfirmCallback;
   new_history->state.book_display->delete_callback = BookDisplay_DeleteCallback;
   new_history->state.book_display->borrow_callback = BookDisplay_BorrowCallback;
-  new_history->state.book_display->book = book;
+
+  if (type) {
+    new_history->state.book_display->book = book;
+  } else {
+    new_history->state.book_display->book = malloc(sizeof(Book));
+    GetById(&book_db, new_history->state.book_display->book, book->uid, BOOK);
+  }
 
   if (!type) {
     char *image_path = malloc(sizeof(char) * (14 + lib_path_len + 10));
@@ -1224,8 +1232,6 @@ void NavigationCallback(Page nav_page) {
 }
 
 static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
-  // TODO: 权限控制?换用户历史消失，好像没事
-  // TODO: (TO/GA) 信息更新!书变了，书不存在...如果同一uid是两本书，那我好像无能为力了
   while (history_list->dummy_tail->pre != go_back_to)
     PopBackHistory();
   History *const history = go_back_to->value;
@@ -1273,7 +1279,8 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
       User *new_user = malloc(sizeof(User));
       memcpy(new_user, history->state.user_modify->user, sizeof(User));
       PopBackHistory();
-      UserSearchInfoDisplay(&user, msg);
+      UserSearchInfoDisplay(new_user, msg);
+      free(new_user);
     } break;
     case kUserManagement:  // 用户删除/审核（管理员）
       PopBackHistory();
@@ -1287,22 +1294,18 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
     // break;
     // case kOpenLibrary:  // 图书库打开
     // break;
-    case kBookDisplay: {  // 图书显示
-      Book *new_book = malloc(sizeof(Book));
-      memcpy(new_book, history->state.book_display->book, sizeof(Book));
-      PopBackHistory();
-      Navigation_BookDisplayOrInit(new_book, 0, msg);
-    } break;
-    case kBookInit:    // 图书新增
-      PopBackHistory();
-      Navigation_BookInit(msg);
-      break;
+    case kBookDisplay:   // 图书显示
     case kBookModify: {  // 图书修改/删除
       Book *new_book = malloc(sizeof(Book));
       memcpy(new_book, history->state.book_display->book, sizeof(Book));
       PopBackHistory();
       Navigation_BookDisplayOrInit(new_book, 0, msg);
+      free(new_book);
     } break;
+    case kBookInit:  // 图书新增
+      PopBackHistory();
+      Navigation_BookInit(msg);
+      break;
     case kBorrowDisplay:  // 借还书统计（管理员）
       PopBackHistory();
       BookDisplayAdminDisplay(msg);

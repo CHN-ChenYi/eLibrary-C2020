@@ -58,6 +58,9 @@
     <ClCompile Include="Source\template\ui.c">
       <Filter>Source\template</Filter>
     </ClCompile>
+    <ClCompile Include="Source\template\page.c">
+      <Filter>Source\template</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\libgraphics\exception.h">
@@ -103,6 +106,9 @@
       <Filter>Source\view</Filter>
     </ClInclude>
     <ClInclude Include="Source\template\ui.h">
+      <Filter>Source\template</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\template\page.h">
       <Filter>Source\template</Filter>
     </ClInclude>
   </ItemGroup>

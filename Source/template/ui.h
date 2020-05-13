@@ -66,25 +66,30 @@ typedef struct Label {
   char caption[500];
 }Label;
 
+/* Rectangle with color (for framework) */
+typedef struct Frame {
+  Rect position;
+  Color color;
+} ColorRect;
+
 /* Create UI components */
 Button* CreateButton(Rect rect, char* caption, int font_size, int id);
 InputBox* CreateInputBox(Rect rect, int font_size, int id);
 Link* CreateLink(Rect rect, char* caption, int font_size, int id);
 Label* CreateLabel(Rect rect, char* caption, int font_size, int id);
+ColorRect* CreateFrame(Rect rect, char* color, double alpha);
 
 /* Draw UI components */
 void DrawButton(Button* button, int mouse_x);
 void DrawInputBox(InputBox* input_box);
 void DrawLink(Link* link);
 void DrawLabel(Label* label);
+void DrawFrame(ColorRect* rect);
 
 /* Event handlers */
 void MouseMoveEventHandler(int x, int y, int mouse_button, int event);
 void KeyboardEventHandler(int key, int event);
 void CharEventHandler(int key);
-
-/* Others */
-Color ColorConvert(char* color, double alpha);
 
 /* Singly linked circular list for components */
 typedef struct ComponentListNode* PTCNode;
@@ -102,7 +107,11 @@ struct ComponentListNode {
 
 typedef PTCNode CompList;
 
-void InitComponents();
 void InsertComp(void* component, TypeOfComp type);
+void InsertFrame(void* component);
 void FreeCompList();
 void DrawComponents();
+void DrawFramwork(); 
+
+// Initialization
+void InitializeUI();

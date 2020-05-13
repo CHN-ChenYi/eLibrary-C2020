@@ -214,6 +214,6 @@ void ClearDistrict(Rect* rect);
 // Draw a shaded trangle decided by the three vertices A, B, C
 void DrawShadedTriangle(ColorPoint* A, ColorPoint* B, ColorPoint* C);
 // Draw a shaded rectangle decided by the lower left point and the upper right point.
-void DrawShadedRectangle(ColorPoint* A, ColorPoint* B);
+void DrawShadedRectangle(ColorPoint* lower_right, ColorPoint* upper_left);
 
 #endif

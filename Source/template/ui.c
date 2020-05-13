@@ -32,8 +32,9 @@ Color ColorConvert(char* color, double alpha) {
 
 /* Singly linked circular list for components */
 
-static PTCNode focus;      // The current focus
-static CompList cur_list;  // The list of all the components on the current page.
+static PTCNode focus = NULL;      // The current focus
+static CompList cur_list = NULL;  // The list of all the components on this page.
+static CompList frame = NULL;     // The background or framework of this page.
 
 // Add a new component into the list
 void InsertComp(void* component, TypeOfComp type) {
@@ -42,6 +43,14 @@ void InsertComp(void* component, TypeOfComp type) {
   new_node->type = type;
   new_node->next = cur_list->next;
   cur_list->next = new_node;
+}
+
+// Add a new framework into the list
+void InsertFrame(void* component) {
+  PTCNode new_node = (PTCNode)malloc(sizeof(struct ComponentListNode));
+  new_node->component = component;
+  new_node->next = frame->next;
+  frame->next = new_node;
 }
 
 // Make a new list
@@ -59,14 +68,6 @@ void FreeCompList() {
     free(p->component);
     free(p);
   }
-}
-
-void InitComponents() {
-  if (cur_list != NULL) {
-    FreeCompList(cur_list);
-  }
-  cur_list = NewCompList();
-  focus = cur_list;
 }
 
 /* End of linked list */
@@ -127,6 +128,14 @@ Label* CreateLabel(Rect rect, char* caption, int font_size, int id) {
   return ret;
 }
 
+// Create a color rectangle, color must be CSS-styled
+ColorRect* CreateFrame(Rect rect, char* color, double alpha) {
+  ColorRect* ret = malloc(sizeof(ColorRect));
+  ret->color = ColorConvert(color, alpha);
+  ret->position = rect;
+  return ret;
+}
+
 /* Draw components */
 
 void DrawRectangle(Rect* rect) {
@@ -135,6 +144,12 @@ void DrawRectangle(Rect* rect) {
   DrawLine(0, rect->bottom - rect->top);
   DrawLine(rect->left - rect->right, 0);
   DrawLine(0, rect->top - rect->bottom);
+}
+
+void DrawFrame(ColorRect* rect) {
+  ColorPoint lower_right = (ColorPoint){rect->position.right, rect->position.bottom, rect->color};
+  ColorPoint upper_left = (ColorPoint){rect->position.left, rect->position.top, rect->color};
+  DrawShadedRectangle(&lower_right, &upper_left);
 }
 
 /* Draw a rectangle to wrap it*/
@@ -274,22 +289,10 @@ void DrawLabel(Label* label) {
   DrawTextString(label->caption);
 }
 
-void DrawComponents() {
-  for (PTCNode p = cur_list->next; p != cur_list; p = p->next) {
-    switch (p->type) {
-      case kButton:
-        DrawButton((Button*)p->component, -1);
-        break;
-      case kInputBox:
-        DrawInputBox((InputBox*)p->component);
-        break;
-      case kLabel:
-        DrawLabel((Label*)p->component);
-        break;
-      case kLink:
-        DrawLink((Link*)p->component);
-        break;
-    }
+void DrawFramwork() {
+  for (PTCNode p = frame->next; p != frame; p = p->next) {
+    ColorRect* color_rect = (ColorRect*)p->component;
+    DrawFrame(color_rect);
   }
 }
 
@@ -309,6 +312,7 @@ int Inbox(int x, int y, Rect* rect) {
 // Display components according to the position of the mouse
 void DisplayAnimateComponents(int x, int y) {
   DisplayClear();
+  DrawFramwork();
   Button* button = NULL;
   InputBox* input_box = NULL;
   Link* link = NULL;
@@ -357,6 +361,10 @@ void DisplayAnimateComponents(int x, int y) {
   }
 }
 
+void DrawComponents() {
+  DisplayAnimateComponents(GetMouseX(), GetMouseY());
+}
+
 void CallbackById(int id) {
   printf("%d\n", id);
 }
@@ -379,7 +387,7 @@ void HandleClick(int x, int y, int mouse_button, int event) {
   Rect* rect = NULL;
   int click_on_margin = 1;  // whether this click is on none of the components
   switch(event) {
-    case BUTTON_DOWN:
+    case BUTTON_UP:
       if (mouse_button == LEFT_BUTTON) {
         for (PTCNode p = cur_list->next; p != cur_list; p = p->next) {
           switch (p->type) {
@@ -477,7 +485,7 @@ void ChangeInputBox(int key) {
   if (focus->type != kInputBox) {
     return;
   }
-  if (isalpha(key) || !isascii(key)) {
+  if (!iscntrl(key)) {
     InputBox* input_box = (InputBox*)focus->component;
     InsertChar(input_box->context, key, input_box->cursor);
     MoveCursor(1);
@@ -541,4 +549,29 @@ void KeyboardEventHandler(int key, int event) {
 void CharEventHandler(int key) {
   ChangeInputBox(key);
   DisplayAnimateComponents(GetMouseX(), GetMouseY());
+}
+
+// Initialize the components
+void InitComponents() {
+  if (cur_list != NULL) {
+    FreeCompList(cur_list);
+  }
+  cur_list = NewCompList();
+  focus = cur_list;
+}
+
+void InitFrame() {
+  if (frame != NULL) {
+    FreeCompList(frame);
+  }
+  frame = NewCompList();
+}
+
+// Initialization of this set of GUI components
+void InitializeUI() {
+  InitComponents();
+  InitFrame();
+  registerMouseEvent(MouseMoveEventHandler);
+  registerKeyboardEvent(KeyboardEventHandler);
+  registerCharEvent(CharEventHandler);
 }

@@ -30,6 +30,7 @@ static inline void Log(char *const msg);
 static void FreeHistory(void *const history_);
 static inline History *const TopHistory();
 static inline void PushBackHistory(History *const new_history);
+static inline void PopBackHistory();
 static inline void ClearHistory();
 static inline void ReturnHistory(ListNode *go_back_to, char *msg);
 static void BookSearch_BorrowCallback(Book *book);
@@ -111,6 +112,10 @@ static inline void PushBackHistory(History *const new_history) {
   InsertList(history_list, history_list->dummy_tail, new_history);
   while (history_list->size > HISTORY_MAX)
     EraseList(history_list, history_list->dummy_head->nxt, FreeHistory);
+}
+
+static inline void PopBackHistory() {
+  EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
 }
 
 static inline void ClearHistory() { ClearList(history_list, FreeHistory); }
@@ -1222,44 +1227,44 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
   // TODO: 权限控制?换用户历史消失，好像没事
   // TODO: (TO/GA) 信息更新!书变了，书不存在...如果同一uid是两本书，那我好像无能为力了
   while (history_list->dummy_tail->pre != go_back_to)
-    EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+    PopBackHistory();
   History *const history = go_back_to->value;
   switch (history->page) {
     case kWelcome:  // 欢迎界面
       DrawUI(kWelcome, &user, NULL, msg);
       break;
     case kLendAndBorrow:  // 借还书
-      EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+      PopBackHistory();
       Navigation_LendAndBorrow(msg);
       break;
     case kBookSearch: {  // 图书搜索
       char *keyword =
           malloc(sizeof(char) * strlen(history->state.book_search->keyword));
       strcpy(keyword, history->state.book_search->keyword);
-      EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+      PopBackHistory();
       BookSearchDisplay(keyword, msg);
     } break;
     case kUserSearch: {  // 用户搜索（管理员）
       char *keyword =
           malloc(sizeof(char) * strlen(history->state.user_search->keyword));
       strcpy(keyword, history->state.user_search->keyword);
-      EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+      PopBackHistory();
       UserSearchDisplay(keyword, msg);
     } break;
     case kManual:  // 帮助
-      EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+      PopBackHistory();
       Navigation_ManualOrAbout(0, msg);
       break;
     case kAbout:   // 关于
-      EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+      PopBackHistory();
       Navigation_ManualOrAbout(1, msg);
       break;
     case kUserRegister:  // 用户注册
-      EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+      PopBackHistory();
       Navigation_UserLogInOrRegister(1, msg);
       break;
     case kUserLogIn:     // 用户登陆
-      EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+      PopBackHistory();
       Navigation_UserLogInOrRegister(1, msg);
       break;
     // case kLogout:  // 用户登出
@@ -1267,15 +1272,15 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
     case kUserModify: {  // 用户信息修改
       User *new_user = malloc(sizeof(User));
       memcpy(new_user, history->state.user_modify->user, sizeof(User));
-      EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+      PopBackHistory();
       UserSearchInfoDisplay(&user, msg);
     } break;
     case kUserManagement:  // 用户删除/审核（管理员）
-      EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+      PopBackHistory();
       Navigation_UserManagement(msg);
       break;
     case kLibrary:  // 图书库显示
-      EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+      PopBackHistory();
       Navigation_Library(msg);
       break;
     // case kInitLibrary:  // 图书库新建
@@ -1285,25 +1290,25 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
     case kBookDisplay: {  // 图书显示
       Book *new_book = malloc(sizeof(Book));
       memcpy(new_book, history->state.book_display->book, sizeof(Book));
-      EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+      PopBackHistory();
       Navigation_BookDisplayOrInit(new_book, 0, msg);
     } break;
     case kBookInit:    // 图书新增
-      EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+      PopBackHistory();
       Navigation_BookInit(msg);
       break;
     case kBookModify: {  // 图书修改/删除
       Book *new_book = malloc(sizeof(Book));
       memcpy(new_book, history->state.book_display->book, sizeof(Book));
-      EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+      PopBackHistory();
       Navigation_BookDisplayOrInit(new_book, 0, msg);
     } break;
     case kBorrowDisplay:  // 借还书统计（管理员）
-      EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+      PopBackHistory();
       BookDisplayAdminDisplay(msg);
       break;
     case kStatistics:  // 统计
-      EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
+      PopBackHistory();
       Navigation_Statistics(msg);
       break;
     // case kReturn:  // 回到上一个界面

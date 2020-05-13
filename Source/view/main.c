@@ -12,6 +12,9 @@ void Main() {
   InputBox* input_box = CreateInputBox((Rect){100, 300, 350, 450}, 30, 2);
   Link* link = CreateLink((Rect){100, 300, 500, 600}, "点这里", 30, 3);
   Label* label = CreateLabel((Rect){100, 300, 650, 750}, "fuck", 30, 3);
+
+  strcpy(input_box->context, "你好");
+
   InitComponents();
   InsertComp(button, kButton);
   InsertComp(input_box, kInputBox);
@@ -20,4 +23,5 @@ void Main() {
   DrawComponents();
   registerMouseEvent(MouseMoveEventHandler);
   registerKeyboardEvent(KeyboardEventHandler);
+  registerCharEvent(CharEventHandler);
 }

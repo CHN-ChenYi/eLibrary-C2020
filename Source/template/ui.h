@@ -81,6 +81,7 @@ void DrawLabel(Label* label);
 /* Event handlers */
 void MouseMoveEventHandler(int x, int y, int mouse_button, int event);
 void KeyboardEventHandler(int key, int event);
+void CharEventHandler(int key);
 
 /* Others */
 Color ColorConvert(char* color, double alpha);

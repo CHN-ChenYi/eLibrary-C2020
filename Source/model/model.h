@@ -17,6 +17,7 @@ enum DBErrno {
   DB_FAIL_ON_CREATE,
   DB_FAIL_ON_UPDATE,
   DB_FAIL_ON_DELETE,
+  DB_FAIL_ON_GETTING_PROPERTIES, // for getting pk and size.
   DB_ALREADY_EXISTS,
   DB_ENTRY_EMPTY,
 
@@ -82,7 +83,7 @@ int Create(DB* db, void* handle, Model model);
   Return value:
   DBErrno
  */
-int GetById(DB* db, void* handle, int id, Model model);
+int GetById(DB* db, void* handle, unsigned int id, Model model);
 
 /*
  Filter
@@ -171,7 +172,7 @@ unsigned int GetNextPK(DB* db, Model model, unsigned int *pk);
   DBErrno
  */
 
-int Update(DB* db, void* handle, int id, Model model);
+int Update(DB* db, void* handle, unsigned int id, Model model);
 
 // Delete
 /*
@@ -187,5 +188,5 @@ int Update(DB* db, void* handle, int id, Model model);
   DBErrno
 */
 
-int Delete(DB* db, int id, Model model);
+int Delete(DB* db, unsigned int id, Model model);
 #endif  // MODEL_H_

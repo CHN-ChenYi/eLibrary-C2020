@@ -83,11 +83,11 @@ void AddSubmenuFile() {
 
 void AddSubmenuBook() {
   new_book = CreateButton(
-    (Rect) {70, 250, 70, 110},
+    (Rect) {70, 220, 70, 110},
     "ÐÂ½¨", 20, MENU_COLOR, 1, kWhite, 1
   );
   display_book = CreateButton(
-    (Rect) {70, 250, 110, 150},
+    (Rect) {70, 220, 110, 150},
     "ÏÔÊ¾", 20, MENU_COLOR, 1, kWhite, 2
   );
   InsertSurface(new_book, kButton);
@@ -217,9 +217,9 @@ void AddHeadBar() {
 
 void InitPage() {
   AddHeadBar();
-  InsertComp(CreateInputBox(
+  /*InsertComp(CreateInputBox(
     (Rect) {300, 700, 500, 600}, 20, 1
-  ), kInputBox);
+  ), kInputBox);*/
   FlushScreen(GetMouseX(), GetMouseY());
 }
 

@@ -72,12 +72,14 @@ static inline void Navigation_UserModify(char *msg);
 static inline void Navigation_UserManagement(char *msg);
 static inline void Navigation_Library(char *msg);
 static inline void Navigation_OpenOrInitLibrary(bool type, char *msg);
+static inline void Navigation_SaveLibrary(char *msg);
 static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg);
 static inline void Navigation_BookInit(char *msg);
 static bool StrLess(const void *const lhs, const void *rhs);
 static bool StrSame(const void *const lhs, const void *rhs);
 static inline void Navigation_Statistics(char *msg);
 static inline void Navigation_Return(char *msg);
+static inline void Navigation_Exit();
 extern void NavigationCallback(Page nav_page);
 
 void Init() {
@@ -90,6 +92,7 @@ void Init() {
 
   char program_path[MAX_PATH + 1];
   _getcwd(program_path, MAX_PATH);
+  // TODO:(TO/GA) swp文件
   user_db.filename = malloc(sizeof(char) * (strlen(program_path) + 18));
   sprintf(user_db.filename, "\"%s%s%s\"", "file:\\\\", lib_path, "\\user.db");
   OpenDBConnection(&user_db, USER);  // TODO: (TO/GA) 异常处理
@@ -218,7 +221,7 @@ static void BookSearch_BorrowCallback(Book *book) {
   struct tm *nxt_tm = localtime(&nxt_time_t);
   sprintf(new_record.returned_date, "%04d%02d%02d\n", nxt_tm->tm_year + 1900,
           nxt_tm->tm_mon + 1, nxt_tm->tm_mday);
-  new_record.uid = GetNextPK(&borrowrecord_db, BORROWRECORD);
+  GetNextPK(&borrowrecord_db, BORROWRECORD, &new_record.uid);
   strcpy(new_record.user_name, user.username);
   new_record.user_uid = user.uid;
   Create(&borrowrecord_db, &new_record, BORROWRECORD);
@@ -461,7 +464,7 @@ static void LoginOrRegister_LoginCallback() {
     }
     DeleteList(users, NULL);
 
-    new_user->uid = GetNextPK(&user_db, USER);
+    GetNextPK(&user_db, USER, &new_user->uid);
     RandStr(new_user->salt, 9);
     char pwd_type[59];
     sprintf(pwd_type, "%s%s", TopHistory()->state.login_or_register->password,
@@ -1032,7 +1035,7 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
     }
     free(command);
   }
-
+  // TODO:(TO/GA) swp文件
   len = sizeof(char) * (lib_path_len + strlen("file:\\\\\\book.db") + 2 + 1);
   book_db.filename = malloc(len);
   sprintf(book_db.filename, "\"%s%s%s\"", "file:\\\\", lib_path, "\\book.db");
@@ -1062,6 +1065,10 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
   }
   Log(msg);
   DrawUI(kWelcome, &user, NULL, msg);
+}
+
+static inline void Navigation_SaveLibrary(char *msg) {
+  // TODO:(TO/GA) finish it
 }
 
 // type = 0 => Display
@@ -1115,7 +1122,7 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
 
 static inline void Navigation_BookInit(char *msg) {
   Book *book = malloc(sizeof(Book));
-  book->uid = GetNextPK(&book_db, BOOK);
+  GetNextPK(&book_db, BOOK, &book->uid);
   Navigation_BookDisplayOrInit(book, 1, msg);
 }
 
@@ -1177,6 +1184,10 @@ static inline void Navigation_Return(char *msg) {
   }
 }
 
+static inline void Navigation_Exit() {
+  // TODO:(TO/GA) finish it
+}
+
 void NavigationCallback(Page nav_page) {
   switch (nav_page) {
     // case kWelcome: // 欢迎界面
@@ -1221,7 +1232,7 @@ void NavigationCallback(Page nav_page) {
       Navigation_OpenOrInitLibrary(0, NULL);
       break;
     case kSaveLibrary:  // 图书库保存
-      // TODO: (TO/GA) finish it
+      Navigation_SaveLibrary(NULL);
       break;
     // case kBookDisplay:  // 图书显示
     // break;
@@ -1239,7 +1250,7 @@ void NavigationCallback(Page nav_page) {
       Navigation_Return(NULL);
       break;
     case kExit:  // 退出程序
-      // TODO: (TO/GA) finish it
+      Navigation_Exit();
       break;
     default:
       Log("[Debug] Unknown nav_page in NavigationCallback");

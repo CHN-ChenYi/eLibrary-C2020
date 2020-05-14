@@ -1,19 +1,19 @@
 ﻿#include "view.h"
 
 #include <direct.h>
+#include <io.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <io.h>
 
 #include "basictype.h"
 #include "exception.h"
+#include "extgraph.h"
+#include "graphics.h"
 #include "gui.h"
 #include "hash.h"
 #include "list.h"
 #include "model.h"
-#include "graphics.h"
-#include "extgraph.h"
 
 void DrawUI(Page cur_page, User *cur_user, void *info, char *terminal) {}
 
@@ -28,8 +28,8 @@ static char lib_path[MAX_PATH + 1], program_path[MAX_PATH + 1];
 static size_t lib_path_len, username_len, program_path_len;
 static DB book_db, user_db, borrowrecord_db;
 static FILE *log_file;
-
 static inline void Log(char *const msg);
+static inline bool ErrorHandle(int errno_);
 static void FreeHistory(void *const history_);
 static inline History *const TopHistory();
 static inline void PushBackHistory(History *const new_history);
@@ -91,28 +91,30 @@ void Init() {
   Log("[Info] Start");
   SetWindowTitle("eLibrary");
 
-  _getcwd(program_path, MAX_PATH); // get the full path of the current working directory 
+  _getcwd(program_path,
+          MAX_PATH);  // get the full path of the current working directory
 
   char *msg = malloc(sizeof(char) * 91);
   program_path_len = strlen(program_path);
   user_db.filename = malloc(sizeof(char) * (program_path_len + 13));
   sprintf(user_db.filename, "%s%s", program_path, "\\user.swp.db");
   if (!_access(user_db.filename, 6)) {  // swap file exists
-    sprintf(msg, "[Warning] Open the swap file of user database. An abnormal exit may have occurred last time");
+    sprintf(msg,
+            "[Warning] Open the swap file of user database. An abnormal exit "
+            "may have occurred last time");
   } else {
-    char *user_database_path =
-        malloc(sizeof(char) * (program_path_len + 9));
+    char *user_database_path = malloc(sizeof(char) * (program_path_len + 9));
     sprintf(user_database_path, "%s\\user.db", program_path);
-    if (!_access(user_database_path, 6)) { // user database exists
-      char *command = malloc(sizeof(char) *
-                             (14 + program_path_len + 8 + program_path_len + 12));
+    if (!_access(user_database_path, 6)) {  // user database exists
+      char *command = malloc(
+          sizeof(char) * (14 + program_path_len + 8 + program_path_len + 12));
       sprintf(command, "copy /Y \"%s\" \"%s\"", user_database_path,
               user_db.filename);
       system(command);
       free(command);
-      sprintf(msg, "[Info] Open user database"); 
+      sprintf(msg, "[Info] Open user database");
     } else {  // user database doesn't exist
-      sprintf(msg, "[Info] Init user database"); 
+      sprintf(msg, "[Info] Init user database");
     }
     free(user_database_path);
   }
@@ -134,6 +136,63 @@ static inline void Log(char *const msg) {
     time[--len] = '\0';
   // As DST is not always one hour, calculating loacl time zone is expensive
   fprintf(log_file, "[%s Local] %s\n", time, msg);
+}
+
+// FALSE for success
+static inline bool ErrorHandle(int errno_) {
+  char *msg = malloc(sizeof(char) * (41 + username_len));
+  switch (errno_) {
+    case DB_SUCCESS:
+      free(msg);
+      return FALSE;
+    case DB_NOT_FOUND:
+      sprintf(msg, "[Error] [%s] DB_NOT_FOUND", user.username);
+      break;
+    case DB_NOT_OPEN:
+      sprintf(msg, "[Error] [%s] DB_NOT_OPEN", user.username);
+      break;
+    case DB_NOT_CLOSE:
+      sprintf(msg, "[Error] [%s] DB_NOT_CLOSE", user.username);
+      break;
+    case DB_NOT_EXISTS:
+      sprintf(msg, "[Error] [%s] DB_NOT_EXISTS", user.username);
+      break;
+    case DB_FAIL_ON_INIT:
+      sprintf(msg, "[Error] [%s] DB_FAIL_ON_INIT", user.username);
+      break;
+    case DB_FAIL_ON_FETCHING:
+      sprintf(msg, "[Error] [%s] DB_FAIL_ON_FETCHING", user.username);
+      break;
+    case DB_FAIL_ON_WRITING:
+      sprintf(msg, "[Error] [%s] DB_FAIL_ON_WRITING", user.username);
+      break;
+    case DB_FAIL_ON_CREATE:
+      sprintf(msg, "[Error] [%s] DB_FAIL_ON_CREATE", user.username);
+      break;
+    case DB_FAIL_ON_UPDATE:
+      sprintf(msg, "[Error] [%s] DB_FAIL_ON_UPDATE", user.username);
+      break;
+    case DB_FAIL_ON_DELETE:
+      sprintf(msg, "[Error] [%s] DB_FAIL_ON_DELETE", user.username);
+      break;
+    case DB_FAIL_ON_GETTING_PROPERTIES:
+      sprintf(msg, "[Error] [%s] DB_FAIL_ON_GETTING_PROPERTIES", user.username);
+      break;
+    case DB_ALREADY_EXISTS:
+      sprintf(msg, "[Error] [%s] DB_ALREADY_EXISTS", user.username);
+      break;
+    case DB_ENTRY_EMPTY:
+      sprintf(msg, "[Error] [%s] DB_ENTRY_EMPTY", user.username);
+      break;
+    case DB_FAIL:
+      sprintf(msg, "[Error] [%s] DB_FAIL", user.username);
+      break;
+    default:
+      Log("[Debug] Unknown errno");
+      Error("Unknown errno");
+  }
+  ReturnHistory(history_list->dummy_tail->pre, msg);
+  return TRUE;
 }
 
 static inline History *const TopHistory() {
@@ -158,16 +217,16 @@ static void FreeHistory(void *const history_) {
     case kWelcome:  // 欢迎界面
       break;
     case kLendAndBorrow:  // 借还书
-      DeleteList(history->state.lend_and_borrow->books, NULL);
-      DeleteList(history->state.lend_and_borrow->borrow_records, NULL);
+      DeleteList(history->state.lend_and_borrow->books, free);
+      DeleteList(history->state.lend_and_borrow->borrow_records, free);
       break;
     case kBookSearch:  // 图书搜索
       free(history->state.book_search->keyword);
-      DeleteList(history->state.book_search->book_result, NULL);
+      DeleteList(history->state.book_search->book_result, free);
       break;
     case kUserSearch:  // 用户搜索（管理员）
       free(history->state.user_search->keyword);
-      DeleteList(history->state.user_search->user_result, NULL);
+      DeleteList(history->state.user_search->user_result, free);
       break;
     case kManual:  // 帮助
     case kAbout:   // 关于
@@ -180,14 +239,14 @@ static void FreeHistory(void *const history_) {
     // case kLogout:  // 用户登出
     // break;
     case kUserModify:  // 用户信息修改
-      DeleteList(history->state.user_modify->books, NULL);
+      DeleteList(history->state.user_modify->books, free);
       break;
     case kUserManagement:  // 用户删除/审核（管理员）
-      DeleteList(history->state.user_management->to_be_verified, NULL);
-      DeleteList(history->state.user_management->users, NULL);
+      DeleteList(history->state.user_management->to_be_verified, free);
+      DeleteList(history->state.user_management->users, free);
       break;
     case kLibrary:  // 图书库显示
-      DeleteList(history->state.library->books, NULL);
+      DeleteList(history->state.library->books, free);
       DeleteList(history->state.library->book_covers, free);
       break;
     // case kInitLibrary:  // 图书库新建
@@ -205,11 +264,11 @@ static void FreeHistory(void *const history_) {
       break;
     case kBorrowDisplay:  // 借还书统计（管理员）
       free(history->state.borrow_display->book_name);
-      DeleteList(history->state.borrow_display->borrow_record, NULL);
+      DeleteList(history->state.borrow_display->borrow_record, free);
       break;
     case kStatistics:  // 统计
       DeleteList(history->state.statistics->catalogs, free);
-      DeleteList(history->state.statistics->borrow_record, NULL);
+      DeleteList(history->state.statistics->borrow_record, free);
       break;
     // case kReturn:  // 回到上一个界面
     // break;
@@ -232,7 +291,7 @@ static void BookSearch_BorrowCallback(Book *book) {
     return;
   }
   book->number_on_the_shelf--;
-  Update(&book_db, book, book->uid, BOOK);
+  if (ErrorHandle(Update(&book_db, book, book->uid, BOOK))) return;
 
   BorrowRecord new_record;
   strcpy(new_record.book_name, book->title);
@@ -247,10 +306,11 @@ static void BookSearch_BorrowCallback(Book *book) {
   struct tm *nxt_tm = localtime(&nxt_time_t);
   sprintf(new_record.returned_date, "%04d%02d%02d\n", nxt_tm->tm_year + 1900,
           nxt_tm->tm_mon + 1, nxt_tm->tm_mday);
-  GetNextPK(&borrowrecord_db, BORROWRECORD, &new_record.uid);
+  if (ErrorHandle(GetNextPK(&borrowrecord_db, BORROWRECORD, &new_record.uid)))
+    return;
   strcpy(new_record.user_name, user.username);
   new_record.user_uid = user.uid;
-  Create(&borrowrecord_db, &new_record, BORROWRECORD);
+  if (ErrorHandle(Create(&borrowrecord_db, &new_record, BORROWRECORD))) return;
 
   char *msg = malloc(sizeof(char) * (25 + username_len + strlen(book->title)));
   sprintf(msg, "[Info] [%s] Borrow book [%s]", user.username, book->title);
@@ -259,7 +319,7 @@ static void BookSearch_BorrowCallback(Book *book) {
 
 static void inline BookSearchDisplay(char *keyword, char *msg) {
   List *results = NewList();
-  Filter(&book_db, results, keyword, BOOK);  // TODO:(TO/GA) Error Handle
+  if (ErrorHandle(Filter(&book_db, results, keyword, BOOK))) return;
 
   History *new_history = malloc(sizeof(History));
   new_history->page = kBookSearch;
@@ -292,7 +352,8 @@ static void LendAndBorrow_ReturnCallback(ListNode *book,
   BorrowRecord *returned_borrow_record = (BorrowRecord *)borrow_record->value;
 
   returned_book->number_on_the_shelf++;
-  Update(&book_db, returned_book, returned_book->uid, BOOK);
+  if (ErrorHandle(Update(&book_db, returned_book, returned_book->uid, BOOK)))
+    return;
 
   char *msg = malloc(sizeof(char) * (49 + strlen(returned_book->title) + 8));
   sprintf(msg, "[Info] [%s] Return book [%s], expected return date[%s]",
@@ -304,8 +365,11 @@ static void LendAndBorrow_ReturnCallback(ListNode *book,
   struct tm *now_tm = localtime(&now_time_t);
   sprintf(returned_borrow_record->returned_date, "%04d%02d%02d",
           now_tm->tm_year + 1900, now_tm->tm_mon + 1, now_tm->tm_mday);
-  Update(&borrowrecord_db, returned_borrow_record, returned_borrow_record->uid,
-         BORROWRECORD);
+  if (ErrorHandle(Update(&borrowrecord_db, returned_borrow_record,
+                         returned_borrow_record->uid, BORROWRECORD))) {
+    free(msg);
+    return;
+  }
 
   ReturnHistory(history_list->dummy_tail->pre, msg);
 }
@@ -349,13 +413,13 @@ static void UserModify_ConfirmCallback() {
   if (users->size > 1 ||
       (users->size == 1 &&
        ((User *)users->dummy_head->nxt->value)->uid != modified_user->uid)) {
-    DeleteList(users, NULL);
+    DeleteList(users, free);
     char *msg = malloc(sizeof(char) * 42);
     sprintf(msg, "[Error] Fail to modify, username exists");
     ReturnHistory(history_list->dummy_tail->pre, msg);
     return;
   }
-  DeleteList(users, NULL);
+  DeleteList(users, free);
 
   if (modified_user->username[0] == '\0') {
     char *msg = malloc(sizeof(char) * (51 + username_len + 10));
@@ -365,7 +429,8 @@ static void UserModify_ConfirmCallback() {
     return;
   }
 
-  Update(&user_db, modified_user, modified_user->uid, USER);
+  if (ErrorHandle(Update(&user_db, modified_user, modified_user->uid, USER)))
+    return;
   if (modified_user->uid == user.uid) {
     memcpy(&user, modified_user, sizeof(USER));
     username_len = strlen(user.username);
@@ -379,18 +444,30 @@ static void UserModify_ConfirmCallback() {
 }
 
 static void inline UserSearchInfoDisplay(User *show_user, char *msg) {
-  GetById(&user_db, show_user, show_user->uid, USER);
+  if (ErrorHandle(GetById(&user_db, show_user, show_user->uid, USER))) return;
 
   List *borrow_record = NewList(), *books = NewList();
   char *query = malloc(sizeof(char) * (10 + 10));
   sprintf(query, "user_uid=%d", show_user->uid);
-  Filter(&borrowrecord_db, borrow_record, query, BORROWRECORD);
+  if (ErrorHandle(
+          Filter(&borrowrecord_db, borrow_record, query, BORROWRECORD))) {
+    free(query);
+    DeleteList(borrow_record, free);
+    DeleteList(books, free);
+    return;
+  }
   free(query);
   for (ListNode *cur_node = borrow_record->dummy_head->nxt;
        cur_node != borrow_record->dummy_tail; cur_node = cur_node->nxt) {
     Book *new_book = malloc(sizeof(BOOK));
-    GetById(&book_db, new_book, ((BorrowRecord *)cur_node->value)->book_uid,
-            BOOK);
+    if (ErrorHandle(GetById(&book_db, new_book,
+                            ((BorrowRecord *)cur_node->value)->book_uid,
+                            BOOK))) {
+      free(new_book);
+      DeleteList(borrow_record, free);
+      DeleteList(books, free);
+      return;
+    }
     InsertList(books, books->dummy_tail, new_book);
   }
 
@@ -427,7 +504,10 @@ static void inline UserSearchDisplay(char *keyword, char *msg) {
   }
 
   List *results = NewList();
-  Filter(&user_db, results, keyword, USER);  // TODO:(TO/GA) Error Handle
+  if (ErrorHandle(Filter(&user_db, results, keyword, USER))) {
+    DeleteList(results, free);
+    return;
+  }
 
   History *new_history = malloc(sizeof(History));
   new_history->page = kBookSearch;
@@ -480,36 +560,39 @@ static void LoginOrRegister_LoginCallback() {
     sprintf(query, "username=%s", new_user->username);
     free(query);
     if (users->size != 0) {
-      DeleteList(users, NULL);
+      DeleteList(users, free);
       char *msg = malloc(sizeof(char) * 42);
       sprintf(msg, "[Error] Fail to register, username exists");
       ReturnHistory(history_list->dummy_tail->pre, msg);
       return;
     }
-    DeleteList(users, NULL);
+    DeleteList(users, free);
 
-    GetNextPK(&user_db, USER, &new_user->uid);
+    if (ErrorHandle(GetNextPK(&user_db, USER, &new_user->uid))) return;
     RandStr(new_user->salt, 9);
     char pwd_type[59];
     sprintf(pwd_type, "%s%s", TopHistory()->state.login_or_register->password,
             new_user->salt);
     Sha256Sum(new_user->password, pwd_type, strlen(pwd_type));
 
-    char *msg = malloc(sizeof(char) * (45 + strlen(new_user->username)));
-    
     unsigned size_of_user_db;
-    GetDBSize(&user_db, USER, &size_of_user_db);
-    if (!size_of_user_db) { // the first user is admin
+    if (ErrorHandle(GetDBSize(&user_db, USER, &size_of_user_db))) return;
+
+    char *msg = malloc(sizeof(char) * (45 + strlen(new_user->username)));
+
+    if (!size_of_user_db) {  // the first user is admin
       new_user->whoami = ADMINISTRATOR;
       new_user->verified = TRUE;
-      sprintf(msg, "[Info] [%s] Registered as an admin",
-              new_user->username);
+      sprintf(msg, "[Info] [%s] Registered as an admin", new_user->username);
     } else {
       sprintf(msg, "[Info] [%s] Register. Wait for admin to verify",
               new_user->username);
       new_user->verified = FALSE;
     }
-    Create(&user_db, new_user, USER);
+    if (ErrorHandle(Create(&user_db, new_user, USER))) {
+      free(msg);
+      return;
+    }
 
     History *new_history = malloc(sizeof(History));
     new_history->page = kWelcome;
@@ -525,13 +608,13 @@ static void LoginOrRegister_LoginCallback() {
     sprintf(query, "username=%s", new_user->username);
     free(query);
     if (users->size != 1) {
-      DeleteList(users, NULL);
+      DeleteList(users, free);
       char *msg = malloc(sizeof(char) * 31);
       sprintf(msg, "[Error] Can't find such a user");
       ReturnHistory(history_list->dummy_tail->pre, msg);
       return;
     }
-    DeleteList(users, NULL);
+    DeleteList(users, free);
     memcpy(new_user, users->dummy_head->nxt->value, sizeof(User));
 
     char pwd_type[59];
@@ -573,11 +656,17 @@ static void UserManagement_ApproveCallback(ListNode *user_node, bool approve) {
       malloc(sizeof(char) * (27 + username_len + strlen(new_user->username)));
   if (approve) {
     new_user->verified = TRUE;
-    Update(&user_db, new_user, new_user->uid, USER);
+    if (ErrorHandle(Update(&user_db, new_user, new_user->uid, USER))) {
+      free(msg);
+      return;
+    }
     sprintf(msg, "[Info] [%s] Approve user [%s]", user.username,
             new_user->username);
   } else {
-    Delete(&user_db, new_user->uid, USER);
+    if (ErrorHandle(Delete(&user_db, new_user->uid, USER))) {
+      free(msg);
+      return;
+    }
     sprintf(msg, "[Info] [%s] Disprove user [%s]", user.username,
             new_user->username);
   }
@@ -586,9 +675,9 @@ static void UserManagement_ApproveCallback(ListNode *user_node, bool approve) {
 
 static void UserManagement_DeleteCallback(ListNode *user_node) {
   User *new_user = user_node->value;
+  if (ErrorHandle(Delete(&user_db, new_user->uid, USER))) return;
   char *msg =
       malloc(sizeof(char) * (25 + username_len + strlen(new_user->username)));
-  Delete(&user_db, new_user->uid, USER);
   sprintf(msg, "[Info] [%s] Delete user [%s]", user.username,
           new_user->username);
   ReturnHistory(history_list->dummy_tail->pre, msg);
@@ -604,13 +693,19 @@ static void BookDisplayAdminDisplay(char *msg) {
     return;
   }
 
-  GetById(&book_db, TopHistory()->state.book_display->book,
-          TopHistory()->state.book_display->book->uid, BOOK);
+  if (ErrorHandle(GetById(&book_db, TopHistory()->state.book_display->book,
+                          TopHistory()->state.book_display->book->uid, BOOK)))
+    return;
 
   List *borrow_record = NewList();
   char *query = malloc(sizeof(char) * 20);
   sprintf(query, "book_uid=%d", TopHistory()->state.book_display->book->uid);
-  Filter(&borrowrecord_db, borrow_record, query, BORROWRECORD);
+  if (ErrorHandle(
+          Filter(&borrowrecord_db, borrow_record, query, BORROWRECORD))) {
+    free(query);
+    DeleteList(borrow_record, free);
+    return;
+  }
   free(query);
 
   History *new_history = malloc(sizeof(History));
@@ -690,7 +785,7 @@ static void BookDisplay_ConfirmCallback() {
     ReturnHistory(history_list->dummy_tail->pre, msg);
     return;
   }
-  Update(&book_db, new_book, new_book->uid, BOOK);
+  if (ErrorHandle(Update(&book_db, new_book, new_book->uid, BOOK))) return;
 
   char *msg =
       malloc(sizeof(char) * (25 + username_len + strlen(new_book->title)));
@@ -708,7 +803,7 @@ static void BookDisplay_DeleteCallback() {
   }
 
   Book *new_book = TopHistory()->state.book_display->book;
-  Delete(&book_db, new_book->uid, BOOK);
+  if (ErrorHandle(Delete(&book_db, new_book->uid, BOOK))) return;
 
   char *msg =
       malloc(sizeof(char) * (25 + username_len + strlen(new_book->title)));
@@ -765,7 +860,10 @@ static void Library_SwitchCallback() {
     Navigation_Library(NULL);
   } else {
     List *books = NewList();
-    Filter(&book_db, books, "", BOOK);
+    if (ErrorHandle(Filter(&book_db, books, "", BOOK))) {
+      DeleteList(books, free);
+      return;
+    }
 
     History *new_history = malloc(sizeof(History));
     new_history->page = kLibrary;
@@ -794,10 +892,19 @@ static void *const StrCpy(void *const str) {
 static void Statistics_SelectCallback(ListNode *catalog) {
   List *borrow_records = NewList();
   Book *book = malloc(sizeof(Book));
-  Filter(&borrowrecord_db, borrow_records, "", BORROWRECORD);
+  if (ErrorHandle(Filter(&borrowrecord_db, borrow_records, "", BORROWRECORD))) {
+    DeleteList(borrow_records, free);
+    return;
+  }
   for (const ListNode *cur_node = borrow_records->dummy_head->nxt;
        cur_node != borrow_records->dummy_tail;) {
-    GetById(&book_db, book, ((BorrowRecord *)cur_node->value)->book_uid, BOOK);
+    if (ErrorHandle(GetById(&book_db, book,
+                            ((BorrowRecord *)cur_node->value)->book_uid,
+                            BOOK))) {
+      DeleteList(borrow_records, free);
+      free(book);
+      return;
+    }
     if (strcmp(book->category, catalog->value))
       cur_node = EraseList(borrow_records, cur_node, NULL);
     else
@@ -824,16 +931,24 @@ static inline void Navigation_LendAndBorrow(char *msg) {
   List *borrow_records_list = NewList();
   char *query = malloc(sizeof(char) * (31 + 10));
   sprintf(query, "user_uid=%d&book_status=BORROWED", user.uid);
-  Filter(&borrowrecord_db, borrow_records_list, query,
-         USER);  // TODO:(TO/GA) error handle
+  if (ErrorHandle(Filter(&borrowrecord_db, borrow_records_list, query, USER))) {
+    DeleteList(borrow_records_list, free);
+    free(query);
+    return;
+  }
   free(query);
 
   List *books = NewList();
   for (ListNode *cur_node = borrow_records_list->dummy_head;
        cur_node != borrow_records_list->dummy_tail; cur_node = cur_node->nxt) {
     Book *book = malloc(sizeof(Book));
-    GetById(&book_db, book, ((BorrowRecord *)cur_node->value)->book_uid,
-            BORROWRECORD);
+    if (ErrorHandle(GetById(&book_db, book,
+                            ((BorrowRecord *)cur_node->value)->book_uid,
+                            BORROWRECORD))) {
+      DeleteList(borrow_records_list, free);
+      DeleteList(books, free);
+      return;
+    }
     InsertList(books, books->dummy_tail, book);
   }
 
@@ -910,7 +1025,8 @@ static inline void Navigation_UserLogInOrRegister(bool type, char *msg) {
 
   if (!msg) {
     msg = malloc(sizeof(char) * 38);
-    sprintf(msg, "[Info] Clear history, try to %s", type ? "register" : "log in");
+    sprintf(msg, "[Info] Clear history, try to %s",
+            type ? "register" : "log in");
   }
   Log(msg);
   DrawUI(new_history->page, &user, new_history->state.login_or_register, msg);
@@ -947,10 +1063,16 @@ static inline void Navigation_UserManagement(char *msg) {
   }
 
   List *to_be_verified = NewList();
-  Filter(&user_db, to_be_verified, "verified=FALSE", USER);
+  if (ErrorHandle(Filter(&user_db, to_be_verified, "verified=FALSE", USER))) {
+    DeleteList(to_be_verified, free);
+    return;
+  }
 
   List *verified = NewList();
-  Filter(&user_db, verified, "verified=TRUE", USER);
+  if (ErrorHandle(Filter(&user_db, verified, "verified=TRUE", USER))) {
+    DeleteList(verified, free);
+    return;
+  }
 
   History *new_history = malloc(sizeof(History));
   new_history->page = kUserManagement;
@@ -973,7 +1095,10 @@ static inline void Navigation_UserManagement(char *msg) {
 
 static inline void Navigation_Library(char *msg) {
   List *books = NewList();
-  Filter(&book_db, books, "", BOOK);
+  if (ErrorHandle(Filter(&book_db, books, "", BOOK))) {
+    DeleteList(books, free);
+    return;
+  }
 
   List *book_covers = NewList();
   const size_t image_path_len = 8 + lib_path_len;
@@ -1047,12 +1172,18 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
   Navigation_SaveLibrary(0, NULL);
   char *command = malloc(sizeof(char) * (8 + strlen(borrowrecord_db.filename)));
 
-  CloseDBConnection(&book_db, BOOK);
+  if (ErrorHandle(CloseDBConnection(&book_db, BOOK))) {
+    free(command);
+    return;
+  }
   sprintf(command, "del /F %s", book_db.filename);
   system(command);
   free(book_db.filename);
 
-  CloseDBConnection(&borrowrecord_db, BORROWRECORD);
+  if (ErrorHandle(CloseDBConnection(&borrowrecord_db, BORROWRECORD))) {
+    free(command);
+    return;
+  }
   sprintf(command, "del /F %s", borrowrecord_db.filename);
   system(command);
   free(borrowrecord_db.filename);
@@ -1075,7 +1206,7 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
   }
   // TODO:(TO/GA) swp文件
 
-  int flag = 0; // 0 => 无事发生 1=> 有swap文件 2=> 无文件
+  int flag = 0;  // 0 => 无事发生 1=> 有swap文件 2=> 无文件
 
   book_db.filename = malloc(sizeof(char) * (lib_path_len + 13));
   sprintf(book_db.filename, "%s%s", lib_path, "\\book.swp.db");
@@ -1086,7 +1217,8 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
     char *book_database_path = malloc(sizeof(char) * (lib_path_len + 9));
     sprintf(book_database_path, "%s\\book.db", lib_path);
     if (!_access(book_database_path, 6)) {  // book database exists
-      char *command = malloc(sizeof(char) * (14 + lib_path_len + 8 + lib_path_len + 12));
+      char *command =
+          malloc(sizeof(char) * (14 + lib_path_len + 8 + lib_path_len + 12));
       sprintf(command, "copy /Y \"%s\" \"%s\"", book_database_path,
               book_db.filename);
       system(command);
@@ -1096,7 +1228,10 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
     }
     free(book_database_path);
   }
-  OpenDBConnection(&book_db, BOOK);
+  if (ErrorHandle(OpenDBConnection(&book_db, BOOK))) {
+    free(book_db.filename);
+    return;
+  }
 
   borrowrecord_db.filename = malloc(sizeof(char) * (lib_path_len + 21));
   sprintf(borrowrecord_db.filename, "%s%s", lib_path, "\\borrowrecord.swp.db");
@@ -1104,7 +1239,8 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
     flag |= 1;
   } else {
     puts(borrowrecord_db.filename);
-    char *borrowrecord_database_path = malloc(sizeof(char) * (lib_path_len + 17));
+    char *borrowrecord_database_path =
+        malloc(sizeof(char) * (lib_path_len + 17));
     sprintf(borrowrecord_database_path, "%s\\borrowrecord.db", lib_path);
     if (!_access(borrowrecord_database_path,
                  6)) {  // borrowrecord database exists
@@ -1119,7 +1255,11 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
     }
     free(borrowrecord_database_path);
   }
-  OpenDBConnection(&borrowrecord_db, BORROWRECORD);
+  if (ErrorHandle(OpenDBConnection(&borrowrecord_db, BORROWRECORD))) {
+    free(book_db.filename);
+    free(borrowrecord_db.filename);
+    return;
+  }
 
   ClearHistory();
   History *new_history = malloc(sizeof(History));
@@ -1130,19 +1270,25 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
     msg = malloc(sizeof(char) * (82 + lib_path_len + username_len));
     if (type) {
       if (flag)
-        sprintf(msg, "[Error] [%s] Clear history and init library from %s, where already exists an eLibrary",
+        sprintf(msg,
+                "[Error] [%s] Clear history and init library from %s, where "
+                "already exists an eLibrary",
                 user.username, lib_path);
       else
         sprintf(msg, "[Info] [%s] Clear history and init library from %s",
                 user.username, lib_path);
     } else {
       if ((flag & 2) == 2)
-        sprintf(msg, "[Error] [%s] Clear history and fail to open library from %s, init one at there",
+        sprintf(msg,
+                "[Error] [%s] Clear history and fail to open library from %s, "
+                "init one at there",
                 user.username, lib_path);
       else if ((flag & 1) == 1)
-        sprintf(msg, "[Warning] [%s] Clear history and open library from %s using swap file",
+        sprintf(msg,
+                "[Warning] [%s] Clear history and open library from %s using "
+                "swap file",
                 user.username, lib_path);
-      else if(!flag)
+      else if (!flag)
         sprintf(msg, "[Info] [%s] Clear history and open library from %s",
                 user.username, lib_path);
     }
@@ -1153,8 +1299,8 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
 
 // type = 0 => 不回退到上一个界面
 static inline void Navigation_SaveLibrary(bool type, char *msg) {
-  char *command = malloc(sizeof(char) * (14 + lib_path_len + 16 + lib_path_len +
-                                         20));
+  char *command =
+      malloc(sizeof(char) * (14 + lib_path_len + 16 + lib_path_len + 20));
 
   char *book_database_path = malloc(sizeof(char) * (lib_path_len + 9));
   sprintf(book_database_path, "%s\\book.db", lib_path);
@@ -1188,7 +1334,10 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
     new_book = book;
   } else {
     new_book = malloc(sizeof(Book));
-    GetById(&book_db, new_book, book->uid, BOOK);
+    if (ErrorHandle(GetById(&book_db, new_book, book->uid, BOOK))) {
+      free(new_book);
+      return;
+    }
   }
 
   History *new_history = malloc(sizeof(History));
@@ -1232,7 +1381,10 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
 
 static inline void Navigation_BookInit(char *msg) {
   Book *book = malloc(sizeof(Book));
-  GetNextPK(&book_db, BOOK, &book->uid);
+  if (ErrorHandle(GetNextPK(&book_db, BOOK, &book->uid))) {
+    free(book);
+    return;
+  }
   Navigation_BookDisplayOrInit(book, 1, msg);
 }
 
@@ -1245,7 +1397,11 @@ static bool StrSame(const void *const lhs, const void *rhs) {
 
 static inline void Navigation_Statistics(char *msg) {
   List *book = NewList(), *category = NewList();
-  Filter(&book_db, book, "", BOOK);
+  if (ErrorHandle(Filter(&book_db, book, "", BOOK))) {
+    DeleteList(book, free);
+    DeleteList(category, free);
+    return;
+  }
   for (ListNode *cur_node = book->dummy_head->nxt; cur_node != book->dummy_tail;
        cur_node = cur_node->nxt) {
     char *str = malloc(sizeof(char) *
@@ -1253,12 +1409,16 @@ static inline void Navigation_Statistics(char *msg) {
     strcpy(str, ((Book *)cur_node->value)->category);
     InsertList(category, category->dummy_tail, str);
   }
-  DeleteList(book, NULL);
+  DeleteList(book, free);
   SortList(category, StrLess);
   UniqueList(category, StrSame, free);
 
   List *borrow_record = NewList();
-  Filter(&borrowrecord_db, borrow_record, "", BORROWRECORD);
+  if (ErrorHandle(Filter(&borrowrecord_db, borrow_record, "", BORROWRECORD))) {
+    DeleteList(category, free);
+    DeleteList(borrow_record, free);
+    return;
+  }
 
   History *new_history = malloc(sizeof(History));
   new_history->page = kStatistics;
@@ -1305,19 +1465,34 @@ static inline void Navigation_Exit() {
   free(user_database_path);
   system(command);
 
-  CloseDBConnection(&user_db, USER);
+  if (ErrorHandle(CloseDBConnection(&user_db, USER))) {
+    free(command);
+    free(user_db.filename);
+    free(book_db.filename);
+    free(borrowrecord_db.filename);
+    exit(1);
+  }
   sprintf(command, "del /F %s", user_db.filename);
   system(command);
   free(user_db.filename);
 
   Navigation_SaveLibrary(0, NULL);
 
-  CloseDBConnection(&book_db, BOOK);
+  if (ErrorHandle(CloseDBConnection(&book_db, BOOK))) {
+    free(command);
+    free(book_db.filename);
+    free(borrowrecord_db.filename);
+    exit(1);
+  }
   sprintf(command, "del /F %s", book_db.filename);
   system(command);
   free(book_db.filename);
 
-  CloseDBConnection(&borrowrecord_db, BORROWRECORD);
+  if (ErrorHandle(CloseDBConnection(&borrowrecord_db, BORROWRECORD))) {
+    free(command);
+    free(borrowrecord_db.filename);
+    exit(1);
+  }
   sprintf(command, "del /F %s", borrowrecord_db.filename);
   system(command);
   free(borrowrecord_db.filename);
@@ -1325,7 +1500,9 @@ static inline void Navigation_Exit() {
   free(command);
 
   ClearHistory();
-  DeleteList(history_list, NULL);
+  DeleteList(history_list, free);
+
+  exit(0);  // TODO:(TO/GA)这对吗
 }
 
 void NavigationCallback(Page nav_page) {
@@ -1399,8 +1576,7 @@ void NavigationCallback(Page nav_page) {
 }
 
 static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
-  while (history_list->dummy_tail->pre != go_back_to)
-    PopBackHistory();
+  while (history_list->dummy_tail->pre != go_back_to) PopBackHistory();
   History *const history = go_back_to->value;
   switch (history->page) {
     case kWelcome:  // 欢迎界面
@@ -1428,7 +1604,7 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
       PopBackHistory();
       Navigation_ManualOrAbout(0, msg);
       break;
-    case kAbout:   // 关于
+    case kAbout:  // 关于
       PopBackHistory();
       Navigation_ManualOrAbout(1, msg);
       break;
@@ -1436,7 +1612,7 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
       PopBackHistory();
       Navigation_UserLogInOrRegister(1, msg);
       break;
-    case kUserLogIn:     // 用户登陆
+    case kUserLogIn:  // 用户登陆
       PopBackHistory();
       Navigation_UserLogInOrRegister(1, msg);
       break;

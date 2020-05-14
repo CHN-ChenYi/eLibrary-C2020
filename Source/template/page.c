@@ -217,6 +217,9 @@ void AddHeadBar() {
 
 void InitPage() {
   AddHeadBar();
+  InsertComp(CreateInputBox(
+    (Rect) {300, 700, 500, 600}, 20, 1
+  ), kInputBox);
   FlushScreen(GetMouseX(), GetMouseY());
 }
 
@@ -224,6 +227,7 @@ void InitPage() {
 void CallbackById(int id) {
   if (id < 0) {
     // click on the head bar
+    InitSurface();
     AddSubmenu(id);
   }
   printf("%d\n", id);

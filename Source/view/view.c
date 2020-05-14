@@ -258,17 +258,16 @@ static void BookSearch_BorrowCallback(Book *book) {
 }
 
 static void inline BookSearchDisplay(char *keyword, char *msg) {
+  List *results = NewList();
+  Filter(&book_db, results, keyword, BOOK);  // TODO:(TO/GA) Error Handle
+
   History *new_history = malloc(sizeof(History));
   new_history->page = kBookSearch;
   new_history->state.book_search = malloc(sizeof(BookSearch));
   new_history->state.book_search->keyword = keyword;
   new_history->state.book_search->borrow_callback = BookSearch_BorrowCallback;
   new_history->state.book_search->search_callback = BookSearch_SearchCallback;
-
-  List *results = NewList();
-  Filter(&book_db, results, keyword, BOOK);  // TODO:(TO/GA) Error Handle
   new_history->state.book_search->book_result = results;
-
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -380,14 +379,7 @@ static void UserModify_ConfirmCallback() {
 }
 
 static void inline UserSearchInfoDisplay(User *show_user, char *msg) {
-  History *new_history = malloc(sizeof(History));
-  new_history->page = kUserModify;
-  new_history->state.user_modify = malloc(sizeof(UserModify));
-  new_history->state.user_modify->confirm_callback = UserModify_ConfirmCallback;
-
-  new_history->state.user_modify->user = malloc(sizeof(User));
-  GetById(&user_db, new_history->state.user_modify->user, show_user->uid, USER);
-  show_user = new_history->state.user_modify->user;
+  GetById(&user_db, show_user, show_user->uid, USER);
 
   List *borrow_record = NewList(), *books = NewList();
   char *query = malloc(sizeof(char) * (10 + 10));
@@ -401,8 +393,14 @@ static void inline UserSearchInfoDisplay(User *show_user, char *msg) {
             BOOK);
     InsertList(books, books->dummy_tail, new_book);
   }
-  new_history->state.user_modify->books = books;
 
+  History *new_history = malloc(sizeof(History));
+  new_history->page = kUserModify;
+  new_history->state.user_modify = malloc(sizeof(UserModify));
+  new_history->state.user_modify->confirm_callback = UserModify_ConfirmCallback;
+  new_history->state.user_modify->user = malloc(sizeof(User));
+  memcpy(new_history->state.user_modify->user, show_user, sizeof(User));
+  new_history->state.user_modify->books = books;
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -427,17 +425,17 @@ static void inline UserSearchDisplay(char *keyword, char *msg) {
     ReturnHistory(history_list->dummy_tail->pre, msg);
     return;
   }
+
+  List *results = NewList();
+  Filter(&user_db, results, keyword, USER);  // TODO:(TO/GA) Error Handle
+
   History *new_history = malloc(sizeof(History));
   new_history->page = kBookSearch;
   new_history->state.user_search = malloc(sizeof(UserSearch));
   new_history->state.user_search->keyword = keyword;
   new_history->state.user_search->info_callback = UserSearch_InfoCallback;
   new_history->state.user_search->search_callback = UserSearch_SearchCallback;
-
-  List *results = NewList();
-  Filter(&user_db, results, keyword, USER);  // TODO:(TO/GA) Error Handle
   new_history->state.user_search->user_result = results;
-
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -609,19 +607,18 @@ static void BookDisplayAdminDisplay(char *msg) {
   GetById(&book_db, TopHistory()->state.book_display->book,
           TopHistory()->state.book_display->book->uid, BOOK);
 
-  History *new_history = malloc(sizeof(History));
-  new_history->page = kBorrowDisplay;
-  new_history->state.borrow_display = malloc(sizeof(BorrowDisplay));
-  strcpy(new_history->state.borrow_display->book_name,
-         TopHistory()->state.book_display->book->title);
-
   List *borrow_record = NewList();
   char *query = malloc(sizeof(char) * 20);
   sprintf(query, "book_uid=%d", TopHistory()->state.book_display->book->uid);
   Filter(&borrowrecord_db, borrow_record, query, BORROWRECORD);
   free(query);
-  new_history->state.borrow_display->borrow_record = borrow_record;
 
+  History *new_history = malloc(sizeof(History));
+  new_history->page = kBorrowDisplay;
+  new_history->state.borrow_display = malloc(sizeof(BorrowDisplay));
+  strcpy(new_history->state.borrow_display->book_name,
+         TopHistory()->state.book_display->book->title);
+  new_history->state.borrow_display->borrow_record = borrow_record;
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -767,6 +764,9 @@ static void Library_SwitchCallback() {
   if (TopHistory()->state.library->Type == kList) {
     Navigation_Library(NULL);
   } else {
+    List *books = NewList();
+    Filter(&book_db, books, "", BOOK);
+
     History *new_history = malloc(sizeof(History));
     new_history->page = kLibrary;
     new_history->state.library = malloc(sizeof(Library));
@@ -774,13 +774,8 @@ static void Library_SwitchCallback() {
     new_history->state.library->sort_callback = Library_SortCallback;
     new_history->state.library->book_callback = Library_BookCallback;
     new_history->state.library->switch_callback = Library_SwitchCallback;
-
-    List *books = NewList();
-    Filter(&book_db, books, "", BOOK);
     new_history->state.library->books = books;
-
-    List *book_covers = NULL;
-
+    new_history->state.library->book_covers = NULL;
     PushBackHistory(new_history);
 
     char *msg = malloc(sizeof(char) * (41 + username_len));
@@ -797,12 +792,6 @@ static void *const StrCpy(void *const str) {
 }
 
 static void Statistics_SelectCallback(ListNode *catalog) {
-  History *new_history = malloc(sizeof(History));
-  new_history->page = kStatistics;
-  new_history->state.statistics->catalogs =
-      DuplicateList(TopHistory()->state.statistics->catalogs, StrCpy);
-  new_history->state.statistics->select_callback = Statistics_SelectCallback;
-
   List *borrow_records = NewList();
   Book *book = malloc(sizeof(Book));
   Filter(&borrowrecord_db, borrow_records, "", BORROWRECORD);
@@ -814,8 +803,13 @@ static void Statistics_SelectCallback(ListNode *catalog) {
     else
       cur_node = cur_node->nxt;
   }
-  new_history->state.statistics->borrow_record = borrow_records;
 
+  History *new_history = malloc(sizeof(History));
+  new_history->page = kStatistics;
+  new_history->state.statistics->catalogs =
+      DuplicateList(TopHistory()->state.statistics->catalogs, StrCpy);
+  new_history->state.statistics->select_callback = Statistics_SelectCallback;
+  new_history->state.statistics->borrow_record = borrow_records;
   PushBackHistory(new_history);
 
   char *msg =
@@ -827,21 +821,12 @@ static void Statistics_SelectCallback(ListNode *catalog) {
 }
 
 static inline void Navigation_LendAndBorrow(char *msg) {
-  History *new_history = malloc(sizeof(History));
-  new_history->page = kLendAndBorrow;
-  new_history->state.lend_and_borrow = malloc(sizeof(LendAndBorrow));
-  new_history->state.lend_and_borrow->return_callback =
-      LendAndBorrow_ReturnCallback;
-  new_history->state.lend_and_borrow->search_callback =
-      LendAndBorrow_SearchCallback;
-
   List *borrow_records_list = NewList();
   char *query = malloc(sizeof(char) * (31 + 10));
   sprintf(query, "user_uid=%d&book_status=BORROWED", user.uid);
   Filter(&borrowrecord_db, borrow_records_list, query,
          USER);  // TODO:(TO/GA) error handle
   free(query);
-  new_history->state.lend_and_borrow->borrow_records = borrow_records_list;
 
   List *books = NewList();
   for (ListNode *cur_node = borrow_records_list->dummy_head;
@@ -851,8 +836,16 @@ static inline void Navigation_LendAndBorrow(char *msg) {
             BORROWRECORD);
     InsertList(books, books->dummy_tail, book);
   }
-  new_history->state.lend_and_borrow->books = books;
 
+  History *new_history = malloc(sizeof(History));
+  new_history->page = kLendAndBorrow;
+  new_history->state.lend_and_borrow = malloc(sizeof(LendAndBorrow));
+  new_history->state.lend_and_borrow->return_callback =
+      LendAndBorrow_ReturnCallback;
+  new_history->state.lend_and_borrow->search_callback =
+      LendAndBorrow_SearchCallback;
+  new_history->state.lend_and_borrow->borrow_records = borrow_records_list;
+  new_history->state.lend_and_borrow->books = books;
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -952,6 +945,13 @@ static inline void Navigation_UserManagement(char *msg) {
     ReturnHistory(history_list->dummy_tail->pre, msg);
     return;
   }
+
+  List *to_be_verified = NewList();
+  Filter(&user_db, to_be_verified, "verified=FALSE", USER);
+
+  List *verified = NewList();
+  Filter(&user_db, verified, "verified=TRUE", USER);
+
   History *new_history = malloc(sizeof(History));
   new_history->page = kUserManagement;
   new_history->state.user_management = malloc(sizeof(UserManagement));
@@ -959,15 +959,8 @@ static inline void Navigation_UserManagement(char *msg) {
       UserManagement_ApproveCallback;
   new_history->state.user_management->delete_callback =
       UserManagement_DeleteCallback;
-
-  List *to_be_verified = NewList();
-  Filter(&user_db, to_be_verified, "verified=FALSE", USER);
   new_history->state.user_management->to_be_verified = to_be_verified;
-
-  List *verified = NewList();
-  Filter(&user_db, verified, "verified=TRUE", USER);
   new_history->state.user_management->users = verified;
-
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -979,17 +972,8 @@ static inline void Navigation_UserManagement(char *msg) {
 }
 
 static inline void Navigation_Library(char *msg) {
-  History *new_history = malloc(sizeof(History));
-  new_history->page = kLibrary;
-  new_history->state.library = malloc(sizeof(Library));
-  new_history->state.library->Type = kPicture;
-  new_history->state.library->sort_callback = Library_SortCallback;
-  new_history->state.library->book_callback = Library_BookCallback;
-  new_history->state.library->switch_callback = Library_SwitchCallback;
-
   List *books = NewList();
   Filter(&book_db, books, "", BOOK);
-  new_history->state.library->books = books;
 
   List *book_covers = NewList();
   const size_t image_path_len = 8 + lib_path_len;
@@ -1003,8 +987,16 @@ static inline void Navigation_Library(char *msg) {
     loadImage(image_path, image);
     InsertList(book_covers, book_covers->dummy_tail, image);
   }
-  new_history->state.library->book_covers = book_covers;
 
+  History *new_history = malloc(sizeof(History));
+  new_history->page = kLibrary;
+  new_history->state.library = malloc(sizeof(Library));
+  new_history->state.library->Type = kPicture;
+  new_history->state.library->sort_callback = Library_SortCallback;
+  new_history->state.library->book_callback = Library_BookCallback;
+  new_history->state.library->switch_callback = Library_SwitchCallback;
+  new_history->state.library->books = books;
+  new_history->state.library->book_covers = book_covers;
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -1191,6 +1183,14 @@ static inline void Navigation_SaveLibrary(bool type, char *msg) {
 
 // type = 0 => Display
 static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
+  Book *new_book;
+  if (type) {
+    new_book = book;
+  } else {
+    new_book = malloc(sizeof(Book));
+    GetById(&book_db, new_book, book->uid, BOOK);
+  }
+
   History *new_history = malloc(sizeof(History));
   if (type) {
     new_history->page = kBookInit;
@@ -1207,20 +1207,12 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
       BookDisplay_ConfirmCallback;
   new_history->state.book_display->delete_callback = BookDisplay_DeleteCallback;
   new_history->state.book_display->borrow_callback = BookDisplay_BorrowCallback;
-
-  if (type) {
-    new_history->state.book_display->book = book;
-  } else {
-    new_history->state.book_display->book = malloc(sizeof(Book));
-    GetById(&book_db, new_history->state.book_display->book, book->uid, BOOK);
-  }
-
+  new_history->state.book_display->book = new_book;
   if (!type) {
     char *image_path = malloc(sizeof(char) * (12 + lib_path_len + 10));
     sprintf(image_path, "%s\\image\\%d.jpg", lib_path, book->uid);
     loadImage(image_path, &new_history->state.book_display->book_cover);
   }
-
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -1252,11 +1244,6 @@ static bool StrSame(const void *const lhs, const void *rhs) {
 }
 
 static inline void Navigation_Statistics(char *msg) {
-  History *new_history = malloc(sizeof(History));
-  new_history->page = kStatistics;
-  new_history->state.statistics = malloc(sizeof(Statistics));
-  new_history->state.statistics->select_callback = Statistics_SelectCallback;
-
   List *book = NewList(), *category = NewList();
   Filter(&book_db, book, "", BOOK);
   for (ListNode *cur_node = book->dummy_head->nxt; cur_node != book->dummy_tail;
@@ -1269,12 +1256,16 @@ static inline void Navigation_Statistics(char *msg) {
   DeleteList(book, NULL);
   SortList(category, StrLess);
   UniqueList(category, StrSame, free);
-  new_history->state.statistics->catalogs = category;
 
   List *borrow_record = NewList();
   Filter(&borrowrecord_db, borrow_record, "", BORROWRECORD);
-  new_history->state.statistics->borrow_record = borrow_record;
 
+  History *new_history = malloc(sizeof(History));
+  new_history->page = kStatistics;
+  new_history->state.statistics = malloc(sizeof(Statistics));
+  new_history->state.statistics->select_callback = Statistics_SelectCallback;
+  new_history->state.statistics->catalogs = category;
+  new_history->state.statistics->borrow_record = borrow_record;
   PushBackHistory(new_history);
 
   if (!msg) {

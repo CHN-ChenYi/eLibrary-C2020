@@ -8,8 +8,8 @@
 #include <string.h>
 #include <ctype.h>
 
-#define FONT_BUTTON "Consolas"
-#define FONT_INPUT "Consolas"
+#define FONT_BUTTON "Source Han Sans"
+#define FONT_INPUT "Source Han Sans"
 #define FONT_LABEL "Source Han Sans"
 #define FONT_LINK "Source Han Sans"
 

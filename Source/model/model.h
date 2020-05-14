@@ -153,7 +153,7 @@ int GetDBSize(DB* db, Model model, unsigned int *size);
   DBErrno
  */
 
-unsigned int GetNextPK(DB* db, Model model, unsigned int *pk);
+int GetNextPK(DB* db, Model model, unsigned int *pk);
 
 // Update
 /*

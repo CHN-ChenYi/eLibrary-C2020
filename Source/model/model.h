@@ -125,6 +125,21 @@ int GetById(DB* db, void* handle, int id, Model model);
 int Filter(DB* db, void* list_handle, String queries, Model model);
 
 /*
+  GetDBSize
+  It's used to get the number of rows(elements) in database.
+  
+  Parameter:
+  db - pointer pointing to struct DB
+  model - see enum Model
+  size - the pointer pointing to the memory to store the size of DB
+
+  Return value:
+  DBErrno
+*/
+
+int GetDBSize(DB* db, Model model, unsigned int *size);
+
+/*
   GetNextPK
   It's used to get The smallest prime key that isn't mapped to a row in
   database.
@@ -134,10 +149,10 @@ int Filter(DB* db, void* list_handle, String queries, Model model);
   model - see enum Model
 
   Return value:
-  -1 if error appears, the prime key, unsigned int
+  DBErrno
  */
 
-int GetNextPK(DB* db, Model model);
+unsigned int GetNextPK(DB* db, Model model, unsigned int *pk);
 
 // Update
 /*
@@ -150,6 +165,7 @@ int GetNextPK(DB* db, Model model);
 
   id  - uid
   model - see enum Model
+  pk - the pointer pointing to the memory to store the primary key
 
   Return value:
   DBErrno

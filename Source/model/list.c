@@ -25,16 +25,16 @@ List *NewList() {
   return list;
 }
 
-void DeleteList(const List *const list) {
-  ClearList((List *const)list);
+void DeleteList(const List *const list, void (*Free)(void *const value)) {
+  ClearList((List *const)list, Free);
   free(list->dummy_head);
   free(list->dummy_tail);
   free((void *)list);
 }
 
-void ClearList(List *const list) {
+void ClearList(List *const list, void (*Free)(void *const value)) {
   const ListNode *now = list->dummy_head->nxt;
-  while (now != list->dummy_tail) now = EraseList(list, now);
+  while (now != list->dummy_tail) now = EraseList(list, now, Free);
   list->size = 0;
 }
 
@@ -50,12 +50,14 @@ const ListNode *InsertList(List *const list, ListNode *const pos,
   return new_node;
 }
 
-const ListNode *EraseList(List *const list, const ListNode *const node) {
+const ListNode *EraseList(List *const list, const ListNode *const node,
+                          void (*Free)(void *const value)) {
   if (node == list->dummy_head) Error("Can't erase dummy_head");
   if (node == list->dummy_tail) Error("Can't erase dummy_tail");
   const ListNode *ret = node->nxt;
   CombineListNode(node->pre, node->nxt);
   list->size--;
+  if (Free) Free(node->value);
   free(node->value);
   free((void *)node);
   return ret;
@@ -111,4 +113,26 @@ void SortList(const List *const list,
       CombineListNode(now, right_end);
     } while (right_now != list->dummy_tail);
   }
+}
+
+void UniqueList(List *const list,
+                bool (*cmp)(const void *const lhs, const void *const rhs),
+                void (*Free)(void *const value)) {
+  if (list->size < 2) return;
+  for (const ListNode *cur_node = list->dummy_head->nxt->nxt;
+       cur_node != list->dummy_tail;) {
+    if (cmp(cur_node->value, cur_node->pre->value))
+      cur_node = EraseList(list, cur_node, Free);
+    else
+      cur_node = cur_node->nxt;
+  }
+}
+
+List *DuplicateList(const List *const list,
+                    void *const (*Duplicate)(void *const value)) {
+  List *ret = NewList();
+  for (ListNode *cur_node = list->dummy_head->nxt; cur_node != list->dummy_tail;
+       cur_node = cur_node->nxt)
+    InsertList(ret, ret->dummy_tail, Duplicate(cur_node->value));
+  return ret;
 }

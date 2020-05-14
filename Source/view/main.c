@@ -9,4 +9,6 @@ void Main() {
   InitConsole();
 
   InitializeUI();
+  Button* button = CreateButton((Rect){100, 500, 100, 200}, "你好", 30, "64B5F6", 1, kWhite, 1);
+  InsertComp(button, kButton);
 }

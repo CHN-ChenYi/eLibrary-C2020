@@ -73,11 +73,20 @@ void FreeCompList() {
 /* End of linked list */
 
 /* Create components */
-Button* CreateButton(Rect rect, char* caption, int font_size, int id) {
+Button* CreateButton (
+    Rect rect,
+    char* caption,
+    int font_size,
+    char* bg_color,
+    double alpha,
+    FontColor color,
+    int id) {
   Button* ret = malloc(sizeof(Button));
   ret->id = id;
   ret->position = rect;
   ret->status = kNormal;
+  ret->bg_color = ColorConvert(bg_color, alpha);
+  ret->font_color = color;
   ret->font_size = font_size;
   strcpy(ret->caption, caption);
   return ret;
@@ -167,12 +176,10 @@ void DrawButton(Button* button, int mouse_x) {
   SetFont(FONT_BUTTON);
   SetPointSize(button->font_size);
   SetPenSize(1);
-  SetPenColor("black");
-  // Some color for material design
-  Color light_blue = ColorConvert("2196F3", 1);
+  Color bg_color = button->bg_color;
   Color white = ColorConvert("E3F2FD", 1);
-  ColorPoint upper_left = (ColorPoint){button->position.left, button->position.top, light_blue};
-  ColorPoint lower_right = (ColorPoint){button->position.right, button->position.bottom, light_blue};
+  ColorPoint upper_left = (ColorPoint){button->position.left, button->position.top, bg_color};
+  ColorPoint lower_right = (ColorPoint){button->position.right, button->position.bottom, bg_color};
   if (button->status == kHover) {
     ColorPoint upper_middle = (ColorPoint){mouse_x, button->position.top, white};
     ColorPoint lower_middle = (ColorPoint){mouse_x, button->position.bottom, white};
@@ -187,6 +194,17 @@ void DrawButton(Button* button, int mouse_x) {
   int middle_y = (button->position.top + button->position.bottom
                   + GetFontHeight()) >> 1;
   MovePen(middle_x, middle_y);
+  switch (button->font_color) {
+  case kRed:
+    SetPenColor("red");
+    break;
+  case kBlack:
+    SetPenColor("black");
+    break;
+  case kWhite:
+    SetPenColor("white");
+    break;
+  }
   DrawTextString(button->caption);
 }
 
@@ -569,9 +587,13 @@ void InitFrame() {
 
 // Initialization of this set of GUI components
 void InitializeUI() {
+  static int registered = 0;
   InitComponents();
   InitFrame();
-  registerMouseEvent(MouseMoveEventHandler);
-  registerKeyboardEvent(KeyboardEventHandler);
-  registerCharEvent(CharEventHandler);
+  if (registered == 0) {
+    registerMouseEvent(MouseMoveEventHandler);
+    registerKeyboardEvent(KeyboardEventHandler);
+    registerCharEvent(CharEventHandler);
+    registered = 1;
+  }
 }

@@ -30,13 +30,21 @@ typedef enum {
   kHover,   // when the mouse is hovering on it
 } ComponentStatus;
 
+typedef enum {
+  kRed,
+  kBlack,
+  kWhite
+} FontColor;
+
 /* Button */
 typedef struct Button {
-  int id;              // for callback
+  int id;                   // for callback
   ComponentStatus status;
-  Rect position;       // position
-  int font_size;       // size of font
-  char caption[10];    // label on the button
+  Rect position;            // position
+  int font_size;            // size of font
+  char caption[10];         // label on the button
+  Color bg_color;           // background color
+  FontColor font_color;     // font color
 } Button;
 
 /* Input box */
@@ -73,7 +81,8 @@ typedef struct Frame {
 } ColorRect;
 
 /* Create UI components */
-Button* CreateButton(Rect rect, char* caption, int font_size, int id);
+Button* CreateButton(Rect rect, char* caption, int font_size,
+                     char* bg_color, double alpha, FontColor font_color, int id);
 InputBox* CreateInputBox(Rect rect, int font_size, int id);
 Link* CreateLink(Rect rect, char* caption, int font_size, int id);
 Label* CreateLabel(Rect rect, char* caption, int font_size, int id);

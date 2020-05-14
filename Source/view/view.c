@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <io.h>
 
 #include "basictype.h"
 #include "exception.h"
@@ -81,7 +82,7 @@ static inline void Navigation_Statistics(char *msg);
 static inline void Navigation_Return(char *msg);
 static inline void Navigation_Exit();
 extern void NavigationCallback(Page nav_page);
-
+// TODO:(TO/GA) 删去所有地址里的冒号和file://
 void Init() {
   InitConsole();
   InitGraphics();
@@ -91,13 +92,40 @@ void Init() {
   SetWindowTitle("eLibrary");
 
   char program_path[MAX_PATH + 1];
-  _getcwd(program_path, MAX_PATH);
-  // TODO:(TO/GA) swp文件
-  user_db.filename = malloc(sizeof(char) * (strlen(program_path) + 18));
-  sprintf(user_db.filename, "\"%s%s%s\"", "file:\\\\", lib_path, "\\user.db");
-  OpenDBConnection(&user_db, USER);  // TODO: (TO/GA) 异常处理
+  _getcwd(program_path, MAX_PATH); // get the full path of the current working directory 
 
-  DrawUI(kWelcome, &user, NULL, "");
+  char *msg = malloc(sizeof(char) * 91);
+  const size_t program_path_len = strlen(program_path);
+  user_db.filename = malloc(sizeof(char) * (program_path_len + 13));
+  sprintf(user_db.filename, "%s%s", program_path, "\\user.swp.db");
+  if (!_access(user_db.filename, 6)) {  // swap file exists
+    sprintf(msg, "[Warning] Open the swap file of user database. An abnormal exit may have occurred last time");
+  } else {
+    puts(user_db.filename);
+    char *user_database_path =
+        malloc(sizeof(char) * (program_path_len + 9));
+    sprintf(user_database_path, "%s\\user.db", program_path);
+    if (!_access(user_database_path, 6)) { // user database exists
+      char *command = malloc(sizeof(char) *
+                             (14 + program_path_len + 8 + program_path_len + 12));
+      sprintf(command, "copy /Y \"%s\" \"%s\"", user_database_path,
+              user_db.filename);
+      system(command);
+      free(command);
+      sprintf(msg, "[Info] Open user database"); 
+    } else {  // user database doesn't exist
+      sprintf(msg, "[Info] Init user database"); 
+    }
+    free(user_database_path);
+  }
+  OpenDBConnection(&user_db, USER);
+
+  History *new_history = malloc(sizeof(History));
+  new_history->page = kWelcome;
+  PushBackHistory(new_history);
+
+  Log(msg);
+  DrawUI(kWelcome, &user, NULL, msg);
 }
 
 static inline void Log(char *const msg) {
@@ -331,7 +359,7 @@ static void UserModify_ConfirmCallback() {
     return;
   }
   DeleteList(users, NULL);
-  // TODO:(TO/GA)第一个注册的是管理员
+
   if (modified_user->username[0] == '\0') {
     char *msg = malloc(sizeof(char) * (51 + username_len + 10));
     sprintf(msg, "[Error] [%s] User [uid = %d]'s username can't be blank",
@@ -471,15 +499,26 @@ static void LoginOrRegister_LoginCallback() {
             new_user->salt);
     Sha256Sum(new_user->password, pwd_type, strlen(pwd_type));
 
+    char *msg = malloc(sizeof(char) * (45 + strlen(new_user->username)));
+    
+    unsigned size_of_user_db;
+    GetDBSize(&user_db, USER, &size_of_user_db);
+    if (!size_of_user_db) { // the first user is admin
+      new_user->whoami = ADMINISTRATOR;
+      new_user->verified = TRUE;
+      sprintf(msg, "[Info] [%s] Registered as an admin",
+              new_user->username);
+    } else {
+      sprintf(msg, "[Info] [%s] Register. Wait for admin to verify",
+              new_user->username);
+      new_user->verified = FALSE;
+    }
     Create(&user_db, new_user, USER);
 
     History *new_history = malloc(sizeof(History));
     new_history->page = kWelcome;
     PushBackHistory(new_history);
 
-    char *msg = malloc(sizeof(char) * (45 + strlen(new_user->username)));
-    sprintf(msg, "[Info] [%s] Register. Wait for admin to verify",
-            new_user->username);
     Log(msg);
     DrawUI(kWelcome, &user, NULL, msg);
   } else {

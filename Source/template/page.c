@@ -136,7 +136,7 @@ void InitPage() {
   InitializeUI();
   // AddSubmenu();   // Add submenu first to prevent overlap
   AddHeadBar();
-  FlushScreen();
+  FlushScreen(GetMouseX(), GetMouseY());
 }
 
 // Handle Callback

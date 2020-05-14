@@ -408,11 +408,11 @@ void DisplayAnimateComponents(CompList L, int x, int y) {
   }
 }
 
-void FlushScreen() {
+void FlushScreen(int x, int y) {
   DisplayClear();
   DrawFramwork();
-  DisplayAnimateComponents(cur_list, GetMouseX(), GetMouseY());
-  DisplayAnimateComponents(surface, GetMouseX(), GetMouseY());
+  DisplayAnimateComponents(cur_list, x, y);
+  DisplayAnimateComponents(surface, x, y);
 }
 
 // Press enter on focus or click it
@@ -471,7 +471,7 @@ void HandleClick(int x, int y, int mouse_button, int event) {
       }
       break;
   }
-  FlushScreen();
+  FlushScreen(x, y);
 }
 
 // Move focus to the next components
@@ -559,7 +559,7 @@ void BackSpaceInputBox() {
 // Handle the mouse movement on components
 void MouseMoveEventHandler(int x, int y, int mouse_button, int event) {
   HandleClick(x, y, mouse_button, event);
-  FlushScreen();
+  FlushScreen(x, y);
 }
 
 void KeyboardEventHandler(int key, int event) {
@@ -590,12 +590,12 @@ void KeyboardEventHandler(int key, int event) {
         PushButton();
     }
   }
-  FlushScreen();
+  FlushScreen(GetMouseX(), GetMouseY());
 }
 
 void CharEventHandler(int key) {
   ChangeInputBox(key);
-  FlushScreen();
+  FlushScreen(GetMouseX(), GetMouseY());
 }
 
 void ClearComponents() {

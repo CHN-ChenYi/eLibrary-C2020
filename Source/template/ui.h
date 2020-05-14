@@ -122,7 +122,7 @@ void InsertComp(void* component, TypeOfComp type);
 void InsertFrame(void* component);
 void InsertSurface(void* component, TypeOfComp type);
 void FreeCompList();
-void FlushScreen();
+void FlushScreen(int x, int y);
 
 // Initialization
 void InitializeUI();

@@ -11,6 +11,8 @@
 #include "hash.h"
 #include "list.h"
 #include "model.h"
+#include "graphics.h"
+#include "extgraph.h"
 
 void DrawUI(Page cur_page, User *cur_user, void *info, char *terminal) {}
 
@@ -84,6 +86,7 @@ void Init() {
   history_list = NewList();
   fopen_s(&log_file, ".\\eLibrary.log", "a+");
   Log("[Info] Start");
+  SetWindowTitle("eLibrary");
 
   char program_path[MAX_PATH + 1];
   _getcwd(program_path, MAX_PATH);
@@ -162,6 +165,8 @@ static void FreeHistory(void *const history_) {
     // break;
     // case kOpenLibrary:  // 图书库打开
     // break;
+    // case kSaveLibrary:  // 图书库保存
+    // break;
     case kBookDisplay:  // 图书显示
       free(history->state.borrow_display->book_name);
       break;
@@ -178,6 +183,8 @@ static void FreeHistory(void *const history_) {
       DeleteList(history->state.statistics->borrow_record, NULL);
       break;
     // case kReturn:  // 回到上一个界面
+    // break;
+    // case kExit:    // 关闭程序
     // break;
     default:
       Log("[Debug] Unknown page in FreeHistory");
@@ -558,6 +565,9 @@ static void BookDisplayAdminDisplay(char *msg) {
     ReturnHistory(history_list->dummy_tail->pre, msg);
     return;
   }
+
+  GetById(&book_db, TopHistory()->state.book_display->book,
+          TopHistory()->state.book_display->book->uid, BOOK);
 
   History *new_history = malloc(sizeof(History));
   new_history->page = kBorrowDisplay;
@@ -1210,6 +1220,9 @@ void NavigationCallback(Page nav_page) {
     case kOpenLibrary:  // 图书库打开
       Navigation_OpenOrInitLibrary(0, NULL);
       break;
+    case kSaveLibrary:  // 图书库保存
+      // TODO: (TO/GA) finish it
+      break;
     // case kBookDisplay:  // 图书显示
     // break;
     case kBookInit:  // 图书新增
@@ -1224,6 +1237,9 @@ void NavigationCallback(Page nav_page) {
       break;
     case kReturn:  // 回到上一个界面
       Navigation_Return(NULL);
+      break;
+    case kExit:  // 退出程序
+      // TODO: (TO/GA) finish it
       break;
     default:
       Log("[Debug] Unknown nav_page in NavigationCallback");
@@ -1294,6 +1310,8 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
     // break;
     // case kOpenLibrary:  // 图书库打开
     // break;
+    // case kSaveLibrary:  // 图书库保存
+    // break;
     case kBookDisplay:   // 图书显示
     case kBookModify: {  // 图书修改/删除
       Book *new_book = malloc(sizeof(Book));
@@ -1315,6 +1333,8 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
       Navigation_Statistics(msg);
       break;
     // case kReturn:  // 回到上一个界面
+    // break;
+    // case kExit:  // 关闭程序
     // break;
     default:
       Log("[Debug] Unknown page in ReturnHistory");

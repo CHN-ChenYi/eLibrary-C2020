@@ -24,8 +24,8 @@ typedef struct History {
 
 static List *history_list;
 static User user;
-static char lib_path[MAX_PATH + 1];
-static size_t lib_path_len, username_len;
+static char lib_path[MAX_PATH + 1], program_path[MAX_PATH + 1];
+static size_t lib_path_len, username_len, program_path_len;
 static DB book_db, user_db, borrowrecord_db;
 static FILE *log_file;
 
@@ -73,7 +73,7 @@ static inline void Navigation_UserModify(char *msg);
 static inline void Navigation_UserManagement(char *msg);
 static inline void Navigation_Library(char *msg);
 static inline void Navigation_OpenOrInitLibrary(bool type, char *msg);
-static inline void Navigation_SaveLibrary(char *msg);
+static inline void Navigation_SaveLibrary(bool type, char *msg);
 static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg);
 static inline void Navigation_BookInit(char *msg);
 static bool StrLess(const void *const lhs, const void *rhs);
@@ -82,7 +82,7 @@ static inline void Navigation_Statistics(char *msg);
 static inline void Navigation_Return(char *msg);
 static inline void Navigation_Exit();
 extern void NavigationCallback(Page nav_page);
-// TODO:(TO/GA) 删去所有地址里的冒号和file://
+
 void Init() {
   InitConsole();
   InitGraphics();
@@ -91,17 +91,15 @@ void Init() {
   Log("[Info] Start");
   SetWindowTitle("eLibrary");
 
-  char program_path[MAX_PATH + 1];
   _getcwd(program_path, MAX_PATH); // get the full path of the current working directory 
 
   char *msg = malloc(sizeof(char) * 91);
-  const size_t program_path_len = strlen(program_path);
+  program_path_len = strlen(program_path);
   user_db.filename = malloc(sizeof(char) * (program_path_len + 13));
   sprintf(user_db.filename, "%s%s", program_path, "\\user.swp.db");
   if (!_access(user_db.filename, 6)) {  // swap file exists
     sprintf(msg, "[Warning] Open the swap file of user database. An abnormal exit may have occurred last time");
   } else {
-    puts(user_db.filename);
     char *user_database_path =
         malloc(sizeof(char) * (program_path_len + 9));
     sprintf(user_database_path, "%s\\user.db", program_path);
@@ -994,9 +992,9 @@ static inline void Navigation_Library(char *msg) {
   new_history->state.library->books = books;
 
   List *book_covers = NewList();
-  const size_t image_path_len = 11 + lib_path_len;
+  const size_t image_path_len = 8 + lib_path_len;
   char *image_path = malloc(sizeof(char) * (image_path_len + 14));
-  sprintf(image_path, "\"%s\\image\\", lib_path);
+  sprintf(image_path, "%s\\image\\", lib_path);
   for (ListNode *cur_node = books->dummy_head->nxt;
        cur_node != books->dummy_tail; cur_node = cur_node->nxt) {
     LibImage *image = malloc(sizeof(LibImage));
@@ -1053,14 +1051,23 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
   endtry;
   lib_path_len = strlen(lib_path);
 
-  CloseDBConnection(&book_db, BOOK);
-  CloseDBConnection(&borrowrecord_db, BORROWRECORD);
+  // copy *.swp.db to *.db and remove *.swp.db
+  Navigation_SaveLibrary(0, NULL);
+  char *command = malloc(sizeof(char) * (8 + strlen(borrowrecord_db.filename)));
 
-  size_t len;
+  CloseDBConnection(&book_db, BOOK);
+  sprintf(command, "del /F %s", book_db.filename);
+  system(command);
+  free(book_db.filename);
+
+  CloseDBConnection(&borrowrecord_db, BORROWRECORD);
+  sprintf(command, "del /F %s", borrowrecord_db.filename);
+  system(command);
+  free(borrowrecord_db.filename);
+  free(command);
 
   if (type) {
-    len = sizeof(char) * (15 + lib_path_len);
-    char *command = malloc(len);
+    char *command = malloc(sizeof(char) * (15 + lib_path_len));
     sprintf(command, "mkdir \"%s\\image\"", lib_path);
     if (system(command)) {
       free(command);
@@ -1075,16 +1082,51 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
     free(command);
   }
   // TODO:(TO/GA) swp文件
-  len = sizeof(char) * (lib_path_len + strlen("file:\\\\\\book.db") + 2 + 1);
-  book_db.filename = malloc(len);
-  sprintf(book_db.filename, "\"%s%s%s\"", "file:\\\\", lib_path, "\\book.db");
-  OpenDBConnection(&book_db, BOOK);  // TODO:(TO/GA) 异常处理
 
-  len += sizeof(char) *
-         (strlen("file:\\\\\\borrowrecord.db") - strlen("file:\\\\\\book.db"));
-  borrowrecord_db.filename = malloc(len);
-  sprintf(borrowrecord_db.filename, "\"%s%s%s\"", "file:\\\\", lib_path,
-          "\\borrowrecord.db");
+  int flag = 0; // 0 => 无事发生 1=> 有swap文件 2=> 无文件
+
+  book_db.filename = malloc(sizeof(char) * (lib_path_len + 13));
+  sprintf(book_db.filename, "%s%s", lib_path, "\\book.swp.db");
+  if (!_access(book_db.filename, 6)) {  // swap file exists
+    flag |= 1;
+  } else {
+    puts(book_db.filename);
+    char *book_database_path = malloc(sizeof(char) * (lib_path_len + 9));
+    sprintf(book_database_path, "%s\\book.db", lib_path);
+    if (!_access(book_database_path, 6)) {  // book database exists
+      char *command = malloc(sizeof(char) * (14 + lib_path_len + 8 + lib_path_len + 12));
+      sprintf(command, "copy /Y \"%s\" \"%s\"", book_database_path,
+              book_db.filename);
+      system(command);
+      free(command);
+    } else {  // book database doesn't exist
+      flag |= 2;
+    }
+    free(book_database_path);
+  }
+  OpenDBConnection(&book_db, BOOK);
+
+  borrowrecord_db.filename = malloc(sizeof(char) * (lib_path_len + 21));
+  sprintf(borrowrecord_db.filename, "%s%s", lib_path, "\\borrowrecord.swp.db");
+  if (!_access(borrowrecord_db.filename, 6)) {  // swap file exists
+    flag |= 1;
+  } else {
+    puts(borrowrecord_db.filename);
+    char *borrowrecord_database_path = malloc(sizeof(char) * (lib_path_len + 17));
+    sprintf(borrowrecord_database_path, "%s\\borrowrecord.db", lib_path);
+    if (!_access(borrowrecord_database_path,
+                 6)) {  // borrowrecord database exists
+      char *command =
+          malloc(sizeof(char) * (14 + lib_path_len + 8 + lib_path_len + 12));
+      sprintf(command, "copy /Y \"%s\" \"%s\"", borrowrecord_database_path,
+              borrowrecord_db.filename);
+      system(command);
+      free(command);
+    } else {  // borrowrecord database doesn't exist
+      flag |= 2;
+    }
+    free(borrowrecord_database_path);
+  }
   OpenDBConnection(&borrowrecord_db, BORROWRECORD);
 
   ClearHistory();
@@ -1093,21 +1135,58 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
   PushBackHistory(new_history);
 
   if (!msg) {
-    len = sizeof(char) * (47 + lib_path_len + username_len);
-    msg = malloc(len);
-    if (type)
-      sprintf(msg, "[Info] [%s] Clear history and init library from %s",
-              user.username, lib_path);
-    else
-      sprintf(msg, "[Info] [%s] Clear history and open library from %s",
-              user.username, lib_path);
+    msg = malloc(sizeof(char) * (82 + lib_path_len + username_len));
+    if (type) {
+      if (flag)
+        sprintf(msg, "[Error] [%s] Clear history and init library from %s, where already exists an eLibrary",
+                user.username, lib_path);
+      else
+        sprintf(msg, "[Info] [%s] Clear history and init library from %s",
+                user.username, lib_path);
+    } else {
+      if ((flag & 2) == 2)
+        sprintf(msg, "[Error] [%s] Clear history and fail to open library from %s, init one at there",
+                user.username, lib_path);
+      else if ((flag & 1) == 1)
+        sprintf(msg, "[Warning] [%s] Clear history and open library from %s using swap file",
+                user.username, lib_path);
+      else if(!flag)
+        sprintf(msg, "[Info] [%s] Clear history and open library from %s",
+                user.username, lib_path);
+    }
   }
   Log(msg);
   DrawUI(kWelcome, &user, NULL, msg);
 }
 
-static inline void Navigation_SaveLibrary(char *msg) {
-  // TODO:(TO/GA) finish it
+// type = 0 => 不回退到上一个界面
+static inline void Navigation_SaveLibrary(bool type, char *msg) {
+  char *command = malloc(sizeof(char) * (14 + lib_path_len + 16 + lib_path_len +
+                                         20));
+
+  char *book_database_path = malloc(sizeof(char) * (lib_path_len + 9));
+  sprintf(book_database_path, "%s\\book.db", lib_path);
+  sprintf(command, "copy /Y \"%s\" \"%s\"", book_db.filename,
+          book_database_path);
+  free(book_database_path);
+  system(command);
+
+  char *borrowrecord_database_path = malloc(sizeof(char) * (lib_path_len + 17));
+  sprintf(borrowrecord_database_path, "%s\\borrowrecord.db", lib_path);
+  sprintf(command, "copy /Y \"%s\" \"%s\"", borrowrecord_db.filename,
+          borrowrecord_database_path);
+  free(borrowrecord_database_path);
+  system(command);
+
+  free(command);
+
+  if (type) {
+    if (!msg) {
+      msg = malloc(sizeof(char) * (23 + username_len));
+      sprintf(msg, "[Info] [%s] Save library", user.username);
+    }
+    ReturnHistory(history_list->dummy_tail->pre, msg);
+  }
 }
 
 // type = 0 => Display
@@ -1137,8 +1216,8 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
   }
 
   if (!type) {
-    char *image_path = malloc(sizeof(char) * (14 + lib_path_len + 10));
-    sprintf(image_path, "\"%s\\image\\%d.jpg\"", lib_path, book->uid);
+    char *image_path = malloc(sizeof(char) * (12 + lib_path_len + 10));
+    sprintf(image_path, "%s\\image\\%d.jpg", lib_path, book->uid);
     loadImage(image_path, &new_history->state.book_display->book_cover);
   }
 
@@ -1224,7 +1303,38 @@ static inline void Navigation_Return(char *msg) {
 }
 
 static inline void Navigation_Exit() {
-  // TODO:(TO/GA) finish it
+  // TODO:(TO/GA) template那边有没有要处理的？
+  Navigation_SaveLibrary(0, NULL);
+
+  char *command = malloc(sizeof(char) * (14 + MAX_PATH + 8 + MAX_PATH + 12));
+  char *user_database_path = malloc(sizeof(char) * (lib_path_len + 9));
+  sprintf(user_database_path, "%s\\user.db", lib_path);
+  sprintf(command, "copy /Y \"%s\" \"%s\"", user_db.filename,
+          user_database_path);
+  free(user_database_path);
+  system(command);
+
+  CloseDBConnection(&user_db, USER);
+  sprintf(command, "del /F %s", user_db.filename);
+  system(command);
+  free(user_db.filename);
+
+  Navigation_SaveLibrary(0, NULL);
+
+  CloseDBConnection(&book_db, BOOK);
+  sprintf(command, "del /F %s", book_db.filename);
+  system(command);
+  free(book_db.filename);
+
+  CloseDBConnection(&borrowrecord_db, BORROWRECORD);
+  sprintf(command, "del /F %s", borrowrecord_db.filename);
+  system(command);
+  free(borrowrecord_db.filename);
+
+  free(command);
+
+  ClearHistory();
+  DeleteList(history_list, NULL);
 }
 
 void NavigationCallback(Page nav_page) {
@@ -1271,7 +1381,7 @@ void NavigationCallback(Page nav_page) {
       Navigation_OpenOrInitLibrary(0, NULL);
       break;
     case kSaveLibrary:  // 图书库保存
-      Navigation_SaveLibrary(NULL);
+      Navigation_SaveLibrary(1, NULL);
       break;
     // case kBookDisplay:  // 图书显示
     // break;

@@ -338,6 +338,15 @@ double GetWindowWidth(void) {
   return (windowWidth);
 }
 
+// Modified: return width in px
+int GetWindowWidthPx(void) {
+  InitCheck();
+  RECT lpRect;
+  GetClientRect(graphicsWindow, &lpRect);
+  int width = lpRect.right - lpRect.left;
+  return width;
+}
+
 double GetWindowHeight(void) {
   InitCheck();
   RECT lpRect;
@@ -345,6 +354,15 @@ double GetWindowHeight(void) {
   int height = lpRect.bottom - lpRect.top;
   windowHeight = InchesY(height);
   return (windowHeight);
+}
+
+// Modified: return height in px
+int GetWindowHeightPx(void) {
+  InitCheck();
+  RECT lpRect;
+  GetClientRect(graphicsWindow, &lpRect);
+  int height = lpRect.bottom - lpRect.top;
+  return height;
 }
 
 /*

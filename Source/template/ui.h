@@ -63,6 +63,7 @@ typedef struct Link {
   ComponentStatus status;
   Rect position;      // only the left and the bottom matters
   int font_size;      // size of font
+  FontColor font_color;
   char caption[20];
 }Link;
 
@@ -71,6 +72,7 @@ typedef struct Label {
   int id;
   Rect position;      // only the left and the buttom matters
   int font_size;      // size of font
+  FontColor font_color;
   char caption[500];
 }Label;
 
@@ -78,22 +80,22 @@ typedef struct Label {
 typedef struct Frame {
   Rect position;
   Color color;
-} ColorRect;
+} Frame;
 
 /* Create UI components */
 Button* CreateButton(Rect rect, char* caption, int font_size,
                      char* bg_color, double alpha, FontColor font_color, int id);
 InputBox* CreateInputBox(Rect rect, int font_size, int id);
-Link* CreateLink(Rect rect, char* caption, int font_size, int id);
-Label* CreateLabel(Rect rect, char* caption, int font_size, int id);
-ColorRect* CreateFrame(Rect rect, char* color, double alpha);
+Link* CreateLink(Rect rect, char* caption, int font_size, FontColor font_color, int id);
+Label* CreateLabel(Rect rect, char* caption, int font_size, FontColor font_color, int id);
+Frame* CreateFrame(Rect rect, char* color, double alpha);
 
 /* Draw UI components */
 void DrawButton(Button* button, int mouse_x);
 void DrawInputBox(InputBox* input_box);
 void DrawLink(Link* link);
 void DrawLabel(Label* label);
-void DrawFrame(ColorRect* rect);
+void DrawFrame(Frame* rect);
 
 /* Event handlers */
 void MouseMoveEventHandler(int x, int y, int mouse_button, int event);
@@ -118,9 +120,9 @@ typedef PTCNode CompList;
 
 void InsertComp(void* component, TypeOfComp type);
 void InsertFrame(void* component);
+void InsertSurface(void* component, TypeOfComp type);
 void FreeCompList();
-void DrawComponents();
-void DrawFramwork(); 
+void FlushScreen();
 
 // Initialization
 void InitializeUI();

@@ -1,4 +1,8 @@
+#pragma once
 #include "gui.h"
+
+void InitPage();
+void CallbackById(int id);
 
 //void DrawWelcome(Page cur_page, User* cur_user, void* info, char* terminal);
 //void DrawLendAndBorrow(Page cur_page, User* cur_user, void* info, char* terminal);

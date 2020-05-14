@@ -215,4 +215,7 @@ void DrawShadedTriangle(ColorPoint* A, ColorPoint* B, ColorPoint* C);
 // Draw a shaded rectangle decided by the lower left point and the upper right point.
 void DrawShadedRectangle(ColorPoint* lower_right, ColorPoint* upper_left);
 
+int GetWindowWidthPx(void);
+int GetWindowHeightPx(void);
+
 #endif

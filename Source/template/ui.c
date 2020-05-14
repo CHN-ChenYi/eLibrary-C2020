@@ -1,4 +1,5 @@
 #include "gui.h"
+#include "page.h"
 #include "ui.h"
 #include "graphics.h"
 #include "extgraph.h"
@@ -9,8 +10,8 @@
 
 #define FONT_BUTTON "Consolas"
 #define FONT_INPUT "Consolas"
-#define FONT_LABEL "Consolas"
-#define FONT_LINK "Consolas"
+#define FONT_LABEL "Source Han Sans"
+#define FONT_LINK "Source Han Sans"
 
 /* Handling of colors */
 
@@ -35,6 +36,7 @@ Color ColorConvert(char* color, double alpha) {
 static PTCNode focus = NULL;      // The current focus
 static CompList cur_list = NULL;  // The list of all the components on this page.
 static CompList frame = NULL;     // The background or framework of this page.
+static CompList surface = NULL;   // The outmost content
 
 // Add a new component into the list
 void InsertComp(void* component, TypeOfComp type) {
@@ -51,6 +53,14 @@ void InsertFrame(void* component) {
   new_node->component = component;
   new_node->next = frame->next;
   frame->next = new_node;
+}
+
+void InsertSurface(void* component, TypeOfComp type) {
+  PTCNode new_node = (PTCNode)malloc(sizeof(struct ComponentListNode));
+  new_node->component = component;
+  new_node->type = type;
+  new_node->next = surface->next;
+  surface->next = new_node;
 }
 
 // Make a new list
@@ -110,7 +120,7 @@ InputBox* CreateInputBox(Rect rect, int font_size, int id) {
   return ret;
 }
 
-Link* CreateLink(Rect rect, char* caption, int font_size, int id) {
+Link* CreateLink(Rect rect, char* caption, int font_size, FontColor font_color, int id) {
   Link* ret = malloc(sizeof(Link));
   ret->id = id;
   ret->position = rect;
@@ -120,11 +130,12 @@ Link* CreateLink(Rect rect, char* caption, int font_size, int id) {
   ret->position.top = ret->position.bottom - GetPointSize();
   ret->status = kNormal;
   ret->font_size = font_size;
+  ret->font_color = font_color;
   strcpy(ret->caption, caption);
   return ret;
 }
 
-Label* CreateLabel(Rect rect, char* caption, int font_size, int id) {
+Label* CreateLabel(Rect rect, char* caption, int font_size, FontColor font_color, int id) {
   Label* ret = malloc(sizeof(Label));
   ret->id = id;
   ret->position = rect;
@@ -133,13 +144,14 @@ Label* CreateLabel(Rect rect, char* caption, int font_size, int id) {
   ret->position.right = ret->position.left + TextStringWidth(caption);
   ret->position.top = ret->position.bottom - GetPointSize();
   ret->font_size = font_size;
+  ret->font_color = font_color;
   strcpy(ret->caption, caption);
   return ret;
 }
 
 // Create a color rectangle, color must be CSS-styled
-ColorRect* CreateFrame(Rect rect, char* color, double alpha) {
-  ColorRect* ret = malloc(sizeof(ColorRect));
+Frame* CreateFrame(Rect rect, char* color, double alpha) {
+  Frame* ret = malloc(sizeof(Frame));
   ret->color = ColorConvert(color, alpha);
   ret->position = rect;
   return ret;
@@ -155,7 +167,7 @@ void DrawRectangle(Rect* rect) {
   DrawLine(0, rect->top - rect->bottom);
 }
 
-void DrawFrame(ColorRect* rect) {
+void DrawFrame(Frame* rect) {
   ColorPoint lower_right = (ColorPoint){rect->position.right, rect->position.bottom, rect->color};
   ColorPoint upper_left = (ColorPoint){rect->position.left, rect->position.top, rect->color};
   DrawShadedRectangle(&lower_right, &upper_left);
@@ -285,9 +297,19 @@ void DrawLink(Link* link) {
   SetFont(FONT_LINK);
   SetPointSize(link->font_size);
   SetPenSize(1);
+  switch (link->font_color) {
+  case kRed:
+    SetPenColor("red");
+    break;
+  case kWhite:
+    SetPenColor("white");
+    break;
+  case kBlack:
+    SetPenColor("black");
+    break;
+  }
   switch(link->status) {
     case kHover:
-      SetPenColor("blue");
       MovePen(link->position.left, link->position.bottom);
       DrawLine(TextStringWidth(link->caption), 0);
     case kNormal:
@@ -300,16 +322,25 @@ void DrawLink(Link* link) {
 void DrawLabel(Label* label) {
   SetFont(FONT_LABEL);
   SetPointSize(label->font_size);
-  SetPenSize(1);
-  SetPenColor("black");
+  switch (label->font_color)
+  {
+  case kRed:
+    SetPenColor("red");
+    break;
+  case kBlack:
+    SetPenColor("black");
+    break;
+  case kWhite:
+    SetPenColor("white");
+    break;
+  }
   MovePen(label->position.left, label->position.bottom);
-  SetPenSize(label->font_size);
   DrawTextString(label->caption);
 }
 
 void DrawFramwork() {
   for (PTCNode p = frame->next; p != frame; p = p->next) {
-    ColorRect* color_rect = (ColorRect*)p->component;
+    Frame* color_rect = (Frame*)p->component;
     DrawFrame(color_rect);
   }
 }
@@ -328,15 +359,13 @@ int Inbox(int x, int y, Rect* rect) {
 }
 
 // Display components according to the position of the mouse
-void DisplayAnimateComponents(int x, int y) {
-  DisplayClear();
-  DrawFramwork();
+void DisplayAnimateComponents(CompList L, int x, int y) {
   Button* button = NULL;
   InputBox* input_box = NULL;
   Link* link = NULL;
   Label* label = NULL;
   Rect* rect = NULL;
-  for (PTCNode p = cur_list->next; p != cur_list; p = p->next) {
+  for (PTCNode p = L->next; p != L; p = p->next) {
     switch (p->type) {
     case kButton:
       button = (Button*)p->component;
@@ -379,12 +408,11 @@ void DisplayAnimateComponents(int x, int y) {
   }
 }
 
-void DrawComponents() {
-  DisplayAnimateComponents(GetMouseX(), GetMouseY());
-}
-
-void CallbackById(int id) {
-  printf("%d\n", id);
+void FlushScreen() {
+  DisplayClear();
+  DrawFramwork();
+  DisplayAnimateComponents(cur_list, GetMouseX(), GetMouseY());
+  DisplayAnimateComponents(surface, GetMouseX(), GetMouseY());
 }
 
 // Press enter on focus or click it
@@ -443,6 +471,7 @@ void HandleClick(int x, int y, int mouse_button, int event) {
       }
       break;
   }
+  FlushScreen();
 }
 
 // Move focus to the next components
@@ -530,7 +559,7 @@ void BackSpaceInputBox() {
 // Handle the mouse movement on components
 void MouseMoveEventHandler(int x, int y, int mouse_button, int event) {
   HandleClick(x, y, mouse_button, event);
-  DisplayAnimateComponents(x, y);
+  FlushScreen();
 }
 
 void KeyboardEventHandler(int key, int event) {
@@ -561,28 +590,47 @@ void KeyboardEventHandler(int key, int event) {
         PushButton();
     }
   }
-  DisplayAnimateComponents(GetMouseX(), GetMouseY());
+  FlushScreen();
 }
 
 void CharEventHandler(int key) {
   ChangeInputBox(key);
-  DisplayAnimateComponents(GetMouseX(), GetMouseY());
+  FlushScreen();
+}
+
+void ClearComponents() {
+  if (cur_list != NULL) {
+    FreeCompList(cur_list);
+  }
+}
+
+void ClearSurface() {
+  if (surface != NULL) {
+    FreeCompList(frame);
+  }
+}
+
+void ClearFrame() {
+  if (frame != NULL) {
+    FreeCompList(frame);
+  }
 }
 
 // Initialize the components
 void InitComponents() {
-  if (cur_list != NULL) {
-    FreeCompList(cur_list);
-  }
+  ClearComponents();
   cur_list = NewCompList();
   focus = cur_list;
 }
 
 void InitFrame() {
-  if (frame != NULL) {
-    FreeCompList(frame);
-  }
+  ClearFrame();
   frame = NewCompList();
+}
+
+void InitSurface() {
+  ClearSurface();
+  surface = NewCompList();
 }
 
 // Initialization of this set of GUI components
@@ -590,6 +638,7 @@ void InitializeUI() {
   static int registered = 0;
   InitComponents();
   InitFrame();
+  InitSurface();
   if (registered == 0) {
     registerMouseEvent(MouseMoveEventHandler);
     registerKeyboardEvent(KeyboardEventHandler);

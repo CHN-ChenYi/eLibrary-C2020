@@ -73,11 +73,16 @@ CompList NewCompList() {
 }
 
 // Free the list
-void FreeCompList() {
-  for (PTCNode p = cur_list, next = cur_list->next; p != NULL; p = next, next = p->next) {
+void FreeList(CompList L) {
+  for (PTCNode p = L->next; p != L;) {
+    //printf("%d\n", p->type);
+    PTCNode next = p->next;
     free(p->component);
     free(p);
+    p = next;
   }
+  free(L->component);
+  free(L);
 }
 
 /* End of linked list */
@@ -425,7 +430,39 @@ void PushButton() {
   }
 }
 
-void HandleClick(int x, int y, int mouse_button, int event) {
+// Surface will only contain button
+void HandleClickOnSur(int x, int y, int mouse_button, int event) {
+  if (surface == NULL || surface->next == surface) {
+    // The surface layer is empty
+    return;
+  }
+  Button* button = NULL;
+  Rect* rect = NULL;
+  switch (event) {
+  case BUTTON_UP:
+    if (mouse_button == LEFT_BUTTON) {
+      int click_on_margin = 1;  // whether this click is on none of the components
+      int id = 0;               // 0 means doing nothing
+      for (PTCNode p = surface->next; p != surface; p = p->next) {
+        button = (Button*)p->component;
+        rect = &button->position;
+        if (Inbox(x, y, rect)) {
+          click_on_margin = 0;
+          id = button->id;
+        }
+      }
+      if (click_on_margin) {
+        ExitSurface();
+      } else {
+        CallbackById(id);
+      }
+    }
+    break;
+  }
+  FlushScreen(x, y);
+}
+
+void HandleClickOnComp(int x, int y, int mouse_button, int event) {
   Button* button = NULL;
   InputBox* input_box = NULL;
   Link* link = NULL;
@@ -558,7 +595,8 @@ void BackSpaceInputBox() {
 
 // Handle the mouse movement on components
 void MouseMoveEventHandler(int x, int y, int mouse_button, int event) {
-  HandleClick(x, y, mouse_button, event);
+  HandleClickOnSur(x, y, mouse_button, event);
+  HandleClickOnComp(x, y, mouse_button, event);
   FlushScreen(x, y);
 }
 
@@ -600,19 +638,19 @@ void CharEventHandler(int key) {
 
 void ClearComponents() {
   if (cur_list != NULL) {
-    FreeCompList(cur_list);
+    FreeList(cur_list);
   }
 }
 
 void ClearSurface() {
   if (surface != NULL) {
-    FreeCompList(frame);
+    FreeList(surface);
   }
 }
 
 void ClearFrame() {
   if (frame != NULL) {
-    FreeCompList(frame);
+    FreeList(frame);
   }
 }
 

@@ -121,7 +121,9 @@ typedef PTCNode CompList;
 void InsertComp(void* component, TypeOfComp type);
 void InsertFrame(void* component);
 void InsertSurface(void* component, TypeOfComp type);
-void FreeCompList();
+void InitComponents();
+void InitFrame();
+void InitSurface();
 void FlushScreen(int x, int y);
 
 // Initialization

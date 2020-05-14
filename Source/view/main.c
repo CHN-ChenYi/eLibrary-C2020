@@ -7,5 +7,6 @@
 void Main() {
   InitGraphics();
   InitConsole();
+  InitializeUI();
   InitPage();
 }

@@ -3,6 +3,7 @@
 
 void InitPage();
 void CallbackById(int id);
+void ExitSurface();
 
 //void DrawWelcome(Page cur_page, User* cur_user, void* info, char* terminal);
 //void DrawLendAndBorrow(Page cur_page, User* cur_user, void* info, char* terminal);

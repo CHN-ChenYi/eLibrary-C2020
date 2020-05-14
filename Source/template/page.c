@@ -2,6 +2,7 @@
 #include "gui.h"
 #include "graphics.h"
 #include "extgraph.h"
+#include "page.h"
 
 typedef enum {
   kUnclicked,
@@ -27,6 +28,8 @@ HeadBarStatus hb_status;
 #define RTN_ID -8
 #define NULL_ID 0     // will not triger any callback
 
+#define MENU_COLOR "BDBDBD"
+
 /* Headbar menu */
 static Link *HelpButton, *FileButton, *BookButton,
             *LendAndBorrowButton, *UserButton,
@@ -50,20 +53,100 @@ static Button *about, *manual;
 // submenu for Search
 static Button *search_user, *search_book;
 
-void AddSubmenuFile() {
+void ExitSurface() {
+  hb_status = kUnclicked;
+  InitSurface();
 }
 
-void AddSubmenu() {
-  switch (hb_status) {
-    case kFile:
+void AddSubmenuFile() {
+  init_lib = CreateButton(
+    (Rect) {0, 150, 70, 110},
+    "新建", 20, MENU_COLOR, 1, kWhite, 1
+  );
+  open_lib = CreateButton(
+    (Rect) {0, 150, 110, 150},
+    "打开", 20, MENU_COLOR, 1, kWhite, 2
+  );
+  save_lib = CreateButton(
+    (Rect) {0, 150, 150, 190},
+    "保存", 20, MENU_COLOR, 1, kWhite, 3
+  );
+  quit = CreateButton(
+    (Rect) {0, 150, 190, 230},
+    "退出", 20, MENU_COLOR, 1, kWhite, 4
+  );
+  InsertSurface(init_lib, kButton);
+  InsertSurface(open_lib, kButton);
+  InsertSurface(save_lib, kButton);
+  InsertSurface(quit, kButton);
+}
+
+void AddSubmenuBook() {
+  new_book = CreateButton(
+    (Rect) {70, 250, 70, 110},
+    "新建", 20, MENU_COLOR, 1, kWhite, 1
+  );
+  display_book = CreateButton(
+    (Rect) {70, 250, 110, 150},
+    "显示", 20, MENU_COLOR, 1, kWhite, 2
+  );
+  InsertSurface(new_book, kButton);
+  InsertSurface(display_book, kButton);
+}
+
+void AddSubmenuUser() {
+  login = CreateButton(
+    (Rect) {200, 350, 70, 110},
+    "登录", 20, MENU_COLOR, 1, kWhite, 1
+  );
+  new_user = CreateButton(
+    (Rect) {200, 350, 110, 150},
+    "新建", 20, MENU_COLOR, 1, kWhite, 2
+  );
+  varify = CreateButton(
+    (Rect) {200, 350, 150, 190},
+    "审核", 20, MENU_COLOR, 1, kWhite, 3
+  );
+  logout = CreateButton(
+    (Rect) {200, 350, 190, 230},
+    "登出", 20, MENU_COLOR, 1, kWhite, 4
+  );
+  InsertSurface(login, kButton);
+  InsertSurface(new_user, kButton);
+  InsertSurface(varify, kButton);
+  InsertSurface(logout, kButton);
+}
+
+void AddSubmenuHelp() {
+  about = CreateButton(
+    (Rect) {GetWindowWidthPx() - 150, GetWindowWidthPx(), 70, 110},
+    "关于", 20, MENU_COLOR, 1, kWhite, 1
+  );
+  manual = CreateButton(
+    (Rect) {GetWindowWidthPx() - 150, GetWindowWidthPx(), 110, 150},
+    "用户手册", 20, MENU_COLOR, 1, kWhite, 2
+  );
+  InsertSurface(about, kButton);
+  InsertSurface(manual, kButton);
+}
+
+void AddSubmenu(int status) {
+  switch (status) {
+    case FILE_ID:
       AddSubmenuFile();
+      hb_status = kFile;
       break;
-    case kBook:
+    case BOOK_ID:
+      AddSubmenuBook();
+      hb_status = kBook;
       break;
-    case kUser:
+    case USER_ID:
+      AddSubmenuUser();
+      hb_status = kUser;
       break;
-    case kHelp:
-      break;
+    case HELP_ID:
+      AddSubmenuHelp();
+      hb_status = kHelp;
   }
 }
 
@@ -133,13 +216,15 @@ void AddHeadBar() {
 }
 
 void InitPage() {
-  InitializeUI();
-  // AddSubmenu();   // Add submenu first to prevent overlap
   AddHeadBar();
   FlushScreen(GetMouseX(), GetMouseY());
 }
 
 // Handle Callback
 void CallbackById(int id) {
+  if (id < 0) {
+    // click on the head bar
+    AddSubmenu(id);
+  }
   printf("%d\n", id);
 }

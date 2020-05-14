@@ -7,7 +7,7 @@
 #include "graphics.h"
 
 typedef struct Book {
-  int uid;
+  unsigned uid;
   char id[20];
   char title[200];
   char authors[3][200];
@@ -22,7 +22,7 @@ typedef enum Identity { NORMAL_USER = 0, ADMINISTRATOR } Identity;
 typedef enum Gender { MALE = 0, FEMALE } Gender;
 
 typedef struct User {
-  int uid;
+  unsigned uid;
   char username[50];
   char salt[10];
   uint32_t password[8];
@@ -35,7 +35,7 @@ typedef struct User {
 typedef enum BookStatus { RETURNED = 0, BORROWED } BookStatus;
 
 typedef struct BorrowRecord {
-  int uid;
+  unsigned uid;
   int book_uid;
   int user_uid;
   char book_name[200];

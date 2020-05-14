@@ -20,12 +20,14 @@ typedef enum Page {
   kLibrary,         // 图书库显示
   kInitLibrary,     // 图书库新建
   kOpenLibrary,     // 图书库打开
+  kSaveLibrary,     // 图书库保存
   kBookDisplay,     // 图书显示
   kBookInit,        // 图书新增
   kBookModify,      // 图书修改/删除
   kBorrowDisplay,   // 借还书统计（管理员）
   kStatistics,      // 统计
-  kReturn           // 回到上一个界面
+  kReturn,          // 回到上一个界面
+  kExit             // 关闭程序
 } Page;
 
 /*

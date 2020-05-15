@@ -1,6 +1,5 @@
 ﻿#include "view.h"
 
-#include <direct.h>
 #include <io.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,10 +25,14 @@ static List *history_list;
 static User user;
 static char lib_path[MAX_PATH + 1], program_path[MAX_PATH + 1];
 static size_t lib_path_len, username_len, program_path_len;
-static DB book_db, user_db, borrowrecord_db;
+static char book_db_dir[MAX_PATH + 1], user_db_dir[MAX_PATH + 1],
+    borrowrecord_db_dir[MAX_PATH + 1];
 static FILE *log_file;
 static inline void Log(char *const msg);
-static inline bool ErrorHandle(int errno_);
+static inline char *MoveInList(ListNode **const node, List *list, int max_size,
+                               bool direction, const char *const list_name,
+                               const char *const page_name);
+static inline bool ErrorHandle(int errno_);  // FALSE for success
 static void FreeHistory(void *const history_);
 static inline History *const TopHistory();
 static inline void PushBackHistory(History *const new_history);
@@ -39,30 +42,39 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg);
 static void BookSearch_BorrowCallback(Book *book);
 static void inline BookSearchDisplay(char *keyword, char *msg);
 static void BookSearch_SearchCallback(char *keyword);
+static void BookSearch_TurnPage(bool direction);
 static void LendAndBorrow_SearchCallback(char *keyword);
 static void LendAndBorrow_ReturnCallback(ListNode *book,
                                          ListNode *borrow_record);
+static void LendAndBorrow_TurnPage(bool direction);
 static void UserModify_ConfirmCallback();
+static void UserModify_TurnPage(bool direction);
 static void inline UserSearchInfoDisplay(User *show_user, char *msg);
 static void UserSearch_InfoCallback(User *user);
 static void inline UserSearchDisplay(char *keyword, char *msg);
 static void UserSearch_SearchCallback(char *keyword);
+static void UserSearch_TurnPage(bool direction);
 static void LoginOrRegister_LoginCallback();
 static void UserManagement_ApproveCallback(ListNode *user_node, bool approve);
 static void UserManagement_DeleteCallback(ListNode *user_node);
+static void UserManagement_TurnPage(bool direction, bool type);
 static void BookDisplayAdminDisplay(char *msg);
 static void BookDisplay_AdminCallback();
 static void BookDisplay_CoverCallback();
 static void BookDisplay_ConfirmCallback();
 static void BookDisplay_DeleteCallback();
 static void BookDisplay_BorrowCallback();
+static void BorrowDisplay_TurnPage(bool direction);
 static void Library_BookCallback(ListNode *book);
 static bool CmpById(const void *const lhs, const void *const rhs);
 static bool CmpByTitle(const void *const lhs, const void *const rhs);
 static bool CmpByAuthor(const void *const lhs, const void *const rhs);
 static void Library_SortCallback(SortKeyword sort_keyword);
 static void Library_SwitchCallback();
+static void Library_TurnPage(bool direction);
+static void *const StrCpy(void *const str);
 static void Statistics_SelectCallback(ListNode *catalog);
+static void Statistics_TurnPage(bool direction, bool type);
 static inline void Navigation_LendAndBorrow(char *msg);
 static inline void Navigation_BookSearch(char *msg);
 static inline void Navigation_UserSearch(char *msg);
@@ -82,63 +94,68 @@ static inline void Navigation_Statistics(char *msg);
 static inline void Navigation_Return(char *msg);
 static inline void Navigation_Exit();
 extern void NavigationCallback(Page nav_page);
-
+// TODO:(TO/GA) *_start 初始化
 void Init() {
-  InitConsole();
-  InitGraphics();
+  InitConsole();               // TODO:(TO/GA) 可以删掉了？
+  InitGraphics();              // TODO:(TO/GA) 可以删掉了？
+  SetWindowTitle("eLibrary");  // TODO:(TO/GA) 可以删掉了？
+
+  // init history
   history_list = NewList();
-  fopen_s(&log_file, ".\\eLibrary.log", "a+");
-  Log("[Info] Start");
-  SetWindowTitle("eLibrary");
-
-  _getcwd(program_path,
-          MAX_PATH);  // get the full path of the current working directory
-
-  char *msg = malloc(sizeof(char) * 91);
-  program_path_len = strlen(program_path);
-  user_db.filename = malloc(sizeof(char) * (program_path_len + 13));
-  sprintf(user_db.filename, "%s%s", program_path, "\\user.swp.db");
-  if (!_access(user_db.filename, 6)) {  // swap file exists
-    sprintf(msg,
-            "[Warning] Open the swap file of user database. An abnormal exit "
-            "may have occurred last time");
-  } else {
-    char *user_database_path = malloc(sizeof(char) * (program_path_len + 9));
-    sprintf(user_database_path, "%s\\user.db", program_path);
-    if (!_access(user_database_path, 6)) {  // user database exists
-      char *command = malloc(
-          sizeof(char) * (14 + program_path_len + 8 + program_path_len + 12));
-      sprintf(command, "copy /Y \"%s\" \"%s\"", user_database_path,
-              user_db.filename);
-      system(command);
-      free(command);
-      sprintf(msg, "[Info] Open user database");
-    } else {  // user database doesn't exist
-      sprintf(msg, "[Info] Init user database");
-    }
-    free(user_database_path);
-  }
-  OpenDBConnection(&user_db, USER);
-
-  History *new_history = malloc(sizeof(History));
+  History *const new_history = malloc(sizeof(History));
   new_history->page = kWelcome;
   PushBackHistory(new_history);
 
+  // init log
+  fopen_s(&log_file, ".\\eLibrary.log", "a+");
+
+  // set up welcome page
+  char *msg = malloc(sizeof(char) * 13);
+  sprintf(msg, "[Info] Start");
   Log(msg);
   DrawUI(kWelcome, &user, NULL, msg);
 }
 
 static inline void Log(char *const msg) {
+  // get local time
   time_t cur_time = time(0);
   char *time = asctime(localtime(&cur_time));
   size_t len = strlen(time);
-  while (len && (time[len - 1] == '\r' || time[len - 1] == '\n'))
+  while (len && (time[len - 1] == '\r' ||
+                 time[len - 1] == '\n'))  // delete \n in the string
     time[--len] = '\0';
   // As DST is not always one hour, calculating loacl time zone is expensive
+  // so we just display "Local" instead of "UTC+x"
   fprintf(log_file, "[%s Local] %s\n", time, msg);
 }
 
-// FALSE for success
+static inline char *MoveInList(ListNode **const node, List *list, int max_size,
+                               bool direction, const char *const list_name,
+                               const char *const page_name) {
+  char *msg = malloc(sizeof(char) * (59 + username_len + strlen(list_name) +
+                                     strlen(page_name)));
+  if (direction) {
+    ListNode *new_node = *node;
+    for (int i = max_size; i && new_node != list->dummy_tail; i--)
+      new_node = new_node->nxt;
+    if (new_node == list->dummy_tail) {
+      sprintf(
+          msg,
+          "[Error] [%s] Fail to turn to the next page in List %s of Page %s",
+          user.username, list_name, page_name);
+    } else {
+      *node = new_node;
+      sprintf(msg, "[Info] [%s] Turn to the next page in List %s of Page %s",
+              user.username, list_name, page_name);
+    }
+  } else {
+    for (int i = max_size; i; i--) *node = (*node)->pre;
+    sprintf(msg, "[Info] [%s] Turn to the prev page in List %s of Page %s",
+            user.username, list_name, page_name);
+  }
+  return msg;
+}
+
 static inline bool ErrorHandle(int errno_) {
   char *msg = malloc(sizeof(char) * (41 + username_len));
   switch (errno_) {
@@ -201,6 +218,7 @@ static inline History *const TopHistory() {
 
 static inline void PushBackHistory(History *const new_history) {
   InsertList(history_list, history_list->dummy_tail, new_history);
+  // if the number of history exceed max_size, delete some of the histories
   while (history_list->size > HISTORY_MAX)
     EraseList(history_list, history_list->dummy_head->nxt, FreeHistory);
 }
@@ -289,7 +307,7 @@ static void BookSearch_BorrowCallback(Book *book) {
     return;
   }
   book->number_on_the_shelf--;
-  if (ErrorHandle(Update(&book_db, book, book->uid, BOOK))) return;
+  if (ErrorHandle(Update(book, book->uid, BOOK))) return;
 
   BorrowRecord new_record;
   strcpy(new_record.book_name, book->title);
@@ -304,11 +322,10 @@ static void BookSearch_BorrowCallback(Book *book) {
   struct tm *nxt_tm = localtime(&nxt_time_t);
   sprintf(new_record.returned_date, "%04d%02d%02d\n", nxt_tm->tm_year + 1900,
           nxt_tm->tm_mon + 1, nxt_tm->tm_mday);
-  if (ErrorHandle(GetNextPK(&borrowrecord_db, BORROWRECORD, &new_record.uid)))
-    return;
+  if (ErrorHandle(GetNextPK(BORROWRECORD, &new_record.uid))) return;
   strcpy(new_record.user_name, user.username);
   new_record.user_uid = user.uid;
-  if (ErrorHandle(Create(&borrowrecord_db, &new_record, BORROWRECORD))) return;
+  if (ErrorHandle(Create(&new_record, BORROWRECORD))) return;
 
   char *msg = malloc(sizeof(char) * (25 + username_len + strlen(book->title)));
   sprintf(msg, "[Info] [%s] Borrow book [%s]", user.username, book->title);
@@ -317,15 +334,17 @@ static void BookSearch_BorrowCallback(Book *book) {
 
 static void inline BookSearchDisplay(char *keyword, char *msg) {
   List *results = NewList();
-  if (ErrorHandle(Filter(&book_db, results, keyword, BOOK))) return;
+  if (ErrorHandle(Filter(results, keyword, BOOK))) return;
 
-  History *new_history = malloc(sizeof(History));
+  History *const new_history = malloc(sizeof(History));
   new_history->page = kBookSearch;
   new_history->state.book_search = malloc(sizeof(BookSearch));
   new_history->state.book_search->keyword = keyword;
   new_history->state.book_search->borrow_callback = BookSearch_BorrowCallback;
   new_history->state.book_search->search_callback = BookSearch_SearchCallback;
+  new_history->state.book_search->turn_page = BookSearch_TurnPage;
   new_history->state.book_search->book_result = results;
+  new_history->state.book_search->book_result_start = results->dummy_head->nxt;
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -340,6 +359,13 @@ static void BookSearch_SearchCallback(char *keyword) {
   BookSearchDisplay(keyword, NULL);
 }
 
+static void BookSearch_TurnPage(bool direction) {
+  BookSearch *state = TopHistory()->state.book_search;
+  char *msg = MoveInList(&state->book_result_start, state->book_result,
+                         kBookSearchMax, direction, "Result", "Book Search");
+  DrawUI(kBookSearch, &user, state, msg);
+}
+
 static void LendAndBorrow_SearchCallback(char *keyword) {
   BookSearch_SearchCallback(keyword);
 }
@@ -350,8 +376,7 @@ static void LendAndBorrow_ReturnCallback(ListNode *book,
   BorrowRecord *returned_borrow_record = (BorrowRecord *)borrow_record->value;
 
   returned_book->number_on_the_shelf++;
-  if (ErrorHandle(Update(&book_db, returned_book, returned_book->uid, BOOK)))
-    return;
+  if (ErrorHandle(Update(returned_book, returned_book->uid, BOOK))) return;
 
   char *msg = malloc(sizeof(char) * (49 + strlen(returned_book->title) + 8));
   sprintf(msg, "[Info] [%s] Return book [%s], expected return date[%s]",
@@ -363,13 +388,21 @@ static void LendAndBorrow_ReturnCallback(ListNode *book,
   struct tm *now_tm = localtime(&now_time_t);
   sprintf(returned_borrow_record->returned_date, "%04d%02d%02d",
           now_tm->tm_year + 1900, now_tm->tm_mon + 1, now_tm->tm_mday);
-  if (ErrorHandle(Update(&borrowrecord_db, returned_borrow_record,
-                         returned_borrow_record->uid, BORROWRECORD))) {
+  if (ErrorHandle(Update(returned_borrow_record, returned_borrow_record->uid,
+                         BORROWRECORD))) {
     free(msg);
     return;
   }
 
   ReturnHistory(history_list->dummy_tail->pre, msg);
+}
+
+static void LendAndBorrow_TurnPage(bool direction) {
+  LendAndBorrow *state = TopHistory()->state.lend_and_borrow;
+  char *msg =
+      MoveInList(&state->borrow_records_start, state->borrow_records,
+                 kLendAndBorrowMax, direction, "Record", "Lend And Borrow");
+  DrawUI(kLendAndBorrow, &user, state, msg);
 }
 
 static void UserModify_ConfirmCallback() {
@@ -427,8 +460,7 @@ static void UserModify_ConfirmCallback() {
     return;
   }
 
-  if (ErrorHandle(Update(&user_db, modified_user, modified_user->uid, USER)))
-    return;
+  if (ErrorHandle(Update(modified_user, modified_user->uid, USER))) return;
   if (modified_user->uid == user.uid) {
     memcpy(&user, modified_user, sizeof(USER));
     username_len = strlen(user.username);
@@ -441,15 +473,21 @@ static void UserModify_ConfirmCallback() {
   ReturnHistory(history_list->dummy_tail->pre, msg);
 }
 
+static void UserModify_TurnPage(bool direction) {
+  UserModify *state = TopHistory()->state.user_modify;
+  char *msg = MoveInList(&state->books_start, state->books, kUserModifyMax,
+                         direction, "User", "User Modify");
+  DrawUI(kUserModify, &user, state, msg);
+}
+
 static void inline UserSearchInfoDisplay(User *show_user, char *msg) {
-  if (ErrorHandle(GetById(&user_db, show_user, show_user->uid, USER))) return;
+  if (ErrorHandle(GetById(show_user, show_user->uid, USER))) return;
 
   // TODO:(TO/GA)按还书时间排序
   List *borrow_record = NewList(), *books = NewList();
   char *query = malloc(sizeof(char) * (10 + 10));
   sprintf(query, "user_uid=%d", show_user->uid);
-  if (ErrorHandle(
-          Filter(&borrowrecord_db, borrow_record, query, BORROWRECORD))) {
+  if (ErrorHandle(Filter(borrow_record, query, BORROWRECORD))) {
     free(query);
     DeleteList(borrow_record, free);
     DeleteList(books, free);
@@ -459,9 +497,8 @@ static void inline UserSearchInfoDisplay(User *show_user, char *msg) {
   for (ListNode *cur_node = borrow_record->dummy_head->nxt;
        cur_node != borrow_record->dummy_tail; cur_node = cur_node->nxt) {
     Book *new_book = malloc(sizeof(BOOK));
-    if (ErrorHandle(GetById(&book_db, new_book,
-                            ((BorrowRecord *)cur_node->value)->book_uid,
-                            BOOK))) {
+    if (ErrorHandle(GetById(
+            new_book, ((BorrowRecord *)cur_node->value)->book_uid, BOOK))) {
       free(new_book);
       DeleteList(borrow_record, free);
       DeleteList(books, free);
@@ -470,13 +507,15 @@ static void inline UserSearchInfoDisplay(User *show_user, char *msg) {
     InsertList(books, books->dummy_tail, new_book);
   }
 
-  History *new_history = malloc(sizeof(History));
+  History *const new_history = malloc(sizeof(History));
   new_history->page = kUserModify;
   new_history->state.user_modify = malloc(sizeof(UserModify));
   new_history->state.user_modify->confirm_callback = UserModify_ConfirmCallback;
+  new_history->state.user_modify->turn_page = UserModify_TurnPage;
   new_history->state.user_modify->user = malloc(sizeof(User));
   memcpy(new_history->state.user_modify->user, show_user, sizeof(User));
   new_history->state.user_modify->books = books;
+  new_history->state.user_modify->books_start = books->dummy_head->nxt;
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -503,18 +542,20 @@ static void inline UserSearchDisplay(char *keyword, char *msg) {
   }
 
   List *results = NewList();
-  if (ErrorHandle(Filter(&user_db, results, keyword, USER))) {
+  if (ErrorHandle(Filter(results, keyword, USER))) {
     DeleteList(results, free);
     return;
   }
 
-  History *new_history = malloc(sizeof(History));
+  History *const new_history = malloc(sizeof(History));
   new_history->page = kBookSearch;
   new_history->state.user_search = malloc(sizeof(UserSearch));
   new_history->state.user_search->keyword = keyword;
   new_history->state.user_search->info_callback = UserSearch_InfoCallback;
   new_history->state.user_search->search_callback = UserSearch_SearchCallback;
+  new_history->state.user_search->turn_page = UserSearch_TurnPage;
   new_history->state.user_search->user_result = results;
+  new_history->state.user_search->user_result_start = results->dummy_head->nxt;
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -527,6 +568,13 @@ static void inline UserSearchDisplay(char *keyword, char *msg) {
 
 static void UserSearch_SearchCallback(char *keyword) {
   UserSearchDisplay(keyword, NULL);
+}
+
+static void UserSearch_TurnPage(bool direction) {
+  UserSearch *state = TopHistory()->state.user_search;
+  char *msg = MoveInList(&state->user_result_start, state->user_result,
+                         kUserSearchMax, direction, "Result", "User Search");
+  DrawUI(kUserSearch, &user, state, msg);
 }
 
 static void LoginOrRegister_LoginCallback() {
@@ -567,7 +615,7 @@ static void LoginOrRegister_LoginCallback() {
     }
     DeleteList(users, free);
 
-    if (ErrorHandle(GetNextPK(&user_db, USER, &new_user->uid))) return;
+    if (ErrorHandle(GetNextPK(USER, &new_user->uid))) return;
     RandStr(new_user->salt, 9);
     char pwd_type[59];
     sprintf(pwd_type, "%s%s", TopHistory()->state.login_or_register->password,
@@ -575,7 +623,7 @@ static void LoginOrRegister_LoginCallback() {
     Sha256Sum(new_user->password, pwd_type, strlen(pwd_type));
 
     unsigned size_of_user_db;
-    if (ErrorHandle(GetDBSize(&user_db, USER, &size_of_user_db))) return;
+    if (ErrorHandle(GetDBSize(USER, &size_of_user_db))) return;
 
     char *msg = malloc(sizeof(char) * (45 + strlen(new_user->username)));
 
@@ -588,12 +636,12 @@ static void LoginOrRegister_LoginCallback() {
               new_user->username);
       new_user->verified = FALSE;
     }
-    if (ErrorHandle(Create(&user_db, new_user, USER))) {
+    if (ErrorHandle(Create(new_user, USER))) {
       free(msg);
       return;
     }
 
-    History *new_history = malloc(sizeof(History));
+    History *const new_history = malloc(sizeof(History));
     new_history->page = kWelcome;
     PushBackHistory(new_history);
 
@@ -638,7 +686,7 @@ static void LoginOrRegister_LoginCallback() {
     memcpy(&user, new_user, sizeof(User));
     username_len = strlen(user.username);
 
-    History *new_history = malloc(sizeof(History));
+    History *const new_history = malloc(sizeof(History));
     new_history->page = kWelcome;
     PushBackHistory(new_history);
 
@@ -655,14 +703,14 @@ static void UserManagement_ApproveCallback(ListNode *user_node, bool approve) {
       malloc(sizeof(char) * (27 + username_len + strlen(new_user->username)));
   if (approve) {
     new_user->verified = TRUE;
-    if (ErrorHandle(Update(&user_db, new_user, new_user->uid, USER))) {
+    if (ErrorHandle(Update(new_user, new_user->uid, USER))) {
       free(msg);
       return;
     }
     sprintf(msg, "[Info] [%s] Approve user [%s]", user.username,
             new_user->username);
   } else {
-    if (ErrorHandle(Delete(&user_db, new_user->uid, USER))) {
+    if (ErrorHandle(Delete(new_user->uid, USER))) {
       free(msg);
       return;
     }
@@ -674,12 +722,25 @@ static void UserManagement_ApproveCallback(ListNode *user_node, bool approve) {
 
 static void UserManagement_DeleteCallback(ListNode *user_node) {
   User *new_user = user_node->value;
-  if (ErrorHandle(Delete(&user_db, new_user->uid, USER))) return;
+  if (ErrorHandle(Delete(new_user->uid, USER))) return;
   char *msg =
       malloc(sizeof(char) * (25 + username_len + strlen(new_user->username)));
   sprintf(msg, "[Info] [%s] Delete user [%s]", user.username,
           new_user->username);
   ReturnHistory(history_list->dummy_tail->pre, msg);
+}
+
+static void UserManagement_TurnPage(bool direction, bool type) {
+  UserManagement *state = TopHistory()->state.user_management;
+  char *msg;
+  if (type)
+    msg = MoveInList(&state->users_start, state->users, kUserManagementUsersMax,
+                     direction, "Verified User", "User Management");
+  else
+    msg = MoveInList(&state->to_be_verified_start, state->to_be_verified,
+                     kUserManagementToBeVerifiedMax, direction,
+                     "To Be Verified User", "User Management");
+  DrawUI(kUserManagement, &user, state, msg);
 }
 
 static void BookDisplayAdminDisplay(char *msg) {
@@ -692,27 +753,29 @@ static void BookDisplayAdminDisplay(char *msg) {
     return;
   }
 
-  if (ErrorHandle(GetById(&book_db, TopHistory()->state.book_display->book,
+  if (ErrorHandle(GetById(TopHistory()->state.book_display->book,
                           TopHistory()->state.book_display->book->uid, BOOK)))
     return;
 
   List *borrow_record = NewList();
   char *query = malloc(sizeof(char) * 20);
   sprintf(query, "book_uid=%d", TopHistory()->state.book_display->book->uid);
-  if (ErrorHandle(
-          Filter(&borrowrecord_db, borrow_record, query, BORROWRECORD))) {
+  if (ErrorHandle(Filter(borrow_record, query, BORROWRECORD))) {
     free(query);
     DeleteList(borrow_record, free);
     return;
   }
   free(query);
   // TODO:(TO/GA) 排序
-  History *new_history = malloc(sizeof(History));
+  History *const new_history = malloc(sizeof(History));
   new_history->page = kBorrowDisplay;
   new_history->state.borrow_display = malloc(sizeof(BorrowDisplay));
   strcpy(new_history->state.borrow_display->book_name,
          TopHistory()->state.book_display->book->title);
+  new_history->state.borrow_display->turn_page = BorrowDisplay_TurnPage;
   new_history->state.borrow_display->borrow_record = borrow_record;
+  new_history->state.borrow_display->borrow_record_start =
+      borrow_record->dummy_head->nxt;
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -784,7 +847,7 @@ static void BookDisplay_ConfirmCallback() {
     ReturnHistory(history_list->dummy_tail->pre, msg);
     return;
   }
-  if (ErrorHandle(Update(&book_db, new_book, new_book->uid, BOOK))) return;
+  if (ErrorHandle(Update(new_book, new_book->uid, BOOK))) return;
 
   char *msg =
       malloc(sizeof(char) * (25 + username_len + strlen(new_book->title)));
@@ -802,7 +865,7 @@ static void BookDisplay_DeleteCallback() {
   }
 
   Book *new_book = TopHistory()->state.book_display->book;
-  if (ErrorHandle(Delete(&book_db, new_book->uid, BOOK))) return;
+  if (ErrorHandle(Delete(new_book->uid, BOOK))) return;
 
   char *msg =
       malloc(sizeof(char) * (25 + username_len + strlen(new_book->title)));
@@ -812,6 +875,14 @@ static void BookDisplay_DeleteCallback() {
 
 static void BookDisplay_BorrowCallback() {
   BookSearch_BorrowCallback(TopHistory()->state.book_display->book);
+}
+
+static void BorrowDisplay_TurnPage(bool direction) {
+  BorrowDisplay *state = TopHistory()->state.borrow_display;
+  char *msg =
+      MoveInList(&state->borrow_record_start, state->borrow_record,
+                 kBorrowDisplayMax, direction, "Record", "Borrow Display");
+  DrawUI(kBorrowDisplay, &user, state, msg);
 }
 
 static void Library_BookCallback(ListNode *book) {
@@ -859,20 +930,23 @@ static void Library_SwitchCallback() {
     Navigation_Library(NULL);
   } else {
     List *books = NewList();
-    if (ErrorHandle(Filter(&book_db, books, "", BOOK))) {
+    if (ErrorHandle(Filter(books, "", BOOK))) {
       DeleteList(books, free);
       return;
     }
 
-    History *new_history = malloc(sizeof(History));
+    History *const new_history = malloc(sizeof(History));
     new_history->page = kLibrary;
     new_history->state.library = malloc(sizeof(Library));
     new_history->state.library->type = kList;
     new_history->state.library->sort_callback = Library_SortCallback;
     new_history->state.library->book_callback = Library_BookCallback;
     new_history->state.library->switch_callback = Library_SwitchCallback;
+    new_history->state.library->turn_page = Library_TurnPage;
     new_history->state.library->books = books;
+    new_history->state.library->books_start = books->dummy_head->nxt;
     new_history->state.library->book_covers = NULL;
+    new_history->state.library->books_covers_start = NULL;
     PushBackHistory(new_history);
 
     char *msg = malloc(sizeof(char) * (41 + username_len));
@@ -880,6 +954,14 @@ static void Library_SwitchCallback() {
     Log(msg);
     DrawUI(kLibrary, &user, new_history->state.library, msg);
   }
+}
+
+void Library_TurnPage(bool direction) {
+  Library *state = TopHistory()->state.library;
+  MoveInList(&state->books_start, state->books, kLibraryMax, direction, "", "");
+  char *msg = MoveInList(&state->books_covers_start, state->book_covers,
+                         kLibraryMax, direction, "Book", "Library");
+  DrawUI(kLibrary, &user, state, msg);
 }
 
 static void *const StrCpy(void *const str) {
@@ -891,15 +973,14 @@ static void *const StrCpy(void *const str) {
 static void Statistics_SelectCallback(ListNode *catalog) {
   List *borrow_records = NewList();
   Book *book = malloc(sizeof(Book));
-  if (ErrorHandle(Filter(&borrowrecord_db, borrow_records, "", BORROWRECORD))) {
+  if (ErrorHandle(Filter(borrow_records, "", BORROWRECORD))) {
     DeleteList(borrow_records, free);
     return;
   }
   for (const ListNode *cur_node = borrow_records->dummy_head->nxt;
        cur_node != borrow_records->dummy_tail;) {
-    if (ErrorHandle(GetById(&book_db, book,
-                            ((BorrowRecord *)cur_node->value)->book_uid,
-                            BOOK))) {
+    if (ErrorHandle(
+            GetById(book, ((BorrowRecord *)cur_node->value)->book_uid, BOOK))) {
       DeleteList(borrow_records, free);
       free(book);
       return;
@@ -910,12 +991,17 @@ static void Statistics_SelectCallback(ListNode *catalog) {
       cur_node = cur_node->nxt;
   }
 
-  History *new_history = malloc(sizeof(History));
+  History *const new_history = malloc(sizeof(History));
   new_history->page = kStatistics;
+  new_history->state.statistics->select_callback = Statistics_SelectCallback;
+  new_history->state.statistics->turn_page = Statistics_TurnPage;
   new_history->state.statistics->catalogs =
       DuplicateList(TopHistory()->state.statistics->catalogs, StrCpy);
-  new_history->state.statistics->select_callback = Statistics_SelectCallback;
+  new_history->state.statistics->catalogs_start =
+      new_history->state.statistics->catalogs->dummy_head->nxt;
   new_history->state.statistics->borrow_record = borrow_records;
+  new_history->state.statistics->borrow_record_start =
+      borrow_records->dummy_head->nxt;
   PushBackHistory(new_history);
 
   char *msg =
@@ -926,11 +1012,25 @@ static void Statistics_SelectCallback(ListNode *catalog) {
   DrawUI(kStatistics, &user, new_history->state.statistics, msg);
 }
 
+static void Statistics_TurnPage(bool direction, bool type) {
+  Statistics *state = TopHistory()->state.statistics;
+  char *msg;
+  if (type)
+    msg = MoveInList(&state->borrow_record_start, state->borrow_record,
+                     kStatisticsBorrowRecordMax, direction, "Record",
+                     "Statistics");
+  else
+    msg =
+        MoveInList(&state->catalogs_start, state->catalogs,
+                   kStatisticsCatalogsMax, direction, "Category", "Statistics");
+  DrawUI(kStatistics, &user, state, msg);
+}
+
 static inline void Navigation_LendAndBorrow(char *msg) {
   List *borrow_records_list = NewList();
   char *query = malloc(sizeof(char) * (31 + 10));
   sprintf(query, "user_uid=%d&book_status=BORROWED", user.uid);
-  if (ErrorHandle(Filter(&borrowrecord_db, borrow_records_list, query, USER))) {
+  if (ErrorHandle(Filter(borrow_records_list, query, USER))) {
     DeleteList(borrow_records_list, free);
     free(query);
     return;
@@ -942,8 +1042,7 @@ static inline void Navigation_LendAndBorrow(char *msg) {
   for (ListNode *cur_node = borrow_records_list->dummy_head;
        cur_node != borrow_records_list->dummy_tail; cur_node = cur_node->nxt) {
     Book *book = malloc(sizeof(Book));
-    if (ErrorHandle(GetById(&book_db, book,
-                            ((BorrowRecord *)cur_node->value)->book_uid,
+    if (ErrorHandle(GetById(book, ((BorrowRecord *)cur_node->value)->book_uid,
                             BORROWRECORD))) {
       DeleteList(borrow_records_list, free);
       DeleteList(books, free);
@@ -952,15 +1051,19 @@ static inline void Navigation_LendAndBorrow(char *msg) {
     InsertList(books, books->dummy_tail, book);
   }
 
-  History *new_history = malloc(sizeof(History));
+  History *const new_history = malloc(sizeof(History));
   new_history->page = kLendAndBorrow;
   new_history->state.lend_and_borrow = malloc(sizeof(LendAndBorrow));
   new_history->state.lend_and_borrow->return_callback =
       LendAndBorrow_ReturnCallback;
   new_history->state.lend_and_borrow->search_callback =
       LendAndBorrow_SearchCallback;
+  new_history->state.lend_and_borrow->turn_page = LendAndBorrow_TurnPage;
   new_history->state.lend_and_borrow->borrow_records = borrow_records_list;
+  new_history->state.lend_and_borrow->borrow_records_start =
+      borrow_records_list->dummy_head->nxt;
   new_history->state.lend_and_borrow->books = books;
+  new_history->state.lend_and_borrow->books_start = books->dummy_head->nxt;
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -981,7 +1084,7 @@ static inline void Navigation_UserSearch(char *msg) {
 
 // type = 0 => Manual
 static inline void Navigation_ManualOrAbout(bool type, char *msg) {
-  History *new_history = malloc(sizeof(History));
+  History *const new_history = malloc(sizeof(History));
   new_history->state.manual_and_about = malloc(sizeof(ManualAndAbout));
   // TODO:(TO/GA) finish it
   if (type) {
@@ -1009,7 +1112,7 @@ static inline void Navigation_UserLogInOrRegister(bool type, char *msg) {
   memset(&user, 0x00, sizeof(User));
 
   ClearHistory();
-  History *new_history = malloc(sizeof(History));
+  History *const new_history = malloc(sizeof(History));
   if (type)
     new_history->page = kUserRegister;
   else
@@ -1031,11 +1134,8 @@ static inline void Navigation_UserLogInOrRegister(bool type, char *msg) {
 }
 
 static inline void Navigation_UserLogOut(char *msg) {
-  memset(&user, 0x00, sizeof(User));
-  username_len = 0;
-
   ClearHistory();
-  History *new_history = malloc(sizeof(History));
+  History *const new_history = malloc(sizeof(History));
   new_history->page = kWelcome;
   PushBackHistory(new_history);
 
@@ -1043,6 +1143,10 @@ static inline void Navigation_UserLogOut(char *msg) {
     msg = malloc(sizeof(char) * (36 + username_len));
     sprintf(msg, "[Info] [%s] Clear history and log out", user.username);
   }
+
+  memset(&user, 0x00, sizeof(User));
+  username_len = 0;
+
   Log(msg);
   DrawUI(kWelcome, &user, new_history->state.login_or_register, msg);
 }
@@ -1061,26 +1165,30 @@ static inline void Navigation_UserManagement(char *msg) {
   }
 
   List *to_be_verified = NewList();
-  if (ErrorHandle(Filter(&user_db, to_be_verified, "verified=FALSE", USER))) {
+  if (ErrorHandle(Filter(to_be_verified, "verified=FALSE", USER))) {
     DeleteList(to_be_verified, free);
     return;
   }
 
   List *verified = NewList();
-  if (ErrorHandle(Filter(&user_db, verified, "verified=TRUE", USER))) {
+  if (ErrorHandle(Filter(verified, "verified=TRUE", USER))) {
     DeleteList(verified, free);
     return;
   }
 
-  History *new_history = malloc(sizeof(History));
+  History *const new_history = malloc(sizeof(History));
   new_history->page = kUserManagement;
   new_history->state.user_management = malloc(sizeof(UserManagement));
   new_history->state.user_management->approve_callback =
       UserManagement_ApproveCallback;
   new_history->state.user_management->delete_callback =
       UserManagement_DeleteCallback;
+  new_history->state.user_management->turn_page = UserManagement_TurnPage;
   new_history->state.user_management->to_be_verified = to_be_verified;
+  new_history->state.user_management->to_be_verified_start =
+      to_be_verified->dummy_head->nxt;
   new_history->state.user_management->users = verified;
+  new_history->state.user_management->users_start = verified->dummy_head->nxt;
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -1093,7 +1201,7 @@ static inline void Navigation_UserManagement(char *msg) {
 
 static inline void Navigation_Library(char *msg) {
   List *books = NewList();
-  if (ErrorHandle(Filter(&book_db, books, "", BOOK))) {
+  if (ErrorHandle(Filter(books, "", BOOK))) {
     DeleteList(books, free);
     return;
   }
@@ -1111,15 +1219,18 @@ static inline void Navigation_Library(char *msg) {
     InsertList(book_covers, book_covers->dummy_tail, image);
   }
 
-  History *new_history = malloc(sizeof(History));
+  History *const new_history = malloc(sizeof(History));
   new_history->page = kLibrary;
   new_history->state.library = malloc(sizeof(Library));
   new_history->state.library->type = kPicture;
   new_history->state.library->sort_callback = Library_SortCallback;
   new_history->state.library->book_callback = Library_BookCallback;
   new_history->state.library->switch_callback = Library_SwitchCallback;
+  new_history->state.library->turn_page = Library_TurnPage;
   new_history->state.library->books = books;
+  new_history->state.library->books_start = books->dummy_head->nxt;
   new_history->state.library->book_covers = book_covers;
+  new_history->state.library->books_covers_start = book_covers->dummy_head->nxt;
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -1132,21 +1243,6 @@ static inline void Navigation_Library(char *msg) {
 
 // type == 0 => Open
 static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
-  if (!user.uid) {
-    char *msg = malloc(sizeof(char) * 70);
-    if (type)
-      sprintf(msg,
-              "[Error] Permission denied. Can't init any library. Please Login "
-              "first");
-    else
-      sprintf(msg,
-              "[Error] Permission denied. Can't open any library. Please Login "
-              "first");
-    Log(msg);
-    DrawUI(kWelcome, &user, NULL, msg);
-    return;
-  }
-
   try {
     SelectFolder("请选择保存图书库的文件夹", lib_path);
     except(ErrorException) {
@@ -1168,23 +1264,28 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
 
   // copy *.swp.db to *.db and remove *.swp.db
   Navigation_SaveLibrary(0, NULL);
-  char *command = malloc(sizeof(char) * (8 + strlen(borrowrecord_db.filename)));
+  char *command = malloc(sizeof(char) * (8 + strlen(borrowrecord_db_dir)));
 
-  if (ErrorHandle(CloseDBConnection(&book_db, BOOK))) {
+  if (ErrorHandle(CloseDBConnection(USER))) {
     free(command);
     return;
   }
-  sprintf(command, "del /F %s", book_db.filename);
+  sprintf(command, "del /F %s", user_db_dir);
   system(command);
-  free(book_db.filename);
 
-  if (ErrorHandle(CloseDBConnection(&borrowrecord_db, BORROWRECORD))) {
+  if (ErrorHandle(CloseDBConnection(BOOK))) {
     free(command);
     return;
   }
-  sprintf(command, "del /F %s", borrowrecord_db.filename);
+  sprintf(command, "del /F %s", book_db_dir);
   system(command);
-  free(borrowrecord_db.filename);
+
+  if (ErrorHandle(CloseDBConnection(BORROWRECORD))) {
+    free(command);
+    return;
+  }
+  sprintf(command, "del /F %s", borrowrecord_db_dir);
+  system(command);
   free(command);
 
   if (type) {
@@ -1202,23 +1303,40 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
     }
     free(command);
   }
-  // TODO:(TO/GA) swp文件
 
   int flag = 0;  // 0 => 无事发生 1=> 有swap文件 2=> 无文件
 
-  book_db.filename = malloc(sizeof(char) * (lib_path_len + 13));
-  sprintf(book_db.filename, "%s%s", lib_path, "\\book.swp.db");
-  if (!_access(book_db.filename, 6)) {  // swap file exists
+  sprintf(user_db_dir, "%s%s", lib_path, "\\user.swp.db");
+  if (!_access(user_db_dir, 6)) {  // swap file exists
     flag |= 1;
   } else {
-    puts(book_db.filename);
+    char *user_database_path = malloc(sizeof(char) * (lib_path_len + 9));
+    sprintf(user_database_path, "%s\\user.db", lib_path);
+    if (!_access(user_database_path, 6)) {  // book database exists
+      char *command =
+          malloc(sizeof(char) * (14 + lib_path_len + 8 + lib_path_len + 12));
+      sprintf(command, "copy /Y \"%s\" \"%s\"", user_database_path,
+              user_db_dir);
+      system(command);
+      free(command);
+    } else {  // book database doesn't exist
+      flag |= 2;
+    }
+    free(user_database_path);
+  }
+  if (ErrorHandle(OpenDBConnection(user_db_dir, USER))) return;
+
+  sprintf(book_db_dir, "%s%s", lib_path, "\\book.swp.db");
+  if (!_access(book_db_dir, 6)) {  // swap file exists
+    flag |= 1;
+  } else {
     char *book_database_path = malloc(sizeof(char) * (lib_path_len + 9));
     sprintf(book_database_path, "%s\\book.db", lib_path);
     if (!_access(book_database_path, 6)) {  // book database exists
       char *command =
           malloc(sizeof(char) * (14 + lib_path_len + 8 + lib_path_len + 12));
       sprintf(command, "copy /Y \"%s\" \"%s\"", book_database_path,
-              book_db.filename);
+              book_db_dir);
       system(command);
       free(command);
     } else {  // book database doesn't exist
@@ -1226,17 +1344,12 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
     }
     free(book_database_path);
   }
-  if (ErrorHandle(OpenDBConnection(&book_db, BOOK))) {
-    free(book_db.filename);
-    return;
-  }
+  if (ErrorHandle(OpenDBConnection(book_db_dir, BOOK))) return;
 
-  borrowrecord_db.filename = malloc(sizeof(char) * (lib_path_len + 21));
-  sprintf(borrowrecord_db.filename, "%s%s", lib_path, "\\borrowrecord.swp.db");
-  if (!_access(borrowrecord_db.filename, 6)) {  // swap file exists
+  sprintf(borrowrecord_db_dir, "%s%s", lib_path, "\\borrowrecord.swp.db");
+  if (!_access(borrowrecord_db_dir, 6)) {  // swap file exists
     flag |= 1;
   } else {
-    puts(borrowrecord_db.filename);
     char *borrowrecord_database_path =
         malloc(sizeof(char) * (lib_path_len + 17));
     sprintf(borrowrecord_database_path, "%s\\borrowrecord.db", lib_path);
@@ -1245,7 +1358,7 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
       char *command =
           malloc(sizeof(char) * (14 + lib_path_len + 8 + lib_path_len + 12));
       sprintf(command, "copy /Y \"%s\" \"%s\"", borrowrecord_database_path,
-              borrowrecord_db.filename);
+              borrowrecord_db_dir);
       system(command);
       free(command);
     } else {  // borrowrecord database doesn't exist
@@ -1253,44 +1366,49 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
     }
     free(borrowrecord_database_path);
   }
-  if (ErrorHandle(OpenDBConnection(&borrowrecord_db, BORROWRECORD))) {
-    free(book_db.filename);
-    free(borrowrecord_db.filename);
-    return;
-  }
+  if (ErrorHandle(OpenDBConnection(borrowrecord_db_dir, BORROWRECORD))) return;
 
   ClearHistory();
-  History *new_history = malloc(sizeof(History));
+  History *const new_history = malloc(sizeof(History));
   new_history->page = kWelcome;
   PushBackHistory(new_history);
 
   if (!msg) {
-    msg = malloc(sizeof(char) * (82 + lib_path_len + username_len));
+    msg = malloc(sizeof(char) * (114 + lib_path_len + username_len));
     if (type) {
       if (flag)
         sprintf(msg,
-                "[Error] [%s] Clear history and init library from %s, where "
+                "[Error] [%s] Log out, Clear history and init library from %s, "
+                "where "
                 "already exists an eLibrary",
                 user.username, lib_path);
       else
-        sprintf(msg, "[Info] [%s] Clear history and init library from %s",
+        sprintf(msg,
+                "[Info] [%s] Log out, Clear history and init library from %s",
                 user.username, lib_path);
     } else {
       if ((flag & 2) == 2)
         sprintf(msg,
-                "[Error] [%s] Clear history and fail to open library from %s, "
-                "init one at there",
+                "[Error] [%s] Log out, Clear history and fail to open library "
+                "from %s, "
+                "init one at there, undefined behavior may occur",
                 user.username, lib_path);
       else if ((flag & 1) == 1)
         sprintf(msg,
-                "[Warning] [%s] Clear history and open library from %s using "
+                "[Warning] [%s] Log out, Clear history and open library from "
+                "%s using "
                 "swap file",
                 user.username, lib_path);
       else if (!flag)
-        sprintf(msg, "[Info] [%s] Clear history and open library from %s",
+        sprintf(msg,
+                "[Info] [%s] Log out, Clear history and open library from %s",
                 user.username, lib_path);
     }
   }
+
+  memset(&user, 0x00, sizeof(User));
+  username_len = 0;
+
   Log(msg);
   DrawUI(kWelcome, &user, NULL, msg);
 }
@@ -1300,16 +1418,21 @@ static inline void Navigation_SaveLibrary(bool type, char *msg) {
   char *command =
       malloc(sizeof(char) * (14 + lib_path_len + 16 + lib_path_len + 20));
 
+  char *user_database_path = malloc(sizeof(char) * (lib_path_len + 9));
+  sprintf(user_database_path, "%s\\user.db", lib_path);
+  sprintf(command, "copy /Y \"%s\" \"%s\"", user_db_dir, user_database_path);
+  free(user_database_path);
+  system(command);
+
   char *book_database_path = malloc(sizeof(char) * (lib_path_len + 9));
   sprintf(book_database_path, "%s\\book.db", lib_path);
-  sprintf(command, "copy /Y \"%s\" \"%s\"", book_db.filename,
-          book_database_path);
+  sprintf(command, "copy /Y \"%s\" \"%s\"", book_db_dir, book_database_path);
   free(book_database_path);
   system(command);
 
   char *borrowrecord_database_path = malloc(sizeof(char) * (lib_path_len + 17));
   sprintf(borrowrecord_database_path, "%s\\borrowrecord.db", lib_path);
-  sprintf(command, "copy /Y \"%s\" \"%s\"", borrowrecord_db.filename,
+  sprintf(command, "copy /Y \"%s\" \"%s\"", borrowrecord_db_dir,
           borrowrecord_database_path);
   free(borrowrecord_database_path);
   system(command);
@@ -1332,13 +1455,13 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
     new_book = book;
   } else {
     new_book = malloc(sizeof(Book));
-    if (ErrorHandle(GetById(&book_db, new_book, book->uid, BOOK))) {
+    if (ErrorHandle(GetById(new_book, book->uid, BOOK))) {
       free(new_book);
       return;
     }
   }
 
-  History *new_history = malloc(sizeof(History));
+  History *const new_history = malloc(sizeof(History));
   if (type) {
     new_history->page = kBookInit;
   } else {
@@ -1379,7 +1502,7 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
 
 static inline void Navigation_BookInit(char *msg) {
   Book *book = malloc(sizeof(Book));
-  if (ErrorHandle(GetNextPK(&book_db, BOOK, &book->uid))) {
+  if (ErrorHandle(GetNextPK(BOOK, &book->uid))) {
     free(book);
     return;
   }
@@ -1395,7 +1518,7 @@ static bool StrSame(const void *const lhs, const void *rhs) {
 
 static inline void Navigation_Statistics(char *msg) {
   List *book = NewList(), *category = NewList();
-  if (ErrorHandle(Filter(&book_db, book, "", BOOK))) {
+  if (ErrorHandle(Filter(book, "", BOOK))) {
     DeleteList(book, free);
     DeleteList(category, free);
     return;
@@ -1412,18 +1535,22 @@ static inline void Navigation_Statistics(char *msg) {
   UniqueList(category, StrSame, free);
 
   List *borrow_record = NewList();
-  if (ErrorHandle(Filter(&borrowrecord_db, borrow_record, "", BORROWRECORD))) {
+  if (ErrorHandle(Filter(borrow_record, "", BORROWRECORD))) {
     DeleteList(category, free);
     DeleteList(borrow_record, free);
     return;
   }
 
-  History *new_history = malloc(sizeof(History));
+  History *const new_history = malloc(sizeof(History));
   new_history->page = kStatistics;
   new_history->state.statistics = malloc(sizeof(Statistics));
   new_history->state.statistics->select_callback = Statistics_SelectCallback;
+  new_history->state.statistics->turn_page = Statistics_TurnPage;
   new_history->state.statistics->catalogs = category;
+  new_history->state.statistics->catalogs_start = category->dummy_head->nxt;
   new_history->state.statistics->borrow_record = borrow_record;
+  new_history->state.statistics->borrow_record_start =
+      borrow_record->dummy_head->nxt;
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -1458,42 +1585,32 @@ static inline void Navigation_Exit() {
   char *command = malloc(sizeof(char) * (14 + MAX_PATH + 8 + MAX_PATH + 12));
   char *user_database_path = malloc(sizeof(char) * (lib_path_len + 9));
   sprintf(user_database_path, "%s\\user.db", lib_path);
-  sprintf(command, "copy /Y \"%s\" \"%s\"", user_db.filename,
-          user_database_path);
+  sprintf(command, "copy /Y \"%s\" \"%s\"", user_db_dir, user_database_path);
   free(user_database_path);
   system(command);
 
-  if (ErrorHandle(CloseDBConnection(&user_db, USER))) {
+  if (ErrorHandle(CloseDBConnection(USER))) {
     free(command);
-    free(user_db.filename);
-    free(book_db.filename);
-    free(borrowrecord_db.filename);
     exit(1);
   }
-  sprintf(command, "del /F %s", user_db.filename);
+  sprintf(command, "del /F %s", user_db_dir);
   system(command);
-  free(user_db.filename);
 
   Navigation_SaveLibrary(0, NULL);
 
-  if (ErrorHandle(CloseDBConnection(&book_db, BOOK))) {
+  if (ErrorHandle(CloseDBConnection(BOOK))) {
     free(command);
-    free(book_db.filename);
-    free(borrowrecord_db.filename);
     exit(1);
   }
-  sprintf(command, "del /F %s", book_db.filename);
+  sprintf(command, "del /F %s", book_db_dir);
   system(command);
-  free(book_db.filename);
 
-  if (ErrorHandle(CloseDBConnection(&borrowrecord_db, BORROWRECORD))) {
+  if (ErrorHandle(CloseDBConnection(BORROWRECORD))) {
     free(command);
-    free(borrowrecord_db.filename);
     exit(1);
   }
-  sprintf(command, "del /F %s", borrowrecord_db.filename);
+  sprintf(command, "del /F %s", borrowrecord_db_dir);
   system(command);
-  free(borrowrecord_db.filename);
 
   free(command);
 
@@ -1574,7 +1691,14 @@ void NavigationCallback(Page nav_page) {
 }
 
 static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
-  while (history_list->dummy_tail->pre != go_back_to) PopBackHistory();
+  while (history_list->size > 0 && history_list->dummy_tail->pre != go_back_to)
+    PopBackHistory();
+  if (history_list->size == 0) {
+    History *const history = malloc(sizeof(History));
+    history->page = kWelcome;
+    DrawUI(kWelcome, &user, NULL, msg);
+    return;
+  }
   History *const history = go_back_to->value;
   switch (history->page) {
     case kWelcome:  // 欢迎界面

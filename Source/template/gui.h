@@ -98,7 +98,7 @@ typedef struct LoginOrRegister {
 } LoginOrRegister;
 
 /* 用户信息修改 */
-#define kUserSearchMax 10  // 单页最大显示数目
+#define kUserModifyMax 10  // 单页最大显示数目
 typedef struct UserModify {
   User *user;                  // 用户信息
   List *books;                 // 借书

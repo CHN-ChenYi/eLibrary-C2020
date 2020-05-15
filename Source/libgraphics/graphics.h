@@ -188,8 +188,7 @@ typedef struct {
 
 void loadImage(const char *image, LibImage *mapbuf);
 
-void DrawImage(LibImage *pImage, double x, double y, double width,
-               double height);
+void DrawImage(LibImage *pImage, int x, int y, int width, int height);
 
 // Creates an Open dialog box that lets the user specify a file to be opened.
 // The path of that file would be stored in char path[]
@@ -206,7 +205,22 @@ void SelectFile(const char filter[], const char extension[],
 // path[] must be at least MAX_PATH characters in size
 void SelectFolder(const char hint_text[], char path[]);
 
-#include "ui.h"
+// Color with alpha value consistent with wingdi
+typedef struct Color {
+  int R, G, B;
+  int Alpha;
+} Color;
+
+/* Point with color and position specified */
+typedef struct ColorPoint {
+  int x, y;
+  Color color;
+} ColorPoint;
+
+/* Rectangle (for position specifying) */
+typedef struct Rect {
+  int left, right, top, bottom;
+} Rect;
 
 // Clear a district
 void ClearDistrict(Rect* rect);

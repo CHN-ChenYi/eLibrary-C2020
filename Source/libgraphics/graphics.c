@@ -1934,8 +1934,23 @@ void loadImage(const char *image, LibImage *mapbuf) {
   CloseHandle(file);
 }
 
-void DrawImage(LibImage *pImage, double x, double y, double width,
-               double height) {
+void FlushDistrict(int min_x, int min_y, int max_x, int max_y) {
+  RECT r;
+  SetRect(&r, min_x, max_x, min_y, max_y);
+  InvalidateRect(graphicsWindow, &r, TRUE);
+}
+
+// Clear a district
+void ClearDistrict(Rect* rect) {
+  RECT r;
+  SetRect(&r, rect->left, rect->top, rect->right, rect->bottom);
+  InvalidateRect(graphicsWindow, &r, TRUE);
+  BitBlt(osdc, rect->left, rect->top, rect->right - rect->left, rect->bottom - rect->top,
+    NULL, 0, 0, WHITENESS);
+}
+
+void DrawImage(LibImage *pImage, int px_x, int px_y, int px_width,
+               int px_height) {
   if (!pImage) {
     Error("Can't draw a null image");
     return;
@@ -1943,11 +1958,6 @@ void DrawImage(LibImage *pImage, double x, double y, double width,
   if (pImage->height == 0 && pImage->width == 0)
     return;
   HDC hbitmapdc;
-  int px_width, px_height, px_x, px_y;
-  px_width = PixelsX(width);
-  px_height = PixelsY(height);
-  px_x = PixelsX(x);
-  px_y = PixelsY(GetWindowHeight() - y) - px_height;
   hbitmapdc = CreateCompatibleDC(osdc);
   SelectObject(hbitmapdc, pImage->hbitmap);
   if (px_width == -1) px_width = pImage->width;
@@ -1958,9 +1968,7 @@ void DrawImage(LibImage *pImage, double x, double y, double width,
   DeleteDC(hbitmapdc);
 
   // fflush
-  RECT r;
-  SetLineBB(&r, x, y, width, height);
-  InvalidateRect(graphicsWindow, &r, TRUE);
+  FlushDistrict(px_x, px_y, px_x + px_width, px_y + px_height);
 }
 
 void SelectFile(const char filter[], const char extension[],
@@ -2009,27 +2017,6 @@ void SelectFolder(const char hint_text[], char path[]) {
 }
 
 #pragma comment(lib, "MSImg32")
-#include "ui.h"
-
-void FlushDistrict(int min_x, int min_y, int max_x, int max_y) {
-  double x = InchesX(min_x);
-  double y = GetWindowHeight() - InchesY(max_y);
-  double dx = InchesX(max_x - min_x);
-  double dy = InchesY(max_y - min_y);
-
-  RECT r;
-  SetLineBB(&r, x, y, dx, dy);
-  InvalidateRect(graphicsWindow, &r, TRUE);
-}
-
-// Clear a district
-void ClearDistrict(Rect* rect) {
-  RECT r;
-  SetRect(&r, rect->left, rect->top, rect->right, rect->bottom);
-  InvalidateRect(graphicsWindow, &r, TRUE);
-  BitBlt(osdc, rect->left, rect->top, rect->right - rect->left, rect->bottom - rect->top,
-        NULL, 0, 0, WHITENESS);
-}
 
 void DrawShadedTriangle(ColorPoint* A, ColorPoint* B, ColorPoint* C) {
   // Create an array of TRIVERTEX structures that describe 

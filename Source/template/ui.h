@@ -1,29 +1,6 @@
 #pragma once
+#include "graphics.h"
 
-// Color with alpha value consistent with wingdi
-typedef struct Color {
-  int R, G, B;
-  int Alpha;
-} Color;
-
-/* Point with color and position specified */
-typedef struct ColorPoint {
-  int x, y;
-  Color color;
-} ColorPoint;
-
-/* Rectangle (for position specifying) */
-typedef struct Rect {
-  int left, right, top, bottom;
-} Rect;
-
-/*
- * Components:
- * Button   : a button for callback
- * InputBox : input box for message collection
- * Link     : a link to other page
- * Label    : a label to show text
- */
 
 typedef enum {
   kNormal,  // the normal status
@@ -36,12 +13,19 @@ typedef enum {
   kWhite
 } FontColor;
 
+/*
+ * Components:
+ * Button   : a button for callback
+ * InputBox : input box for message collection
+ * Link     : a link to other page
+ * Label    : a label to show text
+ */
+
 /* Button */
 typedef struct Button {
   int id;                   // for callback
   ComponentStatus status;
   Rect position;            // position
-  int font_size;            // size of font
   char caption[10];         // label on the button
   Color bg_color;           // background color
   FontColor font_color;     // font color
@@ -52,7 +36,6 @@ typedef struct InputBox {
   int id;             // for callback
   ComponentStatus status;
   Rect position;      // position
-  int font_size;      // size of font
   char context[500];  // context (already input)
   int cursor;         // position of the cursor
 } InputBox;
@@ -62,7 +45,6 @@ typedef struct Link {
   int id;             // for callback
   ComponentStatus status;
   Rect position;      // only the left and the bottom matters
-  int font_size;      // size of font
   FontColor font_color;
   char caption[20];
 }Link;
@@ -71,9 +53,8 @@ typedef struct Link {
 typedef struct Label {
   int id;
   Rect position;      // only the left and the buttom matters
-  int font_size;      // size of font
   FontColor font_color;
-  char caption[500];
+  char caption[50];
 }Label;
 
 /* Rectangle with color (for framework) */
@@ -82,25 +63,18 @@ typedef struct Frame {
   Color color;
 } Frame;
 
+typedef struct Image {
+  Rect position;
+  LibImage ui_image;  
+} Image;
+
 /* Create UI components */
-Button* CreateButton(Rect rect, char* caption, int font_size,
-                     char* bg_color, double alpha, FontColor font_color, int id);
-InputBox* CreateInputBox(Rect rect, int font_size, int id);
-Link* CreateLink(Rect rect, char* caption, int font_size, FontColor font_color, int id);
-Label* CreateLabel(Rect rect, char* caption, int font_size, FontColor font_color, int id);
+Button* CreateButton(Rect rect, char* caption, char* bg_color, double alpha, FontColor font_color, int id);
+InputBox* CreateInputBox(Rect rect, char* str, int id);
+Link* CreateLink(Rect rect, char* caption, FontColor font_color, int id);
+Label* CreateLabel(Rect rect, char* caption, FontColor font_color, int id);
 Frame* CreateFrame(Rect rect, char* color, double alpha);
-
-/* Draw UI components */
-void DrawButton(Button* button, int mouse_x);
-void DrawInputBox(InputBox* input_box);
-void DrawLink(Link* link);
-void DrawLabel(Label* label);
-void DrawFrame(Frame* rect);
-
-/* Event handlers */
-void MouseMoveEventHandler(int x, int y, int mouse_button, int event);
-void KeyboardEventHandler(int key, int event);
-void CharEventHandler(int key);
+Image* CreateImage(Rect rect, LibImage ui_image);
 
 /* Singly linked circular list for components */
 typedef struct ComponentListNode* PTCNode;
@@ -108,7 +82,8 @@ typedef enum {
   kButton,
   kInputBox,
   kLink,
-  kLabel
+  kLabel,
+  kImage
 } TypeOfComp;
 struct ComponentListNode {
   TypeOfComp type;  // The type of the component

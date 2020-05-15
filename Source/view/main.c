@@ -3,10 +3,11 @@
 #include "graphics.h"
 #include "extgraph.h"
 #include "page.h"
+#include "gui.h"
 
 void Main() {
-  InitGraphics();
-  InitConsole();
-  InitializeUI();
-  InitPage();
+  InitGUI();
+  char *terminal = malloc(sizeof(char) * 100);
+  strcpy(terminal, "我完蛋了");
+  DrawUI(kLibrary, NULL, NULL, terminal);
 }

@@ -12,8 +12,6 @@
 #include "list.h"
 #include "model.h"
 
-void DrawUI(Page cur_page, User *cur_user, void *info, char *terminal) {}
-
 typedef struct History {
   Page page;
   State state;

@@ -8,10 +8,10 @@
 #include <string.h>
 #include <ctype.h>
 
-#define FONT_BUTTON "Source Han Sans"
-#define FONT_INPUT "Source Han Sans"
-#define FONT_LABEL "Source Han Sans"
-#define FONT_LINK "Source Han Sans"
+#define FONT_BUTTON "consolas"
+#define FONT_INPUT "consolas"
+#define FONT_LABEL "consolas"
+#define FONT_LINK "consolas"
 
 /* Handling of colors */
 
@@ -91,7 +91,6 @@ void FreeList(CompList L) {
 Button* CreateButton (
     Rect rect,
     char* caption,
-    int font_size,
     char* bg_color,
     double alpha,
     FontColor color,
@@ -102,17 +101,14 @@ Button* CreateButton (
   ret->status = kNormal;
   ret->bg_color = ColorConvert(bg_color, alpha);
   ret->font_color = color;
-  ret->font_size = font_size;
   strcpy(ret->caption, caption);
   return ret;
 }
 
-InputBox* CreateInputBox(Rect rect, int font_size, int id) {
+InputBox* CreateInputBox(Rect rect, char* str, int id) {
   InputBox* ret = malloc(sizeof(InputBox));
   ret->id = id;
   ret->position = rect;
-  SetFont(FONT_INPUT);
-  SetPointSize(font_size);
   ret->position.top = ret->position.bottom - GetPointSize();
   ret->position.top -= 5;
   ret->position.bottom += 5;
@@ -120,35 +116,28 @@ InputBox* CreateInputBox(Rect rect, int font_size, int id) {
   ret->position.right += 5;
   ret->cursor = 0;
   ret->status = kNormal;
-  ret->font_size = font_size;
-  memset(ret->context, 0, sizeof(ret->context));
+  strcpy(ret->context, str);
   return ret;
 }
 
-Link* CreateLink(Rect rect, char* caption, int font_size, FontColor font_color, int id) {
+Link* CreateLink(Rect rect, char* caption, FontColor font_color, int id) {
   Link* ret = malloc(sizeof(Link));
   ret->id = id;
   ret->position = rect;
-  SetFont(FONT_LINK);
-  SetPointSize(font_size);
   ret->position.right = ret->position.left + TextStringWidth(caption);
   ret->position.top = ret->position.bottom - GetPointSize();
   ret->status = kNormal;
-  ret->font_size = font_size;
   ret->font_color = font_color;
   strcpy(ret->caption, caption);
   return ret;
 }
 
-Label* CreateLabel(Rect rect, char* caption, int font_size, FontColor font_color, int id) {
+Label* CreateLabel(Rect rect, char* caption, FontColor font_color, int id) {
   Label* ret = malloc(sizeof(Label));
   ret->id = id;
   ret->position = rect;
-  SetFont(FONT_LABEL);
-  SetPointSize(font_size);
   ret->position.right = ret->position.left + TextStringWidth(caption);
   ret->position.top = ret->position.bottom - GetPointSize();
-  ret->font_size = font_size;
   ret->font_color = font_color;
   strcpy(ret->caption, caption);
   return ret;
@@ -159,6 +148,13 @@ Frame* CreateFrame(Rect rect, char* color, double alpha) {
   Frame* ret = malloc(sizeof(Frame));
   ret->color = ColorConvert(color, alpha);
   ret->position = rect;
+  return ret;
+}
+
+Image* CreateImage(Rect rect, LibImage ui_image) {
+  Image* ret = malloc(sizeof(Image));
+  ret->position = rect;
+  ret->ui_image = ui_image;
   return ret;
 }
 
@@ -190,8 +186,6 @@ void DrawOuter(Rect* rect) {
 }
 
 void DrawButton(Button* button, int mouse_x) {
-  SetFont(FONT_BUTTON);
-  SetPointSize(button->font_size);
   SetPenSize(1);
   Color bg_color = button->bg_color;
   Color white = ColorConvert("E3F2FD", 1);
@@ -245,10 +239,8 @@ void DrawTextStringN (char* str, int left, int right) {
   str[right] = tmp;
 }
 
-void DrawContent(InputBox* input_box) {
-  SetFont(FONT_INPUT);
+void DrawContent(InputBox* input_box, int draw_cursor) {
   SetPenColor("black");
-  SetPointSize(input_box->font_size);
   int inner_length = input_box->position.right - input_box->position.left - 10;
   int len = strlen(input_box->context);
   int left_most = 0, right_most = 0; // display string [left_most, right_most)
@@ -275,15 +267,15 @@ void DrawContent(InputBox* input_box) {
   MovePen(input_box->position.left + 5, input_box->position.bottom - 5);
   DrawTextStringN(input_box->context, left_most, right_most);
   // Draw cursor
-  SetPenSize(1);
-  MovePen(input_box->position.left + 5 + GetStringWidthN(input_box->context, left_most, input_box->cursor),
-          input_box->position.bottom - 5);
-  DrawLine(0, - GetFontHeight() + 5);
+  if (draw_cursor) {
+    SetPenSize(1);
+    MovePen(input_box->position.left + 5 + GetStringWidthN(input_box->context, left_most, input_box->cursor),
+      input_box->position.bottom - 5);
+    DrawLine(0, -GetFontHeight() + 5);
+  }
 }
 
-void DrawInputBox(InputBox* input_box) {
-  SetFont(FONT_INPUT);
-  SetPointSize(input_box->font_size);
+void DrawInputBox(InputBox* input_box, int draw_cursor) {
   switch (input_box->status) {
     case kNormal:
       SetPenSize(2);
@@ -295,12 +287,10 @@ void DrawInputBox(InputBox* input_box) {
       break;
   }
   DrawRectangle(&input_box->position);
-  DrawContent(input_box);
+  DrawContent(input_box, draw_cursor);
 }
 
 void DrawLink(Link* link) {
-  SetFont(FONT_LINK);
-  SetPointSize(link->font_size);
   SetPenSize(1);
   switch (link->font_color) {
   case kRed:
@@ -325,8 +315,6 @@ void DrawLink(Link* link) {
 }
 
 void DrawLabel(Label* label) {
-  SetFont(FONT_LABEL);
-  SetPointSize(label->font_size);
   switch (label->font_color)
   {
   case kRed:
@@ -343,12 +331,21 @@ void DrawLabel(Label* label) {
   DrawTextString(label->caption);
 }
 
+void DrawUIImage(Image* image) {
+  DrawImage(&image->ui_image,
+    image->position.left, image->position.top,
+    image->position.right - image->position.left,
+    image->position.bottom - image->position.top
+  );
+}
+
 void DrawFramwork() {
   for (PTCNode p = frame->next; p != frame; p = p->next) {
     Frame* color_rect = (Frame*)p->component;
     DrawFrame(color_rect);
   }
 }
+
 
 /* Events handler */
 
@@ -369,6 +366,7 @@ void DisplayAnimateComponents(CompList L, int x, int y) {
   InputBox* input_box = NULL;
   Link* link = NULL;
   Label* label = NULL;
+  Image* image = NULL;
   Rect* rect = NULL;
   for (PTCNode p = L->next; p != L; p = p->next) {
     switch (p->type) {
@@ -390,7 +388,7 @@ void DisplayAnimateComponents(CompList L, int x, int y) {
       } else {
         input_box->status = kNormal;
       }
-      DrawInputBox(input_box);
+      DrawInputBox(input_box, focus == p);
       break;
     case kLink:
       link = (Link*)(p->component);
@@ -405,6 +403,10 @@ void DisplayAnimateComponents(CompList L, int x, int y) {
     case kLabel:
       label = (Label*)(p->component);
       DrawLabel(label);
+      break;
+    case kImage:
+      image = (Image*)(p->component);
+      DrawUIImage(image);
       break;
     }
     if (p == focus) {
@@ -468,6 +470,7 @@ void HandleClickOnComp(int x, int y, int mouse_button, int event) {
   Link* link = NULL;
   Label* label = NULL;
   Rect* rect = NULL;
+  Image* image = NULL;
   int click_on_margin = 1;  // whether this click is on none of the components
   switch(event) {
     case BUTTON_UP:
@@ -498,6 +501,13 @@ void HandleClickOnComp(int x, int y, int mouse_button, int event) {
                 click_on_margin = 0;
               }
               break;
+            case kImage:
+              image = (Image*)(p->component);
+              rect = &image->position;
+              if (Inbox(x, y, rect)) {
+                focus = p;
+                click_on_margin = 0;
+              }
           }
           
         }
@@ -674,6 +684,8 @@ void InitSurface() {
 // Initialization of this set of GUI components
 void InitializeUI() {
   static int registered = 0;
+  SetPointSize(20);
+  SetFont("consolas");
   InitComponents();
   InitFrame();
   InitSurface();

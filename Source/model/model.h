@@ -9,36 +9,60 @@ enum DBErrno {
 
   DB_NOT_FOUND,
   DB_NOT_OPEN,
-  DB_FAIL_ON_WRITING,
+  DB_NOT_CLOSE,
   DB_NOT_EXISTS,
+  DB_FAIL_ON_INIT,
+  DB_FAIL_ON_UNINIT,
+  DB_FAIL_ON_FETCHING,
+  DB_FAIL_ON_WRITING,
+  DB_FAIL_ON_CREATE,
+  DB_FAIL_ON_UPDATE,
+  DB_FAIL_ON_DELETE,
+  DB_FAIL_ON_GETTING_PROPERTIES, // for getting pk and size.
   DB_ALREADY_EXISTS,
+  DB_ENTRY_EMPTY,
 
   DB_FAIL
 };
 typedef enum Model { BOOK = 0, USER, BORROWRECORD } Model;
 
 typedef struct DB {
-  // described in
-  // https://www.hwaci.com/sw/sqlite/c3ref/open.html#urifilenameexamples
   String filename;
+  unsigned int pk;
+  unsigned int size;
+  List* data;
+  FILE* database;
 } DB;
 // Open and close the DB.
 /*
-  Open(Close)DBConnection
+  OpenDBConnection
 
-  It's used to open(close) the DB.
+  It's used to open the DB.
   You should call the open function when you want to access to the DB, then
   close it when you don't need to.
 
   Parameters:
-  struct DB pointer
+  filename: the db file
   Model(book, user, borrowrecord)
 
   Return value:
   DBErrno
  */
-int OpenDBConnection(DB* db, Model model);
-int CloseDBConnection(DB* db, Model model);
+int OpenDBConnection(const char* filename, Model model);
+/*
+  CloseDBConnection
+
+  It's used to close the DB.
+  You should call the open function when you want to access to the DB, then
+  close it when you don't need to.
+
+  Parameters:
+  Model(book, user, borrowrecord)
+
+  Return value:
+  DBErrno
+ */
+int CloseDBConnection(Model model);
 // Create
 /*
   Create
@@ -46,7 +70,6 @@ int CloseDBConnection(DB* db, Model model);
   It's used to create data in the DB
 
   Parameters:
-  db - pointer pointing to struct DB
   handle - pointer pointing to the handle (book,user,record,etc...)
   model - see enum Model
 
@@ -54,7 +77,7 @@ int CloseDBConnection(DB* db, Model model);
   1 if error appears, 0 otherwise.
  */
 // return 1 if error appears, 0 otherwise.
-int Create(DB* db, void* handle, Model model);
+int Create(void* handle, Model model);
 
 // Request
 // For many functions in this section, the first parameter is the pointer
@@ -67,7 +90,6 @@ int Create(DB* db, void* handle, Model model);
 
   Parameters:
 
-  db - pointer pointing to struct DB
   handle - pointer pointing to the handle (book,user,record,etc...)
   id - uid
   model - see enum Model
@@ -75,7 +97,7 @@ int Create(DB* db, void* handle, Model model);
   Return value:
   DBErrno
  */
-int GetById(DB* db, void* handle, int id, Model model);
+int GetById(void* handle, unsigned int id, Model model);
 
 /*
  Filter
@@ -84,7 +106,6 @@ int GetById(DB* db, void* handle, int id, Model model);
 
  Parameters:
 
- db - pointer pointing to struct DB
  list_handle - pointer pointing to the list_handle
  pointer(book,user,record,etc...) model - see enum Model
 
@@ -115,7 +136,21 @@ int GetById(DB* db, void* handle, int id, Model model);
  Return value:
  DBErrno
 */
-int Filter(DB* db, void* list_handle, String queries, Model model);
+int Filter(void* list_handle, String queries, Model model);
+
+/*
+  GetDBSize
+  It's used to get the number of rows(elements) in database.
+  
+  Parameter:
+  model - see enum Model
+  size - the pointer pointing to the memory to store the size of DB
+
+  Return value:
+  DBErrno
+*/
+
+int GetDBSize(Model model, unsigned int *size);
 
 /*
   GetNextPK
@@ -123,14 +158,14 @@ int Filter(DB* db, void* list_handle, String queries, Model model);
   database.
 
   Parameter:
-  db - pointer pointing to struct DB
   model - see enum Model
+  pk - the pointer pointing to the memory to store the prime key
 
   Return value:
-  -1 if error appears, the prime key, unsigned int
+  DBErrno
  */
 
-int GetNextPK(DB* db, Model model);
+int GetNextPK(Model model, unsigned int *pk);
 
 // Update
 /*
@@ -138,9 +173,7 @@ int GetNextPK(DB* db, Model model);
   It's used to perform update operation on a row in database.
 
   Parameter:
-  db - pointer pointing to struct DB
   handle - pointer pointing to the handle (book,user,record,etc...)
-
   id  - uid
   model - see enum Model
 
@@ -148,7 +181,7 @@ int GetNextPK(DB* db, Model model);
   DBErrno
  */
 
-int Update(DB* db, void* handle, int id, Model model);
+int Update(void* handle, unsigned int id, Model model);
 
 // Delete
 /*
@@ -156,7 +189,6 @@ int Update(DB* db, void* handle, int id, Model model);
   It's used to perform delete operation on a row in database.
 
   Parameter:
-  db - pointer pointing to struct DB
   id - uid
   model - see enum Model
 
@@ -164,5 +196,5 @@ int Update(DB* db, void* handle, int id, Model model);
   DBErrno
 */
 
-int Delete(DB* db, int id, Model model);
+int Delete(unsigned int id, Model model);
 #endif  // MODEL_H_

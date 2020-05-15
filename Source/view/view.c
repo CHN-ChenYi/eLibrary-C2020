@@ -230,8 +230,6 @@ static void FreeHistory(void *const history_) {
       break;
     case kManual:  // 帮助
     case kAbout:   // 关于
-      free(history->state.manual_and_about->title);
-      free(history->state.manual_and_about->content);
       break;
     case kUserRegister:  // 用户注册
     case kUserLogIn:     // 用户登陆
@@ -446,6 +444,7 @@ static void UserModify_ConfirmCallback() {
 static void inline UserSearchInfoDisplay(User *show_user, char *msg) {
   if (ErrorHandle(GetById(&user_db, show_user, show_user->uid, USER))) return;
 
+  // TODO:(TO/GA)按还书时间排序
   List *borrow_record = NewList(), *books = NewList();
   char *query = malloc(sizeof(char) * (10 + 10));
   sprintf(query, "user_uid=%d", show_user->uid);
@@ -707,7 +706,7 @@ static void BookDisplayAdminDisplay(char *msg) {
     return;
   }
   free(query);
-
+  // TODO:(TO/GA) 排序
   History *new_history = malloc(sizeof(History));
   new_history->page = kBorrowDisplay;
   new_history->state.borrow_display = malloc(sizeof(BorrowDisplay));
@@ -856,7 +855,7 @@ static void Library_SortCallback(SortKeyword sort_keyword) {
 }
 
 static void Library_SwitchCallback() {
-  if (TopHistory()->state.library->Type == kList) {
+  if (TopHistory()->state.library->type == kList) {
     Navigation_Library(NULL);
   } else {
     List *books = NewList();
@@ -868,7 +867,7 @@ static void Library_SwitchCallback() {
     History *new_history = malloc(sizeof(History));
     new_history->page = kLibrary;
     new_history->state.library = malloc(sizeof(Library));
-    new_history->state.library->Type = kList;
+    new_history->state.library->type = kList;
     new_history->state.library->sort_callback = Library_SortCallback;
     new_history->state.library->book_callback = Library_BookCallback;
     new_history->state.library->switch_callback = Library_SwitchCallback;
@@ -937,6 +936,7 @@ static inline void Navigation_LendAndBorrow(char *msg) {
     return;
   }
   free(query);
+  // TODO:(TO/GA)按还书时间排序
 
   List *books = NewList();
   for (ListNode *cur_node = borrow_records_list->dummy_head;
@@ -986,12 +986,10 @@ static inline void Navigation_ManualOrAbout(bool type, char *msg) {
   // TODO:(TO/GA) finish it
   if (type) {
     new_history->page = kAbout;
-    new_history->state.manual_and_about->title = "About ...";
-    new_history->state.manual_and_about->content = "233 ...";
+    // new_history->state.manual_and_about->img
   } else {
     new_history->page = kManual;
-    new_history->state.manual_and_about->title = "Manual ...";
-    new_history->state.manual_and_about->content = "233 ...";
+    // new_history->state.manual_and_about->img
   }
   PushBackHistory(new_history);
 
@@ -1116,7 +1114,7 @@ static inline void Navigation_Library(char *msg) {
   History *new_history = malloc(sizeof(History));
   new_history->page = kLibrary;
   new_history->state.library = malloc(sizeof(Library));
-  new_history->state.library->Type = kPicture;
+  new_history->state.library->type = kPicture;
   new_history->state.library->sort_callback = Library_SortCallback;
   new_history->state.library->book_callback = Library_BookCallback;
   new_history->state.library->switch_callback = Library_SwitchCallback;

@@ -815,14 +815,16 @@ static void BookDisplay_CoverCallback() {
     sprintf(msg, "[Error] [%s] Fail to change the book(uid = %d)'s cover",
             user.username, uid);
     free(command);
-    ReturnHistory(history_list->dummy_tail->pre, msg);
+    DrawUI(kBookDisplay, &user, TopHistory()->state.book_display, msg);
     return;
   }
+  free(command);
+  loadImage(image_path, &TopHistory()->state.book_display->book_cover);
+
   sprintf(msg, "[Info] [%s] Change the book(uid = %d)'s cover", user.username,
           uid);
   Log(msg);
   DrawUI(kBookDisplay, &user, TopHistory()->state.book_display, msg);
-  free(command);
 }
 
 static void BookDisplay_ConfirmCallback() {

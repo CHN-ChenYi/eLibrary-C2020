@@ -130,14 +130,12 @@ typedef struct UserManagement {
 #define kLibraryMax 10  // 单页最大显示数目
 typedef enum SortKeyword { kId, kTitle, kAuthor } SortKeyword;  // 关键字列表
 typedef struct Library {
-  enum { kPicture, kList } type;  // 图片模式还是列表模式
   List *books;                    // 图书库的图书
   ListNode *books_start;          // 第一本要显示的图书
   List *book_covers;              // 图书库的书的封面
   ListNode *books_covers_start;   // 第一本要显示的图书
   void (*sort_callback)(SortKeyword sortkeyword);  // 排序按钮
   void (*book_callback)(ListNode *book);           // 图书详细信息按钮
-  void (*switch_callback)();                       // 切换模式
   // direction = 0 上一页, direction = 1 下一页
   void (*turn_page)(bool direction);
 } Library;

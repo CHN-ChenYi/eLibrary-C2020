@@ -52,6 +52,21 @@ static Label *bottom_output, *bottom_info;
 /* Background for head bar and foot bar */
 static Frame *hb_frame, *fb_frame;
 
+// 数组作用：将callback id和对应的组件结合起来
+#define MAX_ON_PAGE 20
+static ListNode* books_on_page[MAX_ON_PAGE];
+static User *user_on_page[MAX_ON_PAGE];
+static ListNode* tbv_user_on_page[MAX_ON_PAGE]; 
+static ListNode* v_user_on_page[MAX_ON_PAGE];
+static char *keyword_on_page;
+static char *username_on_page;
+static char *old_pwd_on_page;
+static char *pwd_on_page;
+static char *rep_pwd_on_page;
+static char *gender_on_page;
+static char *dpt_on_page;
+static char *whoami_on_page;
+
 /* Submenu */
 
 // submenu for File
@@ -70,6 +85,7 @@ static Button *search_user, *search_book;
  * 101 用户搜索
  * 102 用户搜索上一页
  * 103 用户搜索下一页
+ * 151 - ? 用户详细信息
  * 201 用户注册确认
  * 301 用户修改确认
  * 401 登陆
@@ -78,13 +94,17 @@ static Button *search_user, *search_book;
  * 503 按照author排序
  * 504 显示上一页书库
  * 505 显示下一页书库
+ * 551 - ? 书籍详细信息
  * 601 书籍搜索
  * 602 书籍搜索上一页
  * 603 书籍搜索下一页
+ * 651 - ？ 书籍详细信息
  * 701 用户管理-未审核上一页
  * 702 用户管理-未审核下一页
  * 703 用户管理-已存在上一页
  * 704 用户管理-已存在下一页
+ * 740 - ? 用户管理-同意（奇数）/拒绝（偶数）第k个申请
+ * 770 - ？用户管理-删除第k
  * 801 确认新建/修改
  * 802 新建/修改图片
  * 803 删除图书按钮
@@ -122,6 +142,47 @@ LendAndBorrow* test() {
   state->borrow_records_start = state->borrow_records->dummy_head->nxt;
 
   return state;
+}
+
+List* GenBook() {
+  List* list = NewList();
+  for (int i = 0; i < 10; i++) {
+    Book* book = malloc(sizeof(Book));
+    for (int j = 0; j < 3; j++) sprintf(book->authors[j], "author%d|%d", j, i);
+    for (int j = 0; j < 5; j++) sprintf(book->keywords[j], "keyword%d|%d", j, i);
+    sprintf(book->category, "category%d", i);
+    sprintf(book->id, "id%d", i);
+    sprintf(book->press, "press%d", i);
+    sprintf(book->title, "title%d", i);
+    InsertList(list, list->dummy_tail, book);
+  }
+  return list;
+}
+List* GenUser() {
+  List* list = NewList();
+  for (int i = 0; i < 10; i++) {
+    User* user = malloc(sizeof(User));
+    sprintf(user->department, "department%d", i);
+    user->gender = i % 2 ? MALE : FEMALE;
+    user->whoami = i % 2 ? ADMINISTRATOR : NORMAL_USER;
+    user->verified = i % 2 ? TRUE : FALSE;
+    InsertList(list, list->dummy_tail, user);
+  }
+  return list;
+}
+List* GenBorrowRecord() {
+  List* list = NewList();
+  for (int i = 0; i < 10; i++) {
+    BorrowRecord* record = malloc(sizeof(BorrowRecord));
+    sprintf(record->book_name, "title%d", i);
+    record->book_status = i % 2 ? BORROWED : RETURNED;
+    sprintf(record->borrowed_date, "202001%02d", i);
+    sprintf(record->returned_date, "202010%02d", i);
+    sprintf(record->user_name, "user%d", i);
+    sprintf(record->book_name, "book%d", i);
+    InsertList(list, list->dummy_tail, record);
+  }
+  return list;
 }
 
 /*Statistics* test() {
@@ -324,7 +385,7 @@ void AddFooBar() {
   InsertComp(bottom_info, kLabel);
 }
 
-// 
+// TODO(Hans)：链表！
 void AddLendAndBorrow() {
   /*
    * ID configuration
@@ -359,7 +420,7 @@ void AddLendAndBorrow() {
   InsertComp(borrow_title, kLabel);
 }
 
-// TODO(Hans), Book search to be tested
+// TODO(Hans)：链表！借书按钮不要忘记记录书本数组
 void AddBookSearch() {
   /*
    * ID configuration:
@@ -377,6 +438,7 @@ void AddBookSearch() {
   InputBox *input_box = CreateInputBox(
     (Rect){50, 350, 0, 150}, "", NULL_ID
   );
+  keyword_on_page = input_box->context;
   Button *button = CreateButton(
     (Rect){400, 500, 120, 160}, "搜索", SEARCH_COLOR, 1, kBlack, 601
   );
@@ -396,7 +458,33 @@ void AddBookSearch() {
   InsertComp(input_box, kInputBox);
 }
 
-// TODO(Hans), User search to be tested
+/*
+ * 601 书籍搜索
+ * 602 书籍搜索上一页
+ * 603 书籍搜索下一页
+ * 651 - ? 借书
+ */
+void HandleBookSearchCallback(int id) {
+  State cur_state;
+  cur_state.book_search = cur_info;
+  switch (id) {
+  case 1:
+    cur_state.book_search->search_callback(keyword_on_page);
+    break;
+  case 2:
+    cur_state.book_search->turn_page(0);
+    break;
+  case 3:
+    cur_state.book_search->turn_page(1);
+    break;
+  default:
+    cur_state.book_search->borrow_callback(books_on_page[id - 50]);
+    break;
+  }
+}
+
+// TODO(Hans)：链表！
+// 注意在加用户的时候把user_on_page设置一下！
 void AddUserSearch() {
   /*
    * ID configuration:
@@ -414,6 +502,7 @@ void AddUserSearch() {
   InputBox *input_box = CreateInputBox(
     (Rect){50, 350, 0, 150}, "", NULL_ID
   );
+  keyword_on_page = input_box->context;
   Button *search_button = CreateButton(
     (Rect){400, 500, 120, 160}, "搜索", SEARCH_COLOR, 1, kBlack, 101
   );
@@ -433,6 +522,31 @@ void AddUserSearch() {
   InsertComp(search_title, kLabel);
   InsertComp(search_info, kLabel);
   InsertComp(input_box, kInputBox);
+}
+
+/*
+ * 1 用户搜索
+ * 2 用户搜索上一页
+ * 3 用户搜索下一页
+ * 51 - ? 用户详细信息
+ */
+void HandleUserSearchCallback(int id){
+  State cur_state;
+  cur_state.user_search = cur_info;
+  switch (id) {
+  case 1:
+    cur_state.user_search->search_callback(keyword_on_page);
+    break;
+  case 2:
+    cur_state.user_search->turn_page(0);
+    break;
+  case 3:
+    cur_state.user_search->turn_page(1);
+    break;
+  default:
+    cur_state.user_search->info_callback(user_on_page[id - 50]);
+    break;
+  }
 }
 
 void AddUserRegister() {
@@ -456,36 +570,42 @@ void AddUserRegister() {
   InputBox* username_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 70}, "", NULL_ID
   );
+  username_on_page = username_input->context;
   Label *first_pw_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 130}, "密码：", kBlack, NULL_ID
   );
   InputBox* first_pw_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 130}, "", NULL_ID
   );
+  pwd_on_page = first_pw_input->context;
   Label *second_pw_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 190}, "重复密码：", kBlack, NULL_ID
   );
   InputBox* second_pw_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 190}, "", NULL_ID
   );
+  rep_pwd_on_page = second_pw_input->context;
   Label *dpt_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 250}, "部门：", kBlack, NULL_ID
   );
   InputBox* dpt_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 250}, "", NULL_ID
   );
+  dpt_on_page = dpt_input->context;
   Label *sex_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 310}, "性别（M/F）", kBlack, NULL_ID
   );
   InputBox* sex_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 310}, "", NULL_ID
   );
+  gender_on_page = sex_input->context;
   Label *admin_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 370}, "是否申请管理员账号？(Y/N)", kBlack, NULL_ID
   );
   InputBox* admin_input = CreateInputBox(
     (Rect){pos_x + 250, pos_x + 350, 0, pos_y + 370}, "", NULL_ID
   );
+  whoami_on_page = admin_input->context;
   Button* confirm_button = CreateButton(
     (Rect){pos_x + 100, pos_x + 300, pos_y + 400, pos_y + 470}, "确认",
     CONFIRM_COLOR, 1, kBlack, 201
@@ -506,6 +626,32 @@ void AddUserRegister() {
   InsertComp(register_title, kLabel);
 }
 
+void HandleUserRegisterCallback(int id) {
+  State cur_state;
+  cur_state.login_or_register = cur_info;
+  switch (id) {
+  case 1:
+    strcpy(cur_state.login_or_register->password, pwd_on_page);
+    strcpy(cur_state.login_or_register->repeat_password, rep_pwd_on_page);
+    strcpy(cur_state.login_or_register->user->username, username_on_page);
+    strcpy(cur_state.login_or_register->user->department, dpt_on_page);
+    if (strcmp(gender_on_page, "F") == 0) {
+      cur_state.login_or_register->user->gender = FEMALE;
+    } else {
+      // 不合法性别默认为男性
+      cur_state.login_or_register->user->gender = MALE;
+    }
+    if (strcmp(whoami_on_page, "Y") == 0) {
+      cur_state.login_or_register->user->whoami = ADMINISTRATOR;
+    } else {
+      // 不合法默认不申请
+      cur_state.login_or_register->user->whoami = NORMAL_USER;
+    }
+    cur_state.login_or_register->login_callback();
+    break;
+  }
+}
+
 void AddUserLogIn() {
   int pos_x = GetWindowWidthPx() / 2 - 200;
   int pos_y = GetWindowHeightPx() / 2 - 100;
@@ -523,12 +669,14 @@ void AddUserLogIn() {
   InputBox* username_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 70}, "", NULL_ID
   );
+  username_on_page = username_input->context;
   Label *first_pw_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 130}, "密码：", kBlack, NULL_ID
   );
   InputBox* first_pw_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 130}, "", NULL_ID
   );
+  pwd_on_page = first_pw_input->context;
   Button* confirm_button = CreateButton(
     (Rect){pos_x + 100, pos_x + 300, pos_y + 160, pos_y + 220}, "登录",
     CONFIRM_COLOR, 1, kBlack, 401
@@ -541,6 +689,19 @@ void AddUserLogIn() {
   InsertComp(register_title, kLabel);
 }
 
+void HandleUserLoginCallback(int id) {
+  State cur_state;
+  cur_state.login_or_register = cur_info;
+  switch (id) {
+  case 1:
+    strcpy(cur_state.login_or_register->password, pwd_on_page);
+    strcpy(cur_state.login_or_register->user->username, username_on_page);
+    cur_state.login_or_register->login_callback();
+    break;
+  }
+}
+
+// TODO: 分成两栏！日了狗了
 void AddUserModify() {
   /*
    * ID configuration
@@ -562,24 +723,28 @@ void AddUserModify() {
   InputBox* username_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 70}, cur_user->username, NULL_ID
   );
+  username_on_page = username_input->context;
   Label *first_pw_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 130}, "原密码：", kBlack, NULL_ID
   );
   InputBox* first_pw_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 130}, "", NULL_ID
   );
+  old_pwd_on_page = first_pw_input->context;
   Label *second_pw_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 190}, "新密码：", kBlack, NULL_ID
   );
   InputBox* second_pw_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 190}, "", NULL_ID
   );
+  pwd_on_page = second_pw_input->context;
   Label *dpt_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 250}, "重复新密码：", kBlack, NULL_ID
   );
   InputBox* dpt_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 250}, "", NULL_ID
   );
+  rep_pwd_on_page = dpt_input->context;
   Label *sex_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 310}, "性别：（真的要改吗）", kBlack, NULL_ID
   );
@@ -587,12 +752,14 @@ void AddUserModify() {
     (Rect){pos_x + 250, pos_x + 350, 0, pos_y + 310},
     cur_user->gender == MALE ? "M" : "F", NULL_ID
   );
+  gender_on_page = sex_input->context;
   Label *admin_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 370}, "部门", kBlack, NULL_ID
   );
   InputBox* admin_input = CreateInputBox(
     (Rect){pos_x + 250, pos_x + 350, 0, pos_y + 370}, cur_user->department, NULL_ID
   );
+  dpt_on_page = admin_input->context;
   Button* confirm_button = CreateButton(
     (Rect){pos_x + 100, pos_x + 300, pos_y + 400, pos_y + 470}, "确认",
     CONFIRM_COLOR, 1, kBlack, 301
@@ -613,7 +780,30 @@ void AddUserModify() {
   InsertComp(register_title, kLabel);
 }
 
-// TODO 链表！
+void HandleUserModifyCallback(int id) {
+  State cur_state;
+  cur_state.user_modify = cur_info;
+  switch (id) {
+  case 1:
+    strcpy(cur_state.user_modify->old_password, old_pwd_on_page);
+    strcpy(cur_state.user_modify->new_password, pwd_on_page);
+    strcpy(cur_state.user_modify->repeat_password, rep_pwd_on_page);
+    strcpy(cur_state.user_modify->user->department, dpt_on_page);
+    strcpy(cur_state.user_modify->user->username, username_on_page);
+    if (strcmp(gender_on_page, "F") == 0) {
+      cur_state.user_modify->user->gender = FEMALE;
+    }
+    else {
+      cur_state.user_modify->user->gender = MALE;
+      // 不合法性别默认为男性
+    }
+    cur_state.user_modify->confirm_callback();
+    break;
+  }
+}
+
+// TODO 链表！两个链表都需要记录on page信息！
+// 分别是tbv和v
 void AddUserManagement() {
   int left_border = 20;
   int right_border = GetWindowWidthPx() - 20;
@@ -664,21 +854,70 @@ void AddUserManagement() {
   InsertComp(user_list_label, kLabel);
 }
 
-// TODO 链表！
+/*
+ * 701 用户管理 - 未审核上一页
+ * 702 用户管理 - 未审核下一页
+ * 703 用户管理 - 已存在上一页
+ * 704 用户管理 - 已存在下一页
+ * 740 - ? 用户管理-同意（奇数）/拒绝（偶数）第k个申请
+ * 770 - ？用户管理-删除第k
+ */
+void HandleUserManagement(int id) {
+  State cur_state;
+  cur_state.user_management = cur_info;
+  switch (id) {
+  case 1:
+    cur_state.user_management->turn_page(0, 0);
+    break;
+  case 2:
+    cur_state.user_management->turn_page(1, 0);
+    break;
+  case 3:
+    cur_state.user_management->turn_page(0, 1);
+    break;
+  case 4:
+    cur_state.user_management->turn_page(1, 1);
+    break;
+  default:
+    if(id > 70) {
+      cur_state.user_management->delete_callback(v_user_on_page[id - 70]);
+    } else {
+      cur_state.user_management->approve_callback(
+        tbv_user_on_page[(id - 40) + 1 >> 1], id & 1
+      );
+    }
+  }
+}
+
+// TODO 链表！记得把书籍详细信息记录一下
 void AddLibrary() {
+  int left_border = 10;
+  int right_border = GetWindowWidthPx() - 10;
+  int top = 130;
+  int bottom = GetWindowHeightPx() - 70;
+
+  Frame* frame = CreateFrame(
+    (Rect){left_border, right_border, top, bottom}, PANEL_COLOR, 1
+  );
+  InsertFrame(frame);
+
+  int cur_y = 110;
+  int delta_y = 50;
+  int cur_x = 20; // for the head line
+  int width_button = 100;
   Label* title = CreateLabel(
-    (Rect){10, 0, 0, 110}, "当前图书库图书：", kBlack, NULL_ID
+    (Rect){cur_x, 0, 0, cur_y}, "当前图书库图书：", kBlack, NULL_ID
   );
   Button* sort_by_id = CreateButton(
-    (Rect){150, 250, 80, 125}, "按ID排序", SEARCH_COLOR, 1,
+    (Rect){cur_x += TextStringWidth("当前图书库图书："), cur_x + 100, 80, 125}, "按ID排序", SEARCH_COLOR, 1,
     kWhite, 501
   );
   Button* sort_by_title = CreateButton(
-    (Rect){260, 360, 80, 125}, "按标题排序", SEARCH_COLOR, 1,
+    (Rect){cur_x += 110, cur_x + 100, 80, 125}, "按标题排序", SEARCH_COLOR, 1,
     kWhite, 502
   );
   Button* sort_by_author = CreateButton(
-    (Rect){370, 470, 80, 125}, "按作者排序", SEARCH_COLOR, 1,
+    (Rect){cur_x += 110, cur_x + 100, 80, 125}, "按作者排序", SEARCH_COLOR, 1,
     kWhite, 503
   );
   Button *pre_page_button = CreateButton(
@@ -689,12 +928,46 @@ void AddLibrary() {
     (Rect){GetWindowWidthPx() - 100, GetWindowWidthPx() - 20, GetWindowHeightPx() - 125, GetWindowHeightPx() - 75},
     "下一页", TURN_COLOR, 1, kWhite, 505
   );
+  cur_x = 20;
   InsertComp(next_page_button, kButton);
   InsertComp(pre_page_button, kButton);
   InsertComp(sort_by_author, kButton);
   InsertComp(sort_by_title, kButton);
   InsertComp(sort_by_id, kButton);
   InsertComp(title, kLabel);
+}
+
+/*
+ * 501 按照ID排序
+ * 502 按照title排序
+ * 503 按照author排序
+ * 504 显示上一页书库
+ * 505 显示下一页书库
+ * 551 - ? 书籍详细信息
+ */
+void HandleLibraryCallback(int id) {
+  State cur_state;
+  cur_state.library = cur_info;
+  switch (id) {
+  case 1:
+    cur_state.library->sort_callback(kId);
+    break;
+  case 2:
+    cur_state.library->sort_callback(kTitle);
+    break;
+  case 3:
+    cur_state.library->sort_callback(kAuthor);
+    break;
+  case 4:
+    cur_state.library->turn_page(0);
+    break;
+  case 5:
+    cur_state.library->turn_page(1);
+    break;
+  default:
+    cur_state.library->book_callback(books_on_page[id - 50]);
+    break;
+  }
 }
 
 void AddBookDisplay() {
@@ -768,6 +1041,12 @@ void AddBookDisplay() {
   InsertComp(keyword_label, kLabel);
 }
 
+/*
+ * 801 确认新建 / 修改
+ * 802 新建 / 修改图片
+ * 803 删除图书按钮
+ * 804 借书按钮
+ */
 void AddBookModify() {
   // State cur_state;
   // cur_state.book_display = cur_info;
@@ -996,6 +1275,29 @@ void CallbackById(int id) {
     // click on the head bar
     InitSurface();
     AddSubmenu(id);
+  } else {
+    switch (id / 100) {
+    case 1:
+      HandleUserSearchCallback(id % 100);
+      break;
+    case 2:
+      HandleUserRegisterCallback(id % 100);
+      break;
+    case 3:
+      HandleUserModifyCallback(id % 100);
+      break;
+    case 4:
+      HandleUserLoginCallback(id % 100);
+    case 5:
+      HandleLibraryCallback(id % 100);
+      break;
+    case 6:
+      HandleBookSearchCallback(id % 100);
+      break;
+    case 7:
+      HandleUserManagementCallback(id % 100);
+      break;
+    }
   }
   printf("%d\n", id);
 }

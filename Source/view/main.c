@@ -5,9 +5,10 @@
 #include "page.h"
 #include "gui.h"
 
+
 void Main() {
   InitGUI();
   char *terminal = malloc(sizeof(char) * 100);
   strcpy(terminal, "我完蛋了");
-  DrawUI(kLibrary, NULL, NULL, terminal);
+  DrawUI(kUserManagement, NULL, NULL, terminal);
 }

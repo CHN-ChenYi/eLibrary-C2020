@@ -116,6 +116,7 @@ InputBox* CreateInputBox(Rect rect, char* str, int id) {
   ret->position.right += 5;
   ret->cursor = 0;
   ret->status = kNormal;
+  memset(ret->context, 0, sizeof(ret->context));
   strcpy(ret->context, str);
   return ret;
 }
@@ -151,10 +152,13 @@ Frame* CreateFrame(Rect rect, char* color, double alpha) {
   return ret;
 }
 
-Image* CreateImage(Rect rect, LibImage ui_image) {
+Image* CreateImage(Rect rect, LibImage ui_image, int id) {
   Image* ret = malloc(sizeof(Image));
   ret->position = rect;
+  ret->position.right = ret->position.left + ui_image.width;
+  ret->position.top = ret->position.bottom - ui_image.height;
   ret->ui_image = ui_image;
+  ret->id = id;
   return ret;
 }
 
@@ -406,6 +410,7 @@ void DisplayAnimateComponents(CompList L, int x, int y) {
       break;
     case kImage:
       image = (Image*)(p->component);
+      rect = &image->position;
       DrawUIImage(image);
       break;
     }
@@ -426,9 +431,10 @@ void FlushScreen(int x, int y) {
 void PushButton() {
   if (focus->type == kButton && focus != cur_list) {
     CallbackById(((Button*)focus->component)->id);
-  }
-  else if (focus->type == kLink) {
+  } else if (focus->type == kLink) {
     CallbackById(((Link*)focus->component)->id);
+  } else if (focus->type == kImage) {
+    CallbackById(((Image*)focus->component)->id);
   }
 }
 

@@ -66,6 +66,7 @@ typedef struct Frame {
 typedef struct Image {
   Rect position;
   LibImage ui_image;  
+  int id;
 } Image;
 
 /* Create UI components */
@@ -74,7 +75,7 @@ InputBox* CreateInputBox(Rect rect, char* str, int id);
 Link* CreateLink(Rect rect, char* caption, FontColor font_color, int id);
 Label* CreateLabel(Rect rect, char* caption, FontColor font_color, int id);
 Frame* CreateFrame(Rect rect, char* color, double alpha);
-Image* CreateImage(Rect rect, LibImage ui_image);
+Image* CreateImage(Rect rect, LibImage ui_image, int id);
 
 /* Singly linked circular list for components */
 typedef struct ComponentListNode* PTCNode;

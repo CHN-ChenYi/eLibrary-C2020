@@ -94,7 +94,7 @@ static inline void Navigation_Statistics(char *msg);
 static inline void Navigation_Return(char *msg);
 static inline void Navigation_Exit();
 extern void NavigationCallback(Page nav_page);
-// TODO:(TO/GA) *_start 初始化
+// TODO:(TO/GA) 加载edit_cover和unknown_cover
 void Init() {
   InitConsole();               // TODO:(TO/GA) 可以删掉了？
   InitGraphics();              // TODO:(TO/GA) 可以删掉了？
@@ -1502,6 +1502,7 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
 
 static inline void Navigation_BookInit(char *msg) {
   Book *book = malloc(sizeof(Book));
+  memset(book, 0, sizeof(Book));
   if (ErrorHandle(GetNextPK(BOOK, &book->uid))) {
     free(book);
     return;
@@ -1533,6 +1534,7 @@ static inline void Navigation_Statistics(char *msg) {
   DeleteList(book, free);
   SortList(category, StrLess);
   UniqueList(category, StrSame, free);
+  // TODO:(TO/GA) 加个All, CB那里也处理一下
 
   List *borrow_record = NewList();
   if (ErrorHandle(Filter(borrow_record, "", BORROWRECORD))) {

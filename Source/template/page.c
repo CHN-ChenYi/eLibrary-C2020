@@ -58,6 +58,7 @@ static ListNode* books_on_page[MAX_ON_PAGE];
 static User *user_on_page[MAX_ON_PAGE];
 static ListNode* tbv_user_on_page[MAX_ON_PAGE]; 
 static ListNode* v_user_on_page[MAX_ON_PAGE];
+static ListNode* catalog_on_page[MAX_ON_PAGE];
 static char *keyword_on_page;
 static char *username_on_page;
 static char *old_pwd_on_page;
@@ -66,6 +67,11 @@ static char *rep_pwd_on_page;
 static char *gender_on_page;
 static char *dpt_on_page;
 static char *whoami_on_page;
+static char *book_id_on_page;
+static char *book_name_on_page;
+static char *book_press_on_page;
+static char *book_authors_on_page[3];
+static char *book_keywords_on_page[5];
 
 /* Submenu */
 
@@ -109,12 +115,17 @@ static Button *search_user, *search_book;
  * 802 新建/修改图片
  * 803 删除图书按钮
  * 804 借书按钮
- * 901 借还书界面上一页
- * 902 借还书界面下一页
+ * 901 借还书统计界面上一页
+ * 902 借还书统计界面下一页
  * 1001 分类统计标签上一页
  * 1002 分类统计标签下一页
  * 1003 分类统计结果上一页
  * 1004 分类统计结果上一页
+ * 1050 - ? 分类标签
+ * 1101 借书界面上一页
+ * 1102 借书界面下一页
+ * 1103 借书界面搜索
+ * 1150 - ? 还书
  */
 
 LendAndBorrow* test() {
@@ -386,6 +397,7 @@ void AddFooBar() {
 }
 
 // TODO(Hans)：链表！
+// 还要加两个翻页的东西！ID
 void AddLendAndBorrow() {
   /*
    * ID configuration
@@ -393,8 +405,8 @@ void AddLendAndBorrow() {
    */
   int left_border = 30;
   int length_input_box = 120;
-  int search_button_top = GetWindowHeightPx() - 120;
-  int search_button_bottom = GetWindowHeightPx() - 100;
+  int search_button_top = 90;
+  int search_button_bottom = 110;
   Label *return_title = CreateLabel(
     (Rect){left_border, 0, 0, 100}, "还书：", kBlack, NULL_ID
   );
@@ -408,6 +420,7 @@ void AddLendAndBorrow() {
            search_button_top, search_button_bottom},
     "", NULL_ID
   );
+  keyword_on_page = input_box->context;
   Button *search_button = CreateButton(
     (Rect){length_input_box + left_border + TextStringWidth("借书：") + 10,
            length_input_box + left_border + TextStringWidth("借书：") + 80,
@@ -418,6 +431,30 @@ void AddLendAndBorrow() {
   InsertComp(input_box, kInputBox);
   InsertComp(return_title, kLabel);
   InsertComp(borrow_title, kLabel);
+}
+
+/*
+ * 1101 借书界面上一页
+ * 1102 借书界面下一页
+ * 1103 借书界面搜索
+ * 1150 - ? 还书
+ */
+void HandleLendAndBorrowCallback(int id) {
+  LendAndBorrow *cur_state = cur_info;
+  switch (id) {
+  case 1:
+    cur_state->turn_page(0);
+    break;
+  case 2:
+    cur_state->turn_page(1);
+    break;
+  case 3:
+    cur_state->search_callback(keyword_on_page);
+    break;
+  default:
+    cur_state->search_callback(books_on_page[id - 50]);
+    break;
+  }
 }
 
 // TODO(Hans)：链表！借书按钮不要忘记记录书本数组
@@ -862,7 +899,7 @@ void AddUserManagement() {
  * 740 - ? 用户管理-同意（奇数）/拒绝（偶数）第k个申请
  * 770 - ？用户管理-删除第k
  */
-void HandleUserManagement(int id) {
+void HandleUserManagementCallback(int id) {
   State cur_state;
   cur_state.user_management = cur_info;
   switch (id) {
@@ -970,6 +1007,13 @@ void HandleLibraryCallback(int id) {
   }
 }
 
+/*
+ * 801 确认新建 / 修改
+ * 802 新建 / 修改图片
+ * 803 删除图书按钮
+ * 804 借书按钮
+ */
+ // 加一个分类，回调button
 void AddBookDisplay() {
   // State cur_state;
   // cur_state.book_display = cur_info;
@@ -1041,12 +1085,7 @@ void AddBookDisplay() {
   InsertComp(keyword_label, kLabel);
 }
 
-/*
- * 801 确认新建 / 修改
- * 802 新建 / 修改图片
- * 803 删除图书按钮
- * 804 借书按钮
- */
+// 加一个分类，回调id
 void AddBookModify() {
   // State cur_state;
   // cur_state.book_display = cur_info;
@@ -1081,6 +1120,7 @@ void AddBookModify() {
     (Rect){info_x + TextStringWidth("书号："), right_border, 0, cur_y},
     book->id, NULL_ID
   );
+  book_id_on_page = book_id_context->context;
   Label* book_name_label = CreateLabel(
     (Rect){info_x, 0, 0, cur_y += delta_y}, "书名：", kBlack, NULL_ID
   );
@@ -1088,6 +1128,7 @@ void AddBookModify() {
     (Rect){info_x + TextStringWidth("书名："), right_border, 0, cur_y},
     book->title, NULL_ID
   );
+  book_name_on_page = book_name_context->context;
   Label* author_label = CreateLabel(
     (Rect){info_x, 0, 0, cur_y += delta_y}, "作者：（最多三人）", kBlack, NULL_ID 
   );
@@ -1097,6 +1138,7 @@ void AddBookModify() {
       (Rect){info_x + TextStringWidth("作者："), right_border, 0, cur_y += delta_y},
       book->authors[i], NULL_ID
     );
+    book_authors_on_page[i] = author_context[i]->context;
     InsertComp(author_context[i], kInputBox);
   }
   Label* press_label = CreateLabel(
@@ -1106,6 +1148,7 @@ void AddBookModify() {
     (Rect){info_x + TextStringWidth("出版社："), right_border, 0, cur_y},
     book->press, NULL_ID
   );
+  book_press_on_page = press_context->context;
   Label* keyword_label = CreateLabel(
     (Rect){info_x, 0, 0, cur_y += delta_y}, "关键词：（最多五个）", kBlack, NULL_ID
   );
@@ -1115,6 +1158,7 @@ void AddBookModify() {
       (Rect){info_x + TextStringWidth("关键词："), right_border, 100, cur_y += delta_y},
       book->keywords[i], NULL_ID
     );
+    book_press_on_page[i] = keyword_context[i]->context;
     InsertComp(keyword_context[i], kInputBox);
   }
   Button* confirm_button = CreateButton(
@@ -1130,6 +1174,34 @@ void AddBookModify() {
   InsertComp(press_label, kLabel);
   InsertComp(press_context, kInputBox);
   InsertComp(keyword_label, kLabel);
+}
+
+void HandleBookCallback(int id) {
+  BookDisplay *cur_state = cur_info;
+  strcpy(cur_state->book->id, book_id_on_page);
+  strcpy(cur_state->book->title, book_name_on_page);
+  strcpy(cur_state->book->press, book_press_on_page);
+  for (int i = 0; i < 3; i++) {
+    strcpy(cur_state->book->authors[i], book_authors_on_page[i]);
+  }
+  for (int i = 0; i < 5; i++) {
+    strcpy(cur_state->book->keywords[i], book_keywords_on_page[i]);
+  }
+  switch (id) {
+  case 1:
+    cur_state->confirm_callback();
+    break;
+  case 2:
+    cur_state->cover_callback();
+    break;
+  case 3:
+    cur_state->delete_callback();
+    break;
+  case 4:
+    cur_state->borrow_callback();
+    break;
+  }
+
 }
 
 // TODO 链表！
@@ -1153,7 +1225,23 @@ void AddBorrowDisplay() {
   InsertComp(title, kLabel);
 }
 
-// TODO 链表！
+/*
+ * 901 借还书界面上一页
+ * 902 借还书界面下一页
+ */
+void HandleBorrowDisplayCallback(int id) {
+  BorrowDisplay *cur_state = cur_info;
+  switch (id) {
+  case 1:
+    cur_state->turn_page(0);
+    break;
+  case 2:
+    cur_state->turn_page(1);
+    break;
+  }
+}
+
+// TODO 链表！记录一下catalog on page
 void AddStatistics() {
   int left_border = 100;
   int right_border = GetWindowWidthPx() - 100;
@@ -1192,6 +1280,34 @@ void AddStatistics() {
   InsertComp(bottom_pre_page_button, kButton);
   InsertComp(top_next_page_button, kButton);
   InsertComp(top_pre_page_button, kButton);
+}
+
+/*
+ * 1001 分类统计标签上一页
+ * 1002 分类统计标签下一页
+ * 1003 分类统计结果上一页
+ * 1004 分类统计结果上一页
+ * 1050 - ? 分类标签
+ */
+void HandleStatisticsCallback(int id) {
+  Statistics *cur_state = cur_info;
+  switch (id) {
+  case 1:
+    cur_state->turn_page(0, 0);
+    break;
+  case 2:
+    cur_state->turn_page(1, 0);
+    break;
+  case 3:
+    cur_state->turn_page(0, 1);
+    break;
+  case 4:
+    cur_state->turn_page(1, 1);
+    break;
+  default:
+    cur_state->select_callback(catalog_on_page[id - 50]);
+    break;
+  }
 }
 
 void AddContents() {
@@ -1288,6 +1404,7 @@ void CallbackById(int id) {
       break;
     case 4:
       HandleUserLoginCallback(id % 100);
+      break;
     case 5:
       HandleLibraryCallback(id % 100);
       break;
@@ -1296,6 +1413,15 @@ void CallbackById(int id) {
       break;
     case 7:
       HandleUserManagementCallback(id % 100);
+      break;
+    case 8:
+      HandleBookCallback(id % 100);
+      break;
+    case 9:
+      HandleBorrowDisplayCallback(id % 100);
+      break;
+    case 10:
+      HandleStatisticsCallback(id % 100);
       break;
     }
   }

@@ -496,14 +496,8 @@ void HandleLendAndBorrowCallback(int id) {
   }
 }
 
-// TODO(Hans)：链表！借书按钮/不要忘记记录书本数组
 void AddBookSearch() {
-  //BookSearch *book_search = cur_info;
-  BookSearch *book_search = malloc(sizeof(BookSearch));
-  book_search->keyword = malloc(sizeof(char) * 10);
-  strcpy(book_search->keyword, "fuck");
-  book_search->book_result = GenBook();
-  book_search->book_result_start = book_search->book_result->dummy_head->nxt;
+  BookSearch *book_search = cur_info;
   
   Label *search_title = CreateLabel(
     (Rect){30, 0, 0, 120}, "搜索结果：", kBlack, NULL_ID
@@ -530,18 +524,35 @@ void AddBookSearch() {
   );
   InsertFrame(frame);
 
-  int cur_y = 180;
-  int delta_y = 50;
+  int cur_y = 160;
+  int delta_y = (bottom - top - 50) / 10;
+  int delta_x = (right_border - left_border) / 5;
   int count = 1;
 
   for (ListNode* p = book_search->book_result_start;
-       p != NULL && count <= 10; p = p->nxt) {
+       p != NULL && count <= 10; p = p->nxt, count++) {
     Book* book = p->value;
     books_to_borrow_on_page[count] = book;
-    Link* link = CreateLink(
-      (Rect){left_border + 10, 0, 0, cur_y += delta_y}, book->title, kBlack, 650 + count
+    Label *title = CreateLabel(
+      (Rect){left_border + 10, 0, 0, cur_y += delta_y}, book->title, kBlack, NULL_ID
     );
-    InsertComp(link, kLink);
+    InsertComp(title, kLabel);
+    Label* press = CreateLabel(
+      (Rect) {left_border + delta_x, 0, 0, cur_y}, book->press, kBlack, NULL_ID
+    );
+    InsertComp(press, kLabel);
+    Label* catalog = CreateLabel(
+      (Rect){left_border + 2 * delta_x, 0, 0, cur_y}, book->category, kBlack, NULL_ID
+    );
+    InsertComp(catalog, kLabel);
+    Label* author = CreateLabel(
+      (Rect){left_border + 3 * delta_x, 0, 0, cur_y}, book->authors[0], kBlack, NULL_ID
+    );
+    InsertComp(author, kLabel);
+    Link *borrow = CreateLink(
+      (Rect){right_border - 100, 0, 0, cur_y}, "借书", kBlack, 650 + count
+    );
+    InsertComp(borrow, kLink);
   }
 
   Button *pre_page_button = CreateButton(
@@ -580,7 +591,7 @@ void HandleBookSearchCallback(int id) {
     cur_state.book_search->turn_page(1);
     break;
   default:
-    cur_state.book_search->borrow_callback(books_on_page[id - 50]);
+    cur_state.book_search->borrow_callback(books_to_borrow_on_page[id - 50]);
     break;
   }
 }
@@ -588,49 +599,89 @@ void HandleBookSearchCallback(int id) {
 // TODO(Hans)：链表！
 // 注意在加用户的时候把user_on_page设置一下！
 void AddUserSearch() {
-  /*
-   * ID configuration:
-   * 101: search
-   */
-  State cur_state;
-  cur_state.user_search = cur_info;
+  UserSearch *user_search;
+  user_search = malloc(sizeof(UserSearch));
+  user_search->keyword = malloc(sizeof(char) * 10);
+  strcpy(user_search->keyword, "陈易");
+  user_search->user_result = GenUser();
+  user_search->user_result_start = user_search->user_result->dummy_head->nxt;
+
+  BookSearch *book_search = cur_info;
+  
   Label *search_title = CreateLabel(
     (Rect){30, 0, 0, 120}, "搜索结果：", kBlack, NULL_ID
   );
   Label *search_info = CreateLabel(
     (Rect){30 + TextStringWidth("搜索结果："), 0, 0, 120},
-    cur_state.user_search->keyword, kBlack, NULL_ID
+    user_search->keyword, kBlack, NULL_ID
   );
   InputBox *input_box = CreateInputBox(
     (Rect){50, 350, 0, 150}, "", NULL_ID
   );
   keyword_on_page = input_box->context;
-  Button *search_button = CreateButton(
+  Button *button = CreateButton(
     (Rect){400, 500, 120, 160}, "搜索", SEARCH_COLOR, 1, kBlack, 101
   );
+
+  int left_border = 20;
+  int right_border = GetWindowWidthPx() - 20;
+  int top = 180;
+  int bottom = GetWindowHeightPx() - 75;
+
+  Frame* frame = CreateFrame(
+    (Rect){left_border, right_border, top, bottom}, PANEL_COLOR, 1
+  );
+  InsertFrame(frame);
+
+  int cur_y = 160;
+  int delta_y = (bottom - top - 50) / 10;
+  int count = 1;
+
+  for (ListNode* p = user_search->user_result_start;
+       p != NULL && count <= kUserSearchMax; p = p->nxt, count++) {
+    User* user = p->value;
+    user_on_page[count] = user;
+    Label* name = CreateLabel(
+      (Rect){left_border + 10, 0, 0, cur_y += delta_y}, user->username, kBlack, NULL_ID
+    );
+    Label* department = CreateLabel(
+      (Rect){name->position.right + 10, 0, 0, cur_y}, user->department, kBlack, NULL_ID
+    );
+    Label* gender = CreateLabel(
+      (Rect){department->position.right + 10, 0, 0, cur_y}, user->gender == MALE ? "男" : "女", kBlack, NULL_ID
+    );
+    Link* more_info = CreateLink(
+      (Rect){right_border - TextStringWidth("详细信息") - 10, 0, 0, cur_y}, "详细信息", kBlack, 150 + count
+    );
+    InsertComp(more_info, kLink);
+    InsertComp(gender, kLabel);
+    InsertComp(department, kLabel);
+    InsertComp(name, kLabel);
+  }
+
   Button *pre_page_button = CreateButton(
-    (Rect){20, 100, GetWindowHeightPx() - 125, GetWindowHeightPx() - 75},
+    (Rect){left_border, left_border + 80, bottom - 50, bottom},
     "上一页", TURN_COLOR, 1, kWhite, 102
   );
   Button *next_page_button = CreateButton(
-    (Rect){GetWindowWidthPx() - 100, GetWindowWidthPx() - 20, GetWindowHeightPx() - 125, GetWindowHeightPx() - 75},
+    (Rect){right_border - 80, right_border, bottom - 50, bottom},
     "下一页", TURN_COLOR, 1, kWhite, 103
   );
   InsertComp(next_page_button, kButton);
   InsertComp(pre_page_button, kButton);
   InsertComp(next_page_button, kButton);
   InsertComp(pre_page_button, kButton);
-  InsertComp(search_button, kButton);
+  InsertComp(button, kButton);
   InsertComp(search_title, kLabel);
   InsertComp(search_info, kLabel);
   InsertComp(input_box, kInputBox);
 }
 
 /*
- * 1 用户搜索
- * 2 用户搜索上一页
- * 3 用户搜索下一页
- * 51 - ? 用户详细信息
+ * 101 用户搜索
+ * 102 用户搜索上一页
+ * 103 用户搜索下一页
+ * 151 - ? 用户详细信息
  */
 void HandleUserSearchCallback(int id){
   State cur_state;

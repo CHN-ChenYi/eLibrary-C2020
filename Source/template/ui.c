@@ -101,6 +101,7 @@ Button* CreateButton (
   ret->status = kNormal;
   ret->bg_color = ColorConvert(bg_color, alpha);
   ret->font_color = color;
+  memset(ret->caption, 0, sizeof(ret->caption));
   strcpy(ret->caption, caption);
   return ret;
 }
@@ -129,6 +130,7 @@ Link* CreateLink(Rect rect, char* caption, FontColor font_color, int id) {
   ret->position.top = ret->position.bottom - GetPointSize();
   ret->status = kNormal;
   ret->font_color = font_color;
+  memset(ret->caption, 0, sizeof(ret->caption));
   strcpy(ret->caption, caption);
   return ret;
 }
@@ -140,6 +142,7 @@ Label* CreateLabel(Rect rect, char* caption, FontColor font_color, int id) {
   ret->position.right = ret->position.left + TextStringWidth(caption);
   ret->position.top = ret->position.bottom - GetPointSize();
   ret->font_color = font_color;
+  memset(ret->caption, 0, sizeof(ret->caption));
   strcpy(ret->caption, caption);
   return ret;
 }

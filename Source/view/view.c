@@ -1075,11 +1075,11 @@ static inline void Navigation_LendAndBorrow(char *msg) {
 }
 
 static inline void Navigation_BookSearch(char *msg) {
-  BookSearchDisplay(NULL, msg);
+  BookSearchDisplay("", msg);
 }
 
 static inline void Navigation_UserSearch(char *msg) {
-  UserSearchDisplay(NULL, msg);
+  UserSearchDisplay("", msg);
 }
 
 // type = 0 => Manual

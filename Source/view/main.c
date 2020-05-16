@@ -10,5 +10,5 @@ void Main() {
   InitGUI();
   char *terminal = malloc(sizeof(char) * 100);
   strcpy(terminal, "我完蛋了");
-  DrawUI(kLendAndBorrow, NULL, NULL, terminal);
+  DrawUI(kBookSearch, NULL, NULL, terminal);
 }

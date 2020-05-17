@@ -36,8 +36,8 @@ typedef enum BookStatus { RETURNED = 0, BORROWED } BookStatus;
 
 typedef struct BorrowRecord {
   unsigned uid;
-  int book_uid;
-  int user_uid;
+  unsigned book_uid;
+  unsigned user_uid;
   char book_name[200];
   char user_name[50];
   char borrowed_date[10];

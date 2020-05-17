@@ -7,7 +7,7 @@
 #define N_MODEL 3
 static DB DBs[N_MODEL];
 
-inline int DBExists(Model model){
+int DBExists(Model model){
   return (model >= 0 && model <= N_MODEL);
 }
 #define process_to_unsigned(ptr, str, variable) \
@@ -79,7 +79,7 @@ int StringToModel(void** handle, Model model, String str){
 }
 
 #define process(ptr, format, variable)\
-  sprintf(p_str_2, format";", ptr->variable); strcat(*p_str, (const) p_str_2); 
+  sprintf(p_str_2, format";", ptr->variable); strcat(*p_str, p_str_2); 
 int ModelToString(void* handle, Model model, String* p_str){
   char* p_str_2[100];
   if(model == BOOK){
@@ -176,7 +176,9 @@ int DBUninit(Model model){
     return DB_FAIL_ON_UNINIT;
   }
   fprintf(database, "%d %d", DBs[model].pk, DBs[model].size);
-  while(cur = cur->nxt && cur != data->dummy_tail){
+  while(1){
+    cur = cur->nxt;
+	if (cur == data->dummy_tail) break;
     ok = ModelToString(cur->value, model, &str);
     if(ok != 0){
       ClearList(data, NULL);
@@ -473,7 +475,9 @@ int Filter(void* list_handle, String queries, Model model) {
   if(model == BOOK){
     data = DBs[model].data;
     ListNode* cur = data->dummy_head;
-    while(cur = cur->nxt && cur != data->dummy_tail){
+    while(1){
+      cur = cur->nxt;  
+	if (cur == data->dummy_tail) break;
       if(BookFilter(cur->value, queries)){
         Book* p_b = (Book* ) malloc(sizeof(Book));
         BookCopy(p_b, (Book* )cur->value);
@@ -484,8 +488,10 @@ int Filter(void* list_handle, String queries, Model model) {
   else if(model == USER){
     data = DBs[model].data;
     ListNode* cur = data->dummy_head;
-    while(cur = cur->nxt && cur != data->dummy_tail){
-      if(UserFilter(cur->value, queries)){
+    while(1){
+      cur = cur->nxt;
+      if (cur == data->dummy_tail) break;  
+	if(UserFilter(cur->value, queries)){
         User* p_u = (User* ) malloc(sizeof(User));
         UserCopy(p_u, (User* )cur->value);
         InsertList(handle, handle->dummy_tail, p_u);
@@ -495,8 +501,10 @@ int Filter(void* list_handle, String queries, Model model) {
   else if(model == BORROWRECORD){
     data = DBs[model].data;
     ListNode* cur = data->dummy_head;
-    while(cur = cur->nxt && cur != data->dummy_tail){
-      if(RecordFilter(cur->value, queries)){
+    while(1){
+      cur = cur->nxt;
+      if (cur == data->dummy_tail) break;
+		if(RecordFilter(cur->value, queries)){
         BorrowRecord* p_r = (BorrowRecord* ) malloc(sizeof(BorrowRecord));
         RecordCopy(p_r, (BorrowRecord* )cur->value);
         InsertList(handle, handle->dummy_tail, p_r);

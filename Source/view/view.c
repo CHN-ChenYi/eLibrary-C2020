@@ -1270,141 +1270,142 @@ static inline void Navigation_Library(char *msg) {
 
 // type == 0 => Open
 static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
-  try {
-    SelectFolder("请选择保存图书库的文件夹", lib_path);
-    except(ErrorException) {
-      char *msg = malloc(sizeof(char) * (56 + username_len));
-      if (type)
-        sprintf(msg,
-                "[Error] [%s] Fail to init the library. Path doesn't exist",
-                user.username);
-      else
-        sprintf(msg,
-                "[Error] [%s] Fail to open the library. Path doesn't exist",
-                user.username);
-      ReturnHistory(history_list->dummy_tail->pre, msg);
-      return;
-    }
-  }
-  endtry;
+  // try {
+  //   SelectFolder("请选择保存图书库的文件夹", lib_path);
+  //   except(ErrorException) {
+  //     char *msg = malloc(sizeof(char) * (56 + username_len));
+  //     if (type)
+  //       sprintf(msg,
+  //               "[Error] [%s] Fail to init the library. Path doesn't exist",
+  //               user.username);
+  //     else
+  //       sprintf(msg,
+  //               "[Error] [%s] Fail to open the library. Path doesn't exist",
+  //               user.username);
+  //     ReturnHistory(history_list->dummy_tail->pre, msg);
+  //     return;
+  //   }
+  // }
+  // endtry;
+  sprintf(lib_path, "");
   lib_path_len = strlen(lib_path);
 
-  // copy *.swp.db to *.db and remove *.swp.db
-  Navigation_SaveLibrary(0, NULL);
-  char *command = malloc(sizeof(char) * (8 + strlen(borrowrecord_db_dir)));
+  // // copy *.swp.db to *.db and remove *.swp.db
+  // Navigation_SaveLibrary(0, NULL);
+  // char *command = malloc(sizeof(char) * (8 + strlen(borrowrecord_db_dir)));
 
-  if (ErrorHandle(CloseDBConnection(USER), 1, DB_NOT_OPEN)) {
-    free(command);
-    return;
-  }
-  sprintf(command, "del /F %s", user_db_dir);
-  system(command);
+  // if (ErrorHandle(CloseDBConnection(USER), 1, DB_NOT_OPEN)) {
+  //   free(command);
+  //   return;
+  // }
+  // sprintf(command, "del /F %s", user_db_dir);
+  // system(command);
 
-  if (ErrorHandle(CloseDBConnection(BOOK), 1, DB_NOT_OPEN)) {
-    free(command);
-    return;
-  }
-  sprintf(command, "del /F %s", book_db_dir);
-  system(command);
+  // if (ErrorHandle(CloseDBConnection(BOOK), 1, DB_NOT_OPEN)) {
+  //   free(command);
+  //   return;
+  // }
+  // sprintf(command, "del /F %s", book_db_dir);
+  // system(command);
 
-  if (ErrorHandle(CloseDBConnection(BORROWRECORD), 1, DB_NOT_OPEN)) {
-    free(command);
-    return;
-  }
-  sprintf(command, "del /F %s", borrowrecord_db_dir);
-  system(command);
-  free(command);
+  // if (ErrorHandle(CloseDBConnection(BORROWRECORD), 1, DB_NOT_OPEN)) {
+  //   free(command);
+  //   return;
+  // }
+  // sprintf(command, "del /F %s", borrowrecord_db_dir);
+  // system(command);
+  // free(command);
 
-  if (type) {
-    char *command = malloc(sizeof(char) * (15 + lib_path_len));
-    sprintf(command, "mkdir \"%s\\image\"", lib_path);
-    if (system(command)) {
-      free(command);
-      char *msg = malloc(sizeof(char) * (63 + username_len));
-      sprintf(
-          msg,
-          "[Error] [%s] Fail to init the library. Can't create image folder",
-          user.username);
-      ReturnHistory(history_list->dummy_tail->pre, msg);
-      return;
-    }
-    free(command);
-  }
+  // if (type) {
+  //   char *command = malloc(sizeof(char) * (15 + lib_path_len));
+  //   sprintf(command, "mkdir \"%s\\image\"", lib_path);
+  //   if (system(command)) {
+  //     free(command);
+  //     char *msg = malloc(sizeof(char) * (63 + username_len));
+  //     sprintf(
+  //         msg,
+  //         "[Error] [%s] Fail to init the library. Can't create image folder",
+  //         user.username);
+  //     ReturnHistory(history_list->dummy_tail->pre, msg);
+  //     return;
+  //   }
+  //   free(command);
+  // }
 
   int flag = 0;  // 0 => 无事发生 1=> 有swap文件 2=> 无文件
 
-  sprintf(user_db_dir, "%s%s", lib_path, "\\user.swp.db");
-  if (!_access(user_db_dir, 6)) {  // swap file exists
-    flag |= 1;
-  } else {
-    char *user_database_path = malloc(sizeof(char) * (lib_path_len + 9));
-    sprintf(user_database_path, "%s\\user.db", lib_path);
-    if (!_access(user_database_path, 6)) {  // user database exists
-      char *command =
-          malloc(sizeof(char) * (14 + lib_path_len + 8 + lib_path_len + 12));
-      sprintf(command, "copy /Y \"%s\" \"%s\"", user_database_path,
-              user_db_dir);
-      system(command);
-      free(command);
-    } else {  // book database doesn't exist
-      flag |= 2;
-    }
-    free(user_database_path);
-  }
-  if (ErrorHandle(OpenDBConnection(user_db_dir, USER), 2, DB_NOT_OPEN,
-                  DB_ENTRY_EMPTY))
-    return;
+  // sprintf(user_db_dir, "%s%s", lib_path, "\\user.swp.db");
+  // if (!_access(user_db_dir, 6)) {  // swap file exists
+  //   flag |= 1;
+  // } else {
+  //   char *user_database_path = malloc(sizeof(char) * (lib_path_len + 9));
+  //   sprintf(user_database_path, "%s\\user.db", lib_path);
+  //   if (!_access(user_database_path, 6)) {  // user database exists
+  //     char *command =
+  //         malloc(sizeof(char) * (14 + lib_path_len + 8 + lib_path_len + 12));
+  //     sprintf(command, "copy /Y \"%s\" \"%s\"", user_database_path,
+  //             user_db_dir);
+  //     system(command);
+  //     free(command);
+  //   } else {  // book database doesn't exist
+  //     flag |= 2;
+  //   }
+  //   free(user_database_path);
+  // }
+  // if (ErrorHandle(OpenDBConnection(user_db_dir, USER), 2, DB_NOT_OPEN,
+  //                 DB_ENTRY_EMPTY))
+  //   return;
 
-  sprintf(book_db_dir, "%s%s", lib_path, "\\book.swp.db");
-  if (!_access(book_db_dir, 6)) {  // swap file exists
-    flag |= 1;
-  } else {
-    char *book_database_path = malloc(sizeof(char) * (lib_path_len + 9));
-    sprintf(book_database_path, "%s\\book.db", lib_path);
-    if (!_access(book_database_path, 6)) {  // book database exists
-      char *command =
-          malloc(sizeof(char) * (14 + lib_path_len + 8 + lib_path_len + 12));
-      sprintf(command, "copy /Y \"%s\" \"%s\"", book_database_path,
-              book_db_dir);
-      system(command);
-      free(command);
-    } else {  // book database doesn't exist
-      flag |= 2;
-    }
-    free(book_database_path);
-  }
-  if (ErrorHandle(OpenDBConnection(book_db_dir, BOOK), 2, DB_NOT_OPEN,
-                  DB_ENTRY_EMPTY))
-    return;
+  // sprintf(book_db_dir, "%s%s", lib_path, "\\book.swp.db");
+  // if (!_access(book_db_dir, 6)) {  // swap file exists
+  //   flag |= 1;
+  // } else {
+  //   char *book_database_path = malloc(sizeof(char) * (lib_path_len + 9));
+  //   sprintf(book_database_path, "%s\\book.db", lib_path);
+  //   if (!_access(book_database_path, 6)) {  // book database exists
+  //     char *command =
+  //         malloc(sizeof(char) * (14 + lib_path_len + 8 + lib_path_len + 12));
+  //     sprintf(command, "copy /Y \"%s\" \"%s\"", book_database_path,
+  //             book_db_dir);
+  //     system(command);
+  //     free(command);
+  //   } else {  // book database doesn't exist
+  //     flag |= 2;
+  //   }
+  //   free(book_database_path);
+  // }
+  // if (ErrorHandle(OpenDBConnection(book_db_dir, BOOK), 2, DB_NOT_OPEN,
+  //                 DB_ENTRY_EMPTY))
+  //   return;
 
-  sprintf(borrowrecord_db_dir, "%s%s", lib_path, "\\borrowrecord.swp.db");
-  if (!_access(borrowrecord_db_dir, 6)) {  // swap file exists
-    flag |= 1;
-  } else {
-    char *borrowrecord_database_path =
-        malloc(sizeof(char) * (lib_path_len + 17));
-    sprintf(borrowrecord_database_path, "%s\\borrowrecord.db", lib_path);
-    if (!_access(borrowrecord_database_path,
-                 6)) {  // borrowrecord database exists
-      char *command =
-          malloc(sizeof(char) * (14 + lib_path_len + 8 + lib_path_len + 12));
-      sprintf(command, "copy /Y \"%s\" \"%s\"", borrowrecord_database_path,
-              borrowrecord_db_dir);
-      system(command);
-      free(command);
-    } else {  // borrowrecord database doesn't exist
-      flag |= 2;
-    }
-    free(borrowrecord_database_path);
-  }
-  if (ErrorHandle(OpenDBConnection(borrowrecord_db_dir, BORROWRECORD), 2,
-                  DB_NOT_OPEN, DB_ENTRY_EMPTY))
-    return;
+  // sprintf(borrowrecord_db_dir, "%s%s", lib_path, "\\borrowrecord.swp.db");
+  // if (!_access(borrowrecord_db_dir, 6)) {  // swap file exists
+  //   flag |= 1;
+  // } else {
+  //   char *borrowrecord_database_path =
+  //       malloc(sizeof(char) * (lib_path_len + 17));
+  //   sprintf(borrowrecord_database_path, "%s\\borrowrecord.db", lib_path);
+  //   if (!_access(borrowrecord_database_path,
+  //                6)) {  // borrowrecord database exists
+  //     char *command =
+  //         malloc(sizeof(char) * (14 + lib_path_len + 8 + lib_path_len + 12));
+  //     sprintf(command, "copy /Y \"%s\" \"%s\"", borrowrecord_database_path,
+  //             borrowrecord_db_dir);
+  //     system(command);
+  //     free(command);
+  //   } else {  // borrowrecord database doesn't exist
+  //     flag |= 2;
+  //   }
+  //   free(borrowrecord_database_path);
+  // }
+  // if (ErrorHandle(OpenDBConnection(borrowrecord_db_dir, BORROWRECORD), 2,
+  //                 DB_NOT_OPEN, DB_ENTRY_EMPTY))
+  //   return;
 
-  ClearHistory();
-  History *const new_history = malloc(sizeof(History));
-  new_history->page = kWelcome;
-  PushBackHistory(new_history);
+  // ClearHistory();
+  // History *const new_history = malloc(sizeof(History));
+  // new_history->page = kWelcome;
+  // PushBackHistory(new_history);
 
   if (!msg) {
     msg = malloc(sizeof(char) * (114 + lib_path_len + username_len));
@@ -1443,6 +1444,10 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
   username_len = 0;
 
   Log(msg);
+  DrawUI(kWelcome, &user, NULL, msg);
+  
+  msg = malloc(sizeof(char) * 10);
+  sprintf(msg, "233");
   DrawUI(kWelcome, &user, NULL, msg);
 }
 

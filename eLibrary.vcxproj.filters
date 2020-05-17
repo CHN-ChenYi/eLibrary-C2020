@@ -104,5 +104,35 @@
     <Image Include="Resource\test.jpg">
       <Filter>Resource</Filter>
     </Image>
+    <Image Include="Resource\book.jpg">
+      <Filter>Resource</Filter>
+    </Image>
+    <Image Include="Resource\folder.jpg">
+      <Filter>Resource</Filter>
+    </Image>
+    <Image Include="Resource\help.jpg">
+      <Filter>Resource</Filter>
+    </Image>
+    <Image Include="Resource\history.jpg">
+      <Filter>Resource</Filter>
+    </Image>
+    <Image Include="Resource\person.jpg">
+      <Filter>Resource</Filter>
+    </Image>
+    <Image Include="Resource\search.jpg">
+      <Filter>Resource</Filter>
+    </Image>
+    <Image Include="Resource\show_chart.jpg">
+      <Filter>Resource</Filter>
+    </Image>
+    <Image Include="Resource\sync_alt.jpg">
+      <Filter>Resource</Filter>
+    </Image>
+    <Image Include="Resource\edit_cover.jpg">
+      <Filter>Resource</Filter>
+    </Image>
+    <Image Include="Resource\unknown_cover.jpg">
+      <Filter>Resource</Filter>
+    </Image>
   </ItemGroup>
 </Project>

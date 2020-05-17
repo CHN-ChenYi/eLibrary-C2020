@@ -2,6 +2,7 @@
 #define MODEL_H_
 
 #include "basictype.h"
+#include "list.h"
 typedef char* String;
 
 enum DBErrno {

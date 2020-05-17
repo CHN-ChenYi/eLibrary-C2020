@@ -158,8 +158,6 @@ Frame* CreateFrame(Rect rect, char* color, double alpha) {
 Image* CreateImage(Rect rect, LibImage ui_image, int id) {
   Image* ret = malloc(sizeof(Image));
   ret->position = rect;
-  ret->position.right = ret->position.left + ui_image.width;
-  ret->position.top = ret->position.bottom - ui_image.height;
   ret->ui_image = ui_image;
   ret->id = id;
   return ret;

@@ -90,12 +90,28 @@ static Button *search_user, *search_book;
 
 /*
  * Callback id:
+ * 1 文件新建
+ * 2 文件打开
+ * 3 文件保存
+ * 4 退出
+ * 5 图书新建
+ * 6 图书显示
+ * 7 登录
+ * 8 用户新建
+ * 9 用户审核
+ * 10 用户登出
+ * 11 关于
+ * 12 用户手册
+ * 13 用户搜索
+ * 14 图书搜索
  * 101 用户搜索
  * 102 用户搜索上一页
  * 103 用户搜索下一页
  * 151 - ? 用户详细信息
  * 201 用户注册确认
  * 301 用户修改确认
+ * 302 用户修改上一页
+ * 303 用户修改下一页
  * 401 登陆
  * 501 按照ID排序
  * 502 按照title排序
@@ -129,33 +145,6 @@ static Button *search_user, *search_book;
  * 1103 借书界面搜索
  * 1150 - ? 还书
  */
-
-LendAndBorrow* test() {
-  LendAndBorrow* state = malloc(sizeof(LendAndBorrow));
-  state->books = NewList();
-  state->borrow_records = NewList();
-
-  Book* book_1 = malloc(sizeof(Book));
-  strcpy(book_1->authors[0], "author1");
-  strcpy(book_1->category, "category1");
-  strcpy(book_1->id, "id1");
-  strcpy(book_1->press, "press1");
-  strcpy(book_1->title, "title_1");
-  InsertList(state->books, state->books->dummy_tail, book_1);
-
-  BorrowRecord* record_1 = malloc(sizeof(BorrowRecord));
-  strcpy(record_1->book_name, "title_1");
-  record_1->book_status = BORROWED;
-  strcpy(record_1->borrowed_date, "20200101");
-  strcpy(record_1->returned_date, "20201010");
-  strcpy(record_1->user_name, "user");
-  InsertList(state->borrow_records, state->borrow_records->dummy_tail, record_1);
-
-  state->books_start = state->books->dummy_head->nxt;
-  state->borrow_records_start = state->borrow_records->dummy_head->nxt;
-
-  return state;
-}
 
 List* GenBook() {
   List* list = NewList();
@@ -240,11 +229,11 @@ void AddSubmenuFile() {
 void AddSubmenuBook() {
   new_book = CreateButton(
     (Rect) {70, 220, 70, 110},
-    "新建", MENU_COLOR, 1, kWhite, 1
+    "新建", MENU_COLOR, 1, kWhite, 5
   );
   display_book = CreateButton(
     (Rect) {70, 220, 110, 150},
-    "显示", MENU_COLOR, 1, kWhite, 2
+    "显示", MENU_COLOR, 1, kWhite, 6
   );
   InsertSurface(new_book, kButton);
   InsertSurface(display_book, kButton);
@@ -253,19 +242,19 @@ void AddSubmenuBook() {
 void AddSubmenuUser() {
   login = CreateButton(
     (Rect) {200, 350, 70, 110},
-    "登录", MENU_COLOR, 1, kWhite, 1
+    "登录", MENU_COLOR, 1, kWhite, 7
   );
   new_user = CreateButton(
     (Rect) {200, 350, 110, 150},
-    "新建", MENU_COLOR, 1, kWhite, 2
+    "新建", MENU_COLOR, 1, kWhite, 8
   );
   varify = CreateButton(
     (Rect) {200, 350, 150, 190},
-    "审核", MENU_COLOR, 1, kWhite, 3
+    "审核", MENU_COLOR, 1, kWhite, 9
   );
   logout = CreateButton(
     (Rect) {200, 350, 190, 230},
-    "登出", MENU_COLOR, 1, kWhite, 4
+    "登出", MENU_COLOR, 1, kWhite, 10
   );
   InsertSurface(login, kButton);
   InsertSurface(new_user, kButton);
@@ -276,14 +265,27 @@ void AddSubmenuUser() {
 void AddSubmenuHelp() {
   about = CreateButton(
     (Rect) {GetWindowWidthPx() - 150, GetWindowWidthPx(), 70, 110},
-    "关于", MENU_COLOR, 1, kWhite, 1
+    "关于", MENU_COLOR, 1, kWhite, 11
   );
   manual = CreateButton(
     (Rect) {GetWindowWidthPx() - 150, GetWindowWidthPx(), 110, 150},
-    "用户手册", MENU_COLOR, 1, kWhite, 2
+    "用户手册", MENU_COLOR, 1, kWhite, 12
   );
   InsertSurface(about, kButton);
   InsertSurface(manual, kButton);
+}
+
+void AddSubmenuSearch() {
+  Button* user_search = CreateButton(
+    (Rect) {240, 390, 70, 110},
+    "用户搜索", MENU_COLOR, 1, kWhite, 13
+  );
+  Button* book_search = CreateButton(
+    (Rect) {240, 390, 110, 150},
+    "图书搜索", MENU_COLOR, 1, kWhite, 14
+  );
+  InsertSurface(user_search, kButton);
+  InsertSurface(book_search, kButton);
 }
 
 void AddSubmenu(int status) {
@@ -303,6 +305,10 @@ void AddSubmenu(int status) {
     case HELP_ID:
       AddSubmenuHelp();
       hb_status = kHelp;
+      break;
+    case SEARCH_ID:
+      AddSubmenuSearch();
+      hb_status = kSearch;
       break;
   }
 }
@@ -830,11 +836,7 @@ void HandleUserLoginCallback(int id) {
 }
 
 void AddUserModify() {
-  // UserModify *user_modify = cur_info;
-  UserModify *user_modify = malloc(sizeof(UserModify));
-  user_modify->user = GenUser()->dummy_head->nxt->value;
-  user_modify->borrowrecords = GenBorrowRecord();
-  user_modify->borrowrecords_start = user_modify->borrowrecords->dummy_head->nxt;
+  UserModify *user_modify = cur_info;
 
   User* user = user_modify->user;
 
@@ -914,7 +916,7 @@ void AddUserModify() {
   );
 
   cur_y = top;
-  delta_y = (bottom - top) / (kUserModifyMax + 1);
+  delta_y = (bottom - top - 100) / (kUserModifyMax + 1);
   int right_x = middle + 20;
 
   Label* borrow_title = CreateLabel(
@@ -958,7 +960,17 @@ void AddUserModify() {
     InsertComp(return_time, kLabel);
     InsertComp(info_3, kLabel);
   }
+  Button* pre_page_button = CreateButton(
+    (Rect){middle + 10, middle + 90, bottom - 50, bottom},
+    "上一页", SEARCH_COLOR, 1, kWhite, 302
+  );
+  Button* next_page_button = CreateButton(
+    (Rect){right_border - 80, right_border, bottom - 50, bottom},
+    "下一页", SEARCH_COLOR, 1, kWhite, 303
+  );
 
+  InsertComp(next_page_button, kButton);
+  InsertComp(pre_page_button, kButton);
   InsertComp(confirm_button, kButton);
   InsertComp(admin_input, kInputBox);
   InsertComp(sex_input, kInputBox);
@@ -977,6 +989,8 @@ void AddUserModify() {
 
 /*
  * 301 用户修改确认
+ * 302 上一页
+ * 303 下一页
  */
 void HandleUserModifyCallback(int id) {
   State cur_state;
@@ -996,6 +1010,12 @@ void HandleUserModifyCallback(int id) {
       // 不合法性别默认为男性
     }
     cur_state.user_modify->confirm_callback();
+    break;
+  case 2:
+    cur_state.user_modify->turn_page(0);
+    break;
+  case 3:
+    cur_state.user_modify->turn_page(1);
     break;
   }
 }
@@ -1772,6 +1792,8 @@ void HandleStatisticsCallback(int id) {
 
 void AddContents() {
   switch (cur_page) {
+    case kWelcome:
+      break;
     case kLendAndBorrow:
       AddLendAndBorrow();
       break;
@@ -1783,6 +1805,7 @@ void AddContents() {
       break;
     case kManual:
     case kAbout:
+      //AddManual();
       break;
     case kUserRegister:
       AddUserRegister();
@@ -1839,6 +1862,7 @@ void InitGUI() {
   InitGraphics();
   InitConsole();
   InitializeUI();
+  SetWindowTitle("eLibrary");
   cur_page = kWelcome;
   cur_user = NULL;
   hb_status = kUnclicked;
@@ -1846,11 +1870,82 @@ void InitGUI() {
 }
 
 // Handle Callback
+/*
+ * Callback id:
+ * 1 文件新建
+ * 2 文件打开
+ * 3 文件保存
+ * 4 退出
+ * 5 图书新建
+ * 6 图书显示
+ * 7 登录
+ * 8 用户新建
+ * 9 用户审核
+ * 10 用户登出
+ * 11 关于
+ * 12 用户手册
+ */
 void CallbackById(int id) {
-  /*if (id < 0) {
+  if (id < 0) {
     // click on the head bar
     InitSurface();
     AddSubmenu(id);
+    switch (id) {
+    case LEND_ID:
+      NavigationCallback(kLendAndBorrow);
+      break;
+    case ST_ID:
+      NavigationCallback(kStatistics);
+      break;
+    case RTN_ID:
+      NavigationCallback(kReturn);
+      break;
+    }
+  } else if (id < 100) {
+    switch (id) {
+    case 1:
+      NavigationCallback(kInitLibrary);
+      break;
+    case 2:
+      NavigationCallback(kOpenLibrary);
+      break;
+    case 3:
+      NavigationCallback(kSaveLibrary);
+      break;
+    case 4:
+      NavigationCallback(kExit);
+      break;
+    case 5:
+      NavigationCallback(kBookInit);
+      break;
+    case 6:
+      NavigationCallback(kBookDisplay);
+      break;
+    case 7:
+      NavigationCallback(kUserLogIn);
+      break;
+    case 8:
+      NavigationCallback(kUserRegister);
+      break;
+    case 9:
+      NavigationCallback(kUserManagement);
+      break;
+    case 10:
+      NavigationCallback(kLogout);
+      break;
+    case 11:
+      NavigationCallback(kAbout);
+      break;
+    case 12:
+      NavigationCallback(kManual);
+      break;
+    case 13:
+      NavigationCallback(kUserSearch);
+      break;
+    case 14:
+      NavigationCallback(kBookSearch);
+      break;
+    }
   } else {
     switch (id / 100) {
     case 1:
@@ -1883,7 +1978,27 @@ void CallbackById(int id) {
     case 10:
       HandleStatisticsCallback(id % 100);
       break;
+    case 11:
+      HandleLendAndBorrowCallback(id % 100);
+      break;
     }
-  }*/
+  }
   printf("%d\n", id);
+}
+
+void HandleCtrl(int key) {
+  switch (key) {
+  case 'F':
+    InitSurface();
+    AddSubmenu(FILE_ID);
+    break;
+  case 'B':
+    InitSurface();
+    AddSubmenu(BOOK_ID);
+    break;
+  case 'S':
+    InitSurface();
+    AddSubmenu(SEARCH_ID);
+    break;
+  }
 }

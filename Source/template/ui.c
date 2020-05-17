@@ -37,6 +37,7 @@ static PTCNode focus = NULL;      // The current focus
 static CompList cur_list = NULL;  // The list of all the components on this page.
 static CompList frame = NULL;     // The background or framework of this page.
 static CompList surface = NULL;   // The outmost content
+static int ctrl_down = 0;         // whether ctrl is pushed
 
 // Add a new component into the list
 void InsertComp(void* component, TypeOfComp type) {
@@ -645,13 +646,28 @@ void KeyboardEventHandler(int key, int event) {
         break;
       case VK_RETURN:
         PushButton();
+        break;
+      case VK_CONTROL:
+        ctrl_down = 0;
+        break;
+    }
+  }
+  if (event == KEY_DOWN) {
+    switch (key) {
+    case VK_CONTROL:
+      ctrl_down = 1;
+      break;
     }
   }
   FlushScreen(GetMouseX(), GetMouseY());
 }
 
 void CharEventHandler(int key) {
-  ChangeInputBox(key);
+  if (ctrl_down == 1) {
+    HandleCtrl(key);
+  } else {
+    ChangeInputBox(key);
+  }
   FlushScreen(GetMouseX(), GetMouseY());
 }
 

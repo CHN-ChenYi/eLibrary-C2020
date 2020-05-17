@@ -9,6 +9,7 @@
 void Main() {
   InitGUI();
   char *terminal = malloc(sizeof(char) * 100);
+  memset(terminal, 0, sizeof(terminal));
   strcpy(terminal, "我完蛋了");
-  DrawUI(kUserSearch, NULL, NULL, terminal);
+  DrawUI(kBookModify, NULL, NULL, terminal);
 }

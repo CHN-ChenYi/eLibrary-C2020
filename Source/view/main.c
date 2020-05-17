@@ -11,5 +11,5 @@ void Main() {
   char *terminal = malloc(sizeof(char) * 100);
   memset(terminal, 0, sizeof(terminal));
   strcpy(terminal, "我完蛋了");
-  DrawUI(kBookModify, NULL, NULL, terminal);
+  DrawUI(kUserModify, NULL, NULL, terminal);
 }

@@ -198,28 +198,15 @@ List* GenBorrowRecord() {
   }
   return list;
 }
-
-/*Statistics* test() {
-  Statistics* state = malloc(sizeof(Statistics));
-  state->catalogs = NewList();
-  state->borrow_record = NewList();
-
-  InsertList(state->catalogs, state->catalogs->dummy_tail, "math");
-  InsertList(state->catalogs, state->catalogs->dummy_tail, "physics");
-
-  BorrowRecord* record_1 = malloc(sizeof(BorrowRecord));
-  strcpy(record_1->book_name, "title_1");
-  record_1->book_status = BORROWED;
-  strcpy(record_1->borrowed_date, "20200101");
-  strcpy(record_1->returned_date, "20201010");
-  strcpy(record_1->user_name, "user_1");
-  InsertList(state->borrow_record, state->borrow_record->dummy_tail, record_1);
-
-  state->catalogs_start = state->catalogs->dummy_head->nxt;
-  state->borrow_record_start = state->borrow_record->dummy_head->nxt;
-
-  return state;
-}*/
+List* GenCatalogs() {
+  List* list = NewList();
+  for (int i = 0; i < 10; i++) {
+    char* str = malloc(sizeof(char) * 20);
+    sprintf(str, "catalog%d", i);
+    InsertList(list, list->dummy_tail, str);
+  }
+  return list;
+}
 
 
 void ExitSurface() {
@@ -320,7 +307,6 @@ void AddSubmenu(int status) {
   }
 }
 
-// TODO(Hans): UserName to be tested
 void AddHeadBar() {
   // Head bar
   FileButton = CreateLink(
@@ -843,69 +829,136 @@ void HandleUserLoginCallback(int id) {
   }
 }
 
-// TODO: 分成两栏！日了狗了
 void AddUserModify() {
-  /*
-   * ID configuration
-   * 301: confirm
-   */
-  int pos_x = GetWindowWidthPx() / 2 - 200;
-  int pos_y = GetWindowHeightPx() / 2 - 250;
-  Frame* center_frame = CreateFrame(
-    (Rect){pos_x, pos_x + 400, pos_y, pos_y + 500},
-    "E0E0E0", 1
+  // UserModify *user_modify = cur_info;
+  UserModify *user_modify = malloc(sizeof(UserModify));
+  user_modify->user = GenUser()->dummy_head->nxt->value;
+  user_modify->borrowrecords = GenBorrowRecord();
+  user_modify->borrowrecords_start = user_modify->borrowrecords->dummy_head->nxt;
+
+  User* user = user_modify->user;
+
+  int left_border = 100;
+  int right_border = GetWindowWidthPx() - 100;
+  int middle = GetWindowWidthPx() / 2;
+  int top = 100;
+  int bottom = GetWindowHeightPx() - 70;
+
+  Frame *left_frame = CreateFrame(
+    (Rect){left_border, middle - 10, top, bottom}, PANEL_COLOR, 1
   );
-  InsertFrame(center_frame);
+  Frame *right_frame = CreateFrame(
+    (Rect){middle + 10, right_border, top, bottom}, PANEL_COLOR, 1
+  );
+  InsertFrame(left_frame);
+  InsertFrame(right_frame);
+
+  int left_x = left_border + 10;
+  int cur_y = top;
+  int delta_y = (bottom - top - 100) / 8;
   Label *register_title = CreateLabel(
-    (Rect){pos_x + 5, 0, 0, pos_y + 25}, "用户修改：", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "用户修改：", kBlack, NULL_ID
   );
   Label *username_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 70}, "用户名：", kBlack, NULL_ID
+    (Rect){left_x , 0, 0, cur_y += delta_y},
+    "用户名：", kBlack, NULL_ID
   );
   InputBox* username_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 70}, cur_user->username, NULL_ID
+    (Rect){left_x + TextStringWidth("用户名："), middle - 20, 0, cur_y},
+    user->username, NULL_ID
   );
   username_on_page = username_input->context;
   Label *first_pw_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 130}, "原密码：", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "原密码：", kBlack, NULL_ID
   );
   InputBox* first_pw_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 130}, "", NULL_ID
+    (Rect){left_x + TextStringWidth("原密码："), middle - 20, 0, cur_y},
+    "", NULL_ID
   );
   old_pwd_on_page = first_pw_input->context;
   Label *second_pw_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 190}, "新密码：", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "新密码：", kBlack, NULL_ID
   );
   InputBox* second_pw_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 190}, "", NULL_ID
+    (Rect){left_x + TextStringWidth("新密码："), middle - 20, 0, cur_y},
+    "", NULL_ID
   );
   pwd_on_page = second_pw_input->context;
   Label *dpt_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 250}, "重复新密码：", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "重复新密码：", kBlack, NULL_ID
   );
   InputBox* dpt_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 250}, "", NULL_ID
+    (Rect){left_x + TextStringWidth("重复新密码："), middle - 20, 0, cur_y},
+    "", NULL_ID
   );
   rep_pwd_on_page = dpt_input->context;
   Label *sex_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 310}, "性别：（真的要改吗）", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "性别（M/F）：（真的要改吗）",kBlack, NULL_ID
   );
   InputBox* sex_input = CreateInputBox(
-    (Rect){pos_x + 250, pos_x + 350, 0, pos_y + 310},
-    cur_user->gender == MALE ? "M" : "F", NULL_ID
+    (Rect){left_x + TextStringWidth("性别（M/F）：（真的要改吗）"), middle - 20, 0, cur_y},
+    user->gender == MALE ? "M" : "F", NULL_ID
   );
   gender_on_page = sex_input->context;
   Label *admin_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 370}, "部门", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "部门：", kBlack, NULL_ID
   );
   InputBox* admin_input = CreateInputBox(
-    (Rect){pos_x + 250, pos_x + 350, 0, pos_y + 370}, cur_user->department, NULL_ID
+    (Rect){left_x + TextStringWidth("部门："), middle - 20, 0, cur_y},
+    user->department, NULL_ID
   );
   dpt_on_page = admin_input->context;
   Button* confirm_button = CreateButton(
-    (Rect){pos_x + 100, pos_x + 300, pos_y + 400, pos_y + 470}, "确认",
+    (Rect){left_border, middle - 10, bottom - 50, bottom}, "确认",
     CONFIRM_COLOR, 1, kBlack, 301
   );
+
+  cur_y = top;
+  delta_y = (bottom - top) / (kUserModifyMax + 1);
+  int right_x = middle + 20;
+
+  Label* borrow_title = CreateLabel(
+    (Rect){right_x, 0, 0, cur_y += delta_y}, "借还书记录", kBlack, NULL_ID
+  );
+  InsertComp(borrow_title, kLabel);
+
+  int count = 1;
+  for (ListNode* p = user_modify->borrowrecords_start;
+       p != NULL && count <= kUserModifyMax; p = p->nxt, count++) {
+    BorrowRecord *borrow_record = p->value;
+    Label* user_name = CreateLabel(
+      (Rect){right_x, 0, 0, cur_y += delta_y},
+      borrow_record->user_name, kBlack, NULL_ID
+    );
+    Label* info_1 = CreateLabel(
+      (Rect){user_name->position.right + 10, 0, 0, cur_y},
+      "在", kBlack, NULL_ID
+    );
+    Label* borrow_time = CreateLabel(
+      (Rect){info_1->position.right + 10, 0, 0, cur_y},
+      borrow_record->borrowed_date, kBlack, NULL_ID
+    );
+    Label* info_2 = CreateLabel(
+      (Rect){borrow_time->position.right + 10, 0, 0, cur_y},
+      borrow_record->book_status == BORROWED ? "借出，应于" : "借出，于",
+      kBlack, NULL_ID
+    );
+    Label* return_time = CreateLabel(
+      (Rect){info_2->position.right + 10, 0, 0, cur_y},
+      borrow_record->returned_date, kBlack, NULL_ID
+    );
+    Label *info_3 = CreateLabel (
+      (Rect){return_time->position.right + 10, 0, 0, cur_y},
+      "归还", kBlack, NULL_ID
+    );
+    InsertComp(user_name, kLabel);
+    InsertComp(info_1, kLabel);
+    InsertComp(borrow_time, kLabel);
+    InsertComp(info_2, kLabel);
+    InsertComp(return_time, kLabel);
+    InsertComp(info_3, kLabel);
+  }
+
   InsertComp(confirm_button, kButton);
   InsertComp(admin_input, kInputBox);
   InsertComp(sex_input, kInputBox);
@@ -922,6 +975,9 @@ void AddUserModify() {
   InsertComp(register_title, kLabel);
 }
 
+/*
+ * 301 用户修改确认
+ */
 void HandleUserModifyCallback(int id) {
   State cur_state;
   cur_state.user_modify = cur_info;
@@ -952,7 +1008,7 @@ void AddUserManagement() {
   int middle = GetWindowWidthPx() / 2;
   int top = 100;
   int bottom = GetWindowHeightPx() - 70;
-  int delta_y = (bottom - top - 100) / 11;
+  int delta_y = (bottom - top - 100) / (kLibraryMax + 1);
   int left_x = left_border + 10, left_cur_y = 100;
   int right_x = middle + 20, right_cur_y = 100;
   Frame* left_frame = CreateFrame(
@@ -1193,8 +1249,8 @@ void AddBookDisplay() {
     img, NULL_ID
   );
   InsertComp(book_cover, kImage);
-  int cur_y = book_cover->position.top;
-  int delta_y = GetFontHeight() * 1.5;
+  int cur_y = top;
+  int delta_y = (bottom - top) / 14;
   Label* title = CreateLabel(
     (Rect){left_border, 0, 0, top - 5}, "图书信息", kBlack, NULL_ID
   );
@@ -1274,13 +1330,12 @@ void AddBookDisplay() {
   InsertComp(keyword_label, kLabel);
 }
 
-// 加一个分类，回调id
 // modify and inititialization
 void AddBookModify() {
-  //BookDisplay *book_modify = cur_info;
-  BookDisplay* book_modify = malloc(sizeof(BookDisplay));
+  BookDisplay *book_modify = cur_info;
+  /*BookDisplay* book_modify = malloc(sizeof(BookDisplay));
   book_modify->book = GenBook()->dummy_head->nxt->value;
-  loadImage("D:\\Documents\\ZJU\\Study\\2020Spring\\C\\eLibrary\\Resource\\test.jpg", &book_modify->book_cover);
+  loadImage("D:\\Documents\\ZJU\\Study\\2020Spring\\C\\eLibrary\\Resource\\test.jpg", &book_modify->book_cover);*/
 
   int left_border = 200;
   int right_border = GetWindowWidthPx() - 200;
@@ -1473,24 +1528,83 @@ void HandleBookCallback(int id) {
 
 }
 
-// TODO 链表！
 void AddBorrowDisplay() {
+  BorrowDisplay *borrow_display = cur_info;
+  /*
+  BorrowDisplay *borrow_display = malloc(sizeof(borrow_display));
+  borrow_display->book_name = malloc(sizeof(char) * 10);
+  memset(borrow_display->book_name, 0, sizeof(borrow_display->book_name));
+  strcpy(borrow_display->book_name, "他改变了中国");
+  borrow_display->borrow_record = GenBorrowRecord();
+  borrow_display->borrow_record_start = borrow_display->borrow_record->dummy_head->nxt;
+  */
+
   int left_border = 100;
-  int cur_y = 200;
-  int delta_y = 100;
-  Label *title = CreateLabel(
-    (Rect) {left_border, 0, 0, 100}, "借还书记录：", kBlack, NULL_ID
+  int right_border = GetWindowWidthPx() - 100;
+  int top = 100;
+  int bottom = GetWindowHeightPx() - 100;
+  
+  Frame* frame = CreateFrame(
+    (Rect){left_border, right_border, top, bottom},
+    PANEL_COLOR, 1
   );
+  InsertFrame(frame);
+
+  int cur_y = top;
+  int delta_y = (bottom - top - 100) / (kBorrowDisplayMax + 1);
+  Label *title = CreateLabel(
+    (Rect) {left_border, 0, 0, cur_y += delta_y}, "借还书记录：", kBlack, NULL_ID
+  );
+  Label *book_title = CreateLabel(
+    (Rect){title->position.right + 10, 0, 0, cur_y}, borrow_display->book_name, kBlack, NULL_ID
+  );
+  int count = 1;
+  for (ListNode* p = borrow_display->borrow_record_start; 
+       p != NULL && count <= kBorrowDisplayMax; p = p->nxt, count++) {
+    BorrowRecord *borrow_record = p->value;
+    Label* user_name = CreateLabel(
+      (Rect){left_border + 10, 0, 0, cur_y += delta_y},
+      borrow_record->user_name, kBlack, NULL_ID
+    );
+    Label* info_1 = CreateLabel(
+      (Rect){user_name->position.right + 10, 0, 0, cur_y},
+      "在", kBlack, NULL_ID
+    );
+    Label* borrow_time = CreateLabel(
+      (Rect){info_1->position.right + 10, 0, 0, cur_y},
+      borrow_record->borrowed_date, kBlack, NULL_ID
+    );
+    Label* info_2 = CreateLabel(
+      (Rect){borrow_time->position.right + 10, 0, 0, cur_y},
+      borrow_record->book_status == BORROWED ? "借出，应于" : "借出，于",
+      kBlack, NULL_ID
+    );
+    Label* return_time = CreateLabel(
+      (Rect){info_2->position.right + 10, 0, 0, cur_y},
+      borrow_record->returned_date, kBlack, NULL_ID
+    );
+    Label *info_3 = CreateLabel (
+      (Rect){return_time->position.right + 10, 0, 0, cur_y},
+      "归还", kBlack, NULL_ID
+    );
+    InsertComp(user_name, kLabel);
+    InsertComp(info_1, kLabel);
+    InsertComp(borrow_time, kLabel);
+    InsertComp(info_2, kLabel);
+    InsertComp(return_time, kLabel);
+    InsertComp(info_3, kLabel);
+  }
   Button *pre_page_button = CreateButton(
-    (Rect){20, 100, GetWindowHeightPx() - 125, GetWindowHeightPx() - 75},
+    (Rect){left_border, left_border + 80, bottom - 50, bottom},
     "上一页", TURN_COLOR, 1, kWhite, 901
   );
   Button *next_page_button = CreateButton(
-    (Rect){GetWindowWidthPx() - 100, GetWindowWidthPx() - 20, GetWindowHeightPx() - 125, GetWindowHeightPx() - 75},
+    (Rect){right_border - 80, right_border, bottom - 50, bottom},
     "下一页", TURN_COLOR, 1, kWhite, 902
   );
   InsertComp(next_page_button, kButton);
   InsertComp(pre_page_button, kButton);
+  InsertComp(book_title, kLabel);
   InsertComp(title, kLabel);
 }
 
@@ -1510,45 +1624,122 @@ void HandleBorrowDisplayCallback(int id) {
   }
 }
 
-// TODO 链表！记录一下catalog on page
 void AddStatistics() {
+  Statistics *statistics = cur_info;
+  /*Statistics *statistics = malloc(sizeof(Statistics));
+  statistics->borrow_record = GenBorrowRecord();
+  statistics->borrow_record_start = statistics->borrow_record->dummy_head->nxt;
+  statistics->catalogs = GenCatalogs();
+  statistics->catalogs_start = statistics->catalogs->dummy_head->nxt;*/
+
   int left_border = 100;
   int right_border = GetWindowWidthPx() - 100;
-  int middle = GetWindowHeightPx() / 2 - 100;
+  int middle = GetWindowWidthPx() * 0.3 ;
   int top = 100;
   int bottom = GetWindowHeightPx() - 70;
+
+  Frame* frame_left = CreateFrame(
+    (Rect){left_border, middle - 10, top, bottom}, PANEL_COLOR, 1
+  );
+  InsertFrame(frame_left);
+  Frame* frame_right = CreateFrame(
+    (Rect){middle + 10, right_border, top, bottom}, PANEL_COLOR, 1
+  );
+  InsertFrame(frame_right);
+
   Label *title = CreateLabel(
-    (Rect) {left_border + 10, 0, 0, top + GetPointSize() + 10}, "分类统计：", kBlack, NULL_ID
+    (Rect) {left_border + 10, 0, 0, top - 10}, "分类统计：", kBlack, NULL_ID
   );
   InsertComp(title, kLabel);
-  Frame *top_frame = CreateFrame(
-    (Rect){left_border, right_border, top, middle - 5}, PANEL_COLOR, 1
+
+  int cur_y = top;
+  int delta_y = (bottom - top - 100) / (kStatisticsCatalogsMax + 1);
+  int left_x = left_border + 10;
+  int right_x = middle + 20;
+  Label *catalog_title = CreateLabel(
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "现有分类：", kBlack, NULL_ID
   );
-  Frame *bottom_frame = CreateFrame(
-    (Rect){left_border, right_border, middle + 5, bottom}, PANEL_COLOR, 1
+  InsertComp(catalog_title, kLabel);
+  int count = 1;
+  for (ListNode* p = statistics->catalogs_start;
+       p != NULL && count <= kStatisticsCatalogsMax; p = p->nxt, count++) {
+    char* catalog = p->value;
+    catalog_on_page[count] = p;
+    Link* catalog_link = CreateLink(
+      (Rect){left_x + 10, 0, 0, cur_y += delta_y}, catalog, kBlack, 1150 + count
+    );
+    InsertComp(catalog_link, kLink);
+  }
+
+  count = 1;
+  cur_y = top;
+  delta_y = (bottom - top - 100) / (kStatisticsBorrowRecordMax + 1);
+  Label *record_title = CreateLabel(
+    (Rect){right_x, 0, 0, cur_y += delta_y}, "该分类下借还数据：", kBlack, NULL_ID
   );
-  InsertFrame(top_frame);
-  InsertFrame(bottom_frame);
-  Button *top_pre_page_button = CreateButton(
-    (Rect){left_border + 10, left_border + 110, middle - 60, middle - 10},
+  InsertComp(record_title, kLabel);
+  for (ListNode* p = statistics->borrow_record_start;
+    p != NULL && count <= kStatisticsCatalogsMax; p = p->nxt, count++) {
+    BorrowRecord *borrow_record = p->value;
+    Label* user_name = CreateLabel(
+      (Rect){right_x, 0, 0, cur_y += delta_y},
+      borrow_record->user_name, kBlack, NULL_ID
+    );
+    Label* info_1 = CreateLabel(
+      (Rect){user_name->position.right + 10, 0, 0, cur_y},
+      "在", kBlack, NULL_ID
+    );
+    Label* borrow_time = CreateLabel(
+      (Rect){info_1->position.right + 10, 0, 0, cur_y},
+      borrow_record->borrowed_date, kBlack, NULL_ID
+    );
+    Label* info_2 = CreateLabel(
+      (Rect){borrow_time->position.right + 10, 0, 0, cur_y},
+      borrow_record->book_status == BORROWED ? "借出，应于" : "借出，于",
+      kBlack, NULL_ID
+    );
+    Label* return_time = CreateLabel(
+      (Rect){info_2->position.right + 10, 0, 0, cur_y},
+      borrow_record->returned_date, kBlack, NULL_ID
+    );
+    Label *info_3 = CreateLabel (
+      (Rect){return_time->position.right + 10, 0, 0, cur_y},
+      "归还", kBlack, NULL_ID
+    );
+    Label *book_name = CreateLabel(
+      (Rect){info_3->position.right + 10, 0, 0, cur_y},
+      borrow_record->book_name, kBlack, NULL_ID
+    );
+    InsertComp(user_name, kLabel);
+    InsertComp(info_1, kLabel);
+    InsertComp(borrow_time, kLabel);
+    InsertComp(info_2, kLabel);
+    InsertComp(return_time, kLabel);
+    InsertComp(info_3, kLabel);
+    InsertComp(book_name, kLabel);
+  }
+
+
+  Button *left_pre_page_button = CreateButton(
+    (Rect){left_border, left_border + 80, bottom - 50, bottom},
     "上一页", SEARCH_COLOR, 1, kWhite, 1001
   );
-  Button *top_next_page_button = CreateButton(
-    (Rect){right_border - 110, right_border - 10, middle - 60, middle - 10},
+  Button *left_next_page_button = CreateButton(
+    (Rect){middle - 90, middle - 10, bottom - 50, bottom},
     "下一页", SEARCH_COLOR, 1, kWhite, 1002
   );
-  Button *bottom_pre_page_button = CreateButton(
-    (Rect){left_border + 10, left_border + 110, bottom - 60, bottom - 10},
+  Button *right_pre_page_button = CreateButton(
+    (Rect){middle + 10, middle + 90, bottom - 50, bottom},
     "上一页", SEARCH_COLOR, 1, kWhite, 1003
   );
-  Button *bottom_next_page_button = CreateButton(
-    (Rect){right_border - 110, right_border - 10, bottom - 60, bottom - 10},
+  Button *right_next_page_button = CreateButton(
+    (Rect){right_border - 80, right_border, bottom - 50, bottom},
     "下一页", SEARCH_COLOR, 1, kWhite, 1004
   );
-  InsertComp(bottom_next_page_button, kButton);
-  InsertComp(bottom_pre_page_button, kButton);
-  InsertComp(top_next_page_button, kButton);
-  InsertComp(top_pre_page_button, kButton);
+  InsertComp(right_next_page_button, kButton);
+  InsertComp(right_pre_page_button, kButton);
+  InsertComp(left_next_page_button, kButton);
+  InsertComp(left_pre_page_button, kButton);
 }
 
 /*

@@ -79,21 +79,22 @@ int StringToModel(void** handle, Model model, String str) {
 }
 
 #define process(ptr, format, variable)\
-  sprintf(p_str_2, format";", ptr->variable); strcat(*p_str, (const) p_str_2); 
-int ModelToString(void* handle, Model model, String* p_str) {
-	char p_str_2[100];
-	if (model == BOOK) {
+  sprintf(p_str_2, format";", ptr->variable); strcat(p_str, (const) p_str_2); 
+int ModelToString(void* handle, Model model, char* p_str) {
+	char p_str_2[100] = "";
+	if (model == BOOK){
 		Book* p_b = (Book*)handle;
 		process(p_b, "%u", uid);
 		process(p_b, "%s", id);
+		process(p_b, "%s", title);
 		int i;
-		for (i = 0; i < 3; i++) process(p_b, "%s", authors[i]);
+		for (i = 0; i < 3; i++) { process(p_b, "%s", authors[i]); }
 		process(p_b, "%s", category);
 		process(p_b, "%s", press);
-		for (i = 0; i < 5; i++) process(p_b, "%s", keywords[i]);
+		for (i = 0; i < 5; i++) { process(p_b, "%s", keywords[i]); }
 		process(p_b, "%u", number_on_the_shelf);
 		process(p_b, "%u", available_borrowed_days);
-		strcat(*p_str, "\n");
+		strcat(p_str, "\n");
 	}
 	else if (model == USER) {
 		User* p_u = (User*)handle;
@@ -107,7 +108,7 @@ int ModelToString(void* handle, Model model, String* p_str) {
 		process(p_u, "%s", department);
 		process(p_u, "%u", whoami);
 		process(p_u, "%u", verified);
-		strcat(*p_str, "\n");
+		strcat(p_str, "\n");
 	}
 	else if (model == BORROWRECORD) {
 		BorrowRecord* p_r = (BorrowRecord*)handle;
@@ -119,7 +120,7 @@ int ModelToString(void* handle, Model model, String* p_str) {
 		process(p_r, "%s", borrowed_date);
 		process(p_r, "%u", book_status);
 		process(p_r, "%s", returned_date);
-		strcat(*p_str, "\n");
+		strcat(p_str, "\n");
 	}
 	return 0;
 }
@@ -172,7 +173,6 @@ int DBInit(Model model) {
 }
 int DBUninit(Model model) {
 	int ok;
-	char str[3000] = "";
 	FILE* database = DBs[model].database;
 	if (database == NULL) return DB_NOT_FOUND;
 	List* data = DBs[model].data;
@@ -182,16 +182,17 @@ int DBUninit(Model model) {
 		ClearList(data, NULL);
 		return DB_FAIL_ON_UNINIT;
 	}
-	fprintf(database, "%d %d", DBs[model].pk, DBs[model].size);
+	fprintf(database, "%d %d\n", DBs[model].pk, DBs[model].size);
 	while (1) {
 		cur = cur->nxt;
 		if (cur == data->dummy_tail) break;
-		ok = ModelToString(cur->value, model, &str);
+		char str[3000] = "";
+		ok = ModelToString(cur->value, model, str);
 		if (ok != 0) {
 			ClearList(data, NULL);
 			return DB_FAIL_ON_UNINIT;
 		}
-		fprintf(database, "\n%s", str);
+		fprintf(database, "%s", str);
 	}
 	ClearList(data, NULL);
 	return DB_SUCCESS;
@@ -216,36 +217,39 @@ int CloseDBConnection(Model model) {
 int Find(ListNode** target, unsigned int id, Model model) {
 	if (model == BOOK) {
 		ListNode* cur = DBs[model].data->dummy_head;
-		while (cur != DBs[model].data->dummy_tail) {
+		while (1) {
+			cur = cur->nxt;
+			if (cur == DBs[model].data->dummy_tail) break;
 			if (id == ((Book *)cur->value)->uid) {
 				*target = cur;
 				break;
 			}
-			cur = cur->nxt;
 		}
 		if (cur == DBs[model].data->dummy_tail) return DB_NOT_EXISTS;
 		else return DB_SUCCESS;
 	}
 	else if (model == USER) {
 		ListNode* cur = DBs[model].data->dummy_head;
-		while (cur != DBs[model].data->dummy_tail) {
+		while (1) {
+			cur = cur->nxt;
+			if (cur == DBs[model].data->dummy_tail) break;
 			if (id == ((User *)cur->value)->uid) {
 				*target = cur;
 				break;
 			}
-			cur = cur->nxt;
 		}
 		if (cur == DBs[model].data->dummy_tail) return DB_NOT_EXISTS;
 		else return DB_SUCCESS;
 	}
 	else if (model == BORROWRECORD) {
 		ListNode* cur = DBs[model].data->dummy_head;
-		while (cur != DBs[model].data->dummy_tail) {
+		while (1) {
+			cur = cur->nxt;
+			if (cur == DBs[model].data->dummy_tail) break;
 			if (id == ((BorrowRecord *)cur->value)->uid) {
 				*target = cur;
 				break;
 			}
-			cur = cur->nxt;
 		}
 		if (cur == DBs[model].data->dummy_tail) return DB_NOT_EXISTS;
 		else return DB_SUCCESS;
@@ -255,19 +259,24 @@ int Find(ListNode** target, unsigned int id, Model model) {
 
 int Create(void* handle, Model model) {
 	if (!DBExists(model)) return DB_NOT_FOUND;
-	void* target;
+	void* target = NULL;
+	int ok;
 	if (model == BOOK) {
 		target = malloc(sizeof(Book));
-		BookCopy((Book*)handle, (Book*)target);
+		ok = BookCopy((Book*)target, (Book*)handle);
+		if (ok != DB_SUCCESS) return DB_FAIL_ON_CREATE;
 	}
 	else if (model == USER) {
 		target = malloc(sizeof(User));
-		UserCopy((User*)handle, (User*)target);
+		ok = UserCopy((User*)target, (User*)handle);
+		if (ok != DB_SUCCESS) return DB_FAIL_ON_CREATE;
 	}
 	else if (model == BORROWRECORD) {
 		target = malloc(sizeof(BorrowRecord));
-		RecordCopy((BorrowRecord*)handle, (BorrowRecord*)target);
+		ok = RecordCopy((BorrowRecord*)target, (BorrowRecord*)handle);
+		if (ok != DB_SUCCESS) return DB_FAIL_ON_CREATE;
 	}
+	if (target == NULL) return DB_FAIL_ON_CREATE;
 	if (InsertList(DBs[model].data, DBs[model].data->dummy_tail, target) == DBs[model].data->dummy_tail) {
 		return DB_FAIL_ON_CREATE;
 	}
@@ -542,7 +551,7 @@ int GetDBSize(Model model, unsigned int *size) {
 
 int GetNextPK(Model model, unsigned int *pk) {
 	if (!DBExists(model)) return DB_NOT_FOUND;
-	*pk = DBs[model].pk + 1;
+	*pk = DBs[model].pk;
 	return DB_SUCCESS;
 }
 
@@ -552,13 +561,15 @@ int Update(void* handle, unsigned int id, Model model) {
 	int ok, uid;
 	ok = Find(&target, id, model);
 	if (ok != DB_SUCCESS) return DB_NOT_EXISTS;
-	if (model == BOOK) uid = ((Book*)target)->uid;
-	else if (model == USER) uid = ((User*)target)->uid;
-	else if (model == BORROWRECORD) uid = ((BorrowRecord*)target)->uid;
-	ok = Delete(uid, model);
-	if (ok != DB_SUCCESS) return DB_FAIL_ON_DELETE;
-	ok = Create(handle, model);
-	if (ok != DB_SUCCESS) return DB_FAIL_ON_UPDATE;
+	if (model == BOOK) {
+		BookCopy((Book*) target->value, (Book*)handle);
+	} 
+	else if (model == USER) {
+		UserCopy((User*)target->value, (User*)handle);
+	}
+	else if (model == BORROWRECORD) {
+		RecordCopy((BorrowRecord*)target->value, (BorrowRecord*)handle);
+	}
 	return ok;
 }
 
@@ -567,6 +578,7 @@ int Delete(unsigned int id, Model model) {
 	List* data = DBs[model].data;
 	int ok;
 	ok = Find(&target, id, model);
+	printf("ok\n");
 	if (ok != DB_SUCCESS) return DB_FAIL_ON_DELETE;
 	EraseList(data, target, NULL);
 	DBs[model].size--;

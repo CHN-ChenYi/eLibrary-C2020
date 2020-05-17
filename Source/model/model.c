@@ -255,7 +255,20 @@ int Find(ListNode** target, unsigned int id, Model model) {
 
 int Create(void* handle, Model model) {
 	if (!DBExists(model)) return DB_NOT_FOUND;
-	if (InsertList(DBs[model].data, DBs[model].data->dummy_tail, handle) == DBs[model].data->dummy_tail) {
+	void* target;
+	if (model == BOOK) {
+		target = malloc(sizeof(Book));
+		BookCopy((Book*)handle, (Book*)target);
+	}
+	else if (model == USER) {
+		target = malloc(sizeof(User));
+		UserCopy((User*)handle, (User*)target);
+	}
+	else if (model == BORROWRECORD) {
+		target = malloc(sizeof(BorrowRecord));
+		RecordCopy((BorrowRecord*)handle, (BorrowRecord*)target);
+	}
+	if (InsertList(DBs[model].data, DBs[model].data->dummy_tail, target) == DBs[model].data->dummy_tail) {
 		return DB_FAIL_ON_CREATE;
 	}
 	DBs[model].pk++;

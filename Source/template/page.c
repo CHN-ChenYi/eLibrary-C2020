@@ -1988,17 +1988,25 @@ void CallbackById(int id) {
 
 void HandleCtrl(int key) {
   switch (key) {
-  case 'F':
+  case 6: // F
     InitSurface();
     AddSubmenu(FILE_ID);
     break;
-  case 'B':
+  case 2: // B
     InitSurface();
     AddSubmenu(BOOK_ID);
     break;
-  case 'S':
+  case 19: // S
     InitSurface();
     AddSubmenu(SEARCH_ID);
+    break;
+  case 21: // U
+    InitSurface();
+    AddSubmenu(USER_ID);
+    break;
+  case 8:  // H
+    InitSurface();
+    AddSubmenu(HELP_ID);
     break;
   }
 }

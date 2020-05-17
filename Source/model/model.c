@@ -42,7 +42,7 @@ int CloseDBConnection(Model model) {}
   Return value:
   1 if error appears, 0 otherwise.
  */
- // return 1 if error appears, 0 otherwise.
+// return 1 if error appears, 0 otherwise.
 int Create(void* handle, Model model) {}
 
 // Request

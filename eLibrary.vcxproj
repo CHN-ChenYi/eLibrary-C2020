@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resource\book.jpg" />
+    <Image Include="Resource\edit_cover.jpg" />
     <Image Include="Resource\folder.jpg" />
     <Image Include="Resource\help.jpg" />
     <Image Include="Resource\history.jpg" />
@@ -61,6 +62,7 @@
     <Image Include="Resource\show_chart.jpg" />
     <Image Include="Resource\sync_alt.jpg" />
     <Image Include="Resource\test.jpg" />
+    <Image Include="Resource\unknown_cover.jpg" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3B1A6724-7DA5-4790-B9B6-EC346C10E842}</ProjectGuid>

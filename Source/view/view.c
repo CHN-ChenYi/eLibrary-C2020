@@ -49,7 +49,7 @@ static void LendAndBorrow_ReturnCallback(ListNode *book,
 static void LendAndBorrow_TurnPage(bool direction);
 static void UserModify_ConfirmCallback();
 static void UserModify_TurnPage(bool direction);
-static bool CmpBorrowRecordByReturnTime(const void * const lhs, const void * const rhs);
+static bool CmpGreaterBorrowRecordByReturnTime(const void * const lhs, const void * const rhs);
 static void inline UserSearchInfoDisplay(User *show_user, char *msg);
 static void UserSearch_InfoCallback(User *user);
 static void inline UserSearchDisplay(char *keyword, char *msg);
@@ -77,6 +77,8 @@ static void Library_TurnPage(bool direction);
 static void *const StrCpy(void *const str);
 static void Statistics_SelectCallback(ListNode *catalog);
 static void Statistics_TurnPage(bool direction, bool type);
+static bool CmpLessBorrowRecordByReturnTime(const void *const lhs,
+                                            const void *const rhs);
 static inline void Navigation_LendAndBorrow(char *msg);
 static inline void Navigation_BookSearch(char *msg);
 static inline void Navigation_UserSearch(char *msg);
@@ -482,7 +484,7 @@ static void UserModify_TurnPage(bool direction) {
   DrawUI(kUserModify, &user, state, msg);
 }
 
-static bool CmpBorrowRecordByReturnTime(const void * const lhs, const void * const rhs) {
+static bool CmpGreaterBorrowRecordByReturnTime(const void * const lhs, const void * const rhs) {
   return strcmp(((BorrowRecord*)lhs)->returned_date, ((BorrowRecord*)rhs)->returned_date) >= 0;
 }
 
@@ -498,7 +500,7 @@ static void inline UserSearchInfoDisplay(User *show_user, char *msg) {
     return;
   }
   free(query);
-  SortList(borrow_record, CmpBorrowRecordByReturnTime);
+  SortList(borrow_record, CmpGreaterBorrowRecordByReturnTime);
 
   History *const new_history = malloc(sizeof(History));
   new_history->page = kUserModify;
@@ -760,7 +762,8 @@ static void BookDisplayAdminDisplay(char *msg) {
     return;
   }
   free(query);
-  // TODO:(TO/GA) 排序
+  SortList(borrow_record, CmpGreaterBorrowRecordByReturnTime);
+
   History *const new_history = malloc(sizeof(History));
   new_history->page = kBorrowDisplay;
   new_history->state.borrow_display = malloc(sizeof(BorrowDisplay));
@@ -984,18 +987,20 @@ static void Statistics_SelectCallback(ListNode *catalog) {
     DeleteList(borrow_records, free);
     return;
   }
-  for (const ListNode *cur_node = borrow_records->dummy_head->nxt;
-       cur_node != borrow_records->dummy_tail;) {
-    if (ErrorHandle(
-            GetById(book, ((BorrowRecord *)cur_node->value)->book_uid, BOOK))) {
-      DeleteList(borrow_records, free);
-      free(book);
-      return;
+  if (strcmp(catalog->value, "ALL")) {
+    for (const ListNode *cur_node = borrow_records->dummy_head->nxt;
+         cur_node != borrow_records->dummy_tail;) {
+      if (ErrorHandle(
+              GetById(book, ((BorrowRecord *)cur_node->value)->book_uid, BOOK))) {
+        DeleteList(borrow_records, free);
+        free(book);
+        return;
+      }
+      if (strcmp(book->category, catalog->value))
+        cur_node = EraseList(borrow_records, cur_node, NULL);
+      else
+        cur_node = cur_node->nxt;
     }
-    if (strcmp(book->category, catalog->value))
-      cur_node = EraseList(borrow_records, cur_node, NULL);
-    else
-      cur_node = cur_node->nxt;
   }
 
   History *const new_history = malloc(sizeof(History));
@@ -1033,6 +1038,12 @@ static void Statistics_TurnPage(bool direction, bool type) {
   DrawUI(kStatistics, &user, state, msg);
 }
 
+static bool CmpLessBorrowRecordByReturnTime(const void *const lhs,
+                                               const void *const rhs) {
+  return strcmp(((BorrowRecord *)lhs)->returned_date,
+                ((BorrowRecord *)rhs)->returned_date) <= 0;
+}
+
 static inline void Navigation_LendAndBorrow(char *msg) {
   List *borrow_records_list = NewList();
   char *query = malloc(sizeof(char) * (31 + 10));
@@ -1043,7 +1054,7 @@ static inline void Navigation_LendAndBorrow(char *msg) {
     return;
   }
   free(query);
-  // TODO:(TO/GA)按还书时间排序
+  SortList(borrow_records_list, CmpLessBorrowRecordByReturnTime);
 
   List *books = NewList();
   for (ListNode *cur_node = borrow_records_list->dummy_head;
@@ -1093,14 +1104,11 @@ static inline void Navigation_UserSearch(char *msg) {
 static inline void Navigation_ManualOrAbout(bool type, char *msg) {
   History *const new_history = malloc(sizeof(History));
   new_history->state.manual_and_about = malloc(sizeof(ManualAndAbout));
-  // TODO:(TO/GA) finish it
-  if (type) {
+
+  if (type)
     new_history->page = kAbout;
-    // new_history->state.manual_and_about->img
-  } else {
+  else
     new_history->page = kManual;
-    // new_history->state.manual_and_about->img
-  }
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -1552,7 +1560,10 @@ static inline void Navigation_Statistics(char *msg) {
   DeleteList(book, free);
   SortList(category, StrLess);
   UniqueList(category, StrSame, free);
-  // TODO:(TO/GA) 加个All, CB那里也处理一下
+
+  char *str = malloc(sizeof(char) * 4);
+  sprintf(str, "ALL");
+  InsertList(category, category->dummy_head->nxt, str);
 
   List *borrow_record = NewList();
   if (ErrorHandle(Filter(borrow_record, "", BORROWRECORD))) {

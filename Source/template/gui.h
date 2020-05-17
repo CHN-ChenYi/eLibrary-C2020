@@ -101,8 +101,8 @@ typedef struct LoginOrRegister {
 #define kUserModifyMax 10  // 单页最大显示数目
 typedef struct UserModify {
   User *user;                  // 用户信息
-  List *books;                 // 借书
-  ListNode *books_start;       // 第一本要显示的借书
+  List *borrowrecords;                 // 借书
+  ListNode *borrowrecords_start;  // 第一本要显示的借书
   char old_password[50];       // 旧密码
   char new_password[50];       // 新密码
   char repeat_password[50];    // 重复新密码

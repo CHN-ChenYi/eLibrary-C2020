@@ -1295,8 +1295,8 @@ void AddBookModify() {
   InsertFrame(frame);
 
   int info_x = middle;
-  int cur_y = top + 100;
-  int delta_y = GetFontHeight() + 10;
+  int cur_y = top;
+  int delta_y = (bottom - top) / 14;
 
   Book *book = book_modify->book;
   LibImage img = book_modify->book_cover;
@@ -1320,7 +1320,7 @@ void AddBookModify() {
 
   // Id
   Label* book_id_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y}, " È∫≈£∫", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, " È∫≈£∫", kBlack, NULL_ID
   );
   InputBox* book_id_context = CreateInputBox(
     (Rect){info_x + TextStringWidth(" È∫≈£∫"), right_border - 10, 0, cur_y},

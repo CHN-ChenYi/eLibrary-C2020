@@ -1,9 +1,5 @@
-﻿#include "exception.h"
-#include "genlib.h"
-#include "graphics.h"
-#include "extgraph.h"
-#include "page.h"
-#include "gui.h"
+﻿#include "gui.h"
+#include "view.h"
 
 
 void Main() {

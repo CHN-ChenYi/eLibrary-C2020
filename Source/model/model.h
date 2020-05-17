@@ -3,6 +3,7 @@
 
 #include "basictype.h"
 #include "list.h"
+#include <stdio.h>
 typedef char* String;
 
 enum DBErrno {
@@ -137,7 +138,7 @@ int GetById(void* handle, unsigned int id, Model model);
  Return value:
  DBErrno
 */
-int Filter(void* list_handle, String queries, Model model);
+int Filter(List* list_handle, String queries, Model model);
 
 /*
   GetDBSize

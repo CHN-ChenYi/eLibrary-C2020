@@ -95,6 +95,7 @@ static inline void Navigation_Return(char *msg);
 static inline void Navigation_Exit();
 extern void NavigationCallback(Page nav_page);
 // TODO:(TO/GA) 加载edit_cover和unknown_cover
+// TODO:(TO/GA) 写copy_paste_callback
 void Init() {
   InitConsole();               // TODO:(TO/GA) 可以删掉了？
   InitGraphics();              // TODO:(TO/GA) 可以删掉了？
@@ -799,7 +800,7 @@ static void BookDisplay_CoverCallback() {
     except(ErrorException) {
       char *msg = malloc(sizeof(char) * (34 + username_len));
       sprintf(msg, "[Error] [%s] Fail to open the image", user.username);
-      DrawUI(kBookDisplay, &user, TopHistory()->state.book_display, msg);
+      DrawUI(kBookModify, &user, TopHistory()->state.book_display, msg);
       return;
     }
   }
@@ -815,7 +816,7 @@ static void BookDisplay_CoverCallback() {
     sprintf(msg, "[Error] [%s] Fail to change the book(uid = %d)'s cover",
             user.username, uid);
     free(command);
-    DrawUI(kBookDisplay, &user, TopHistory()->state.book_display, msg);
+    DrawUI(kBookModify, &user, TopHistory()->state.book_display, msg);
     return;
   }
   free(command);
@@ -824,7 +825,7 @@ static void BookDisplay_CoverCallback() {
   sprintf(msg, "[Info] [%s] Change the book(uid = %d)'s cover", user.username,
           uid);
   Log(msg);
-  DrawUI(kBookDisplay, &user, TopHistory()->state.book_display, msg);
+  DrawUI(kBookModify, &user, TopHistory()->state.book_display, msg);
 }
 
 static void BookDisplay_ConfirmCallback() {
@@ -858,6 +859,7 @@ static void BookDisplay_ConfirmCallback() {
 }
 
 static void BookDisplay_DeleteCallback() {
+  // TODO:(TO/GA) 确认一下是删除Init还是删除Display？
   if (user.whoami != ADMINISTRATOR) {
     char *msg = malloc(sizeof(char) * (60 + username_len));
     sprintf(msg, "[Error] [%s] Permission denied. Can't modify any book",
@@ -1766,7 +1768,8 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
     // case kSaveLibrary:  // 图书库保存
     // break;
     case kBookDisplay:   // 图书显示
-    case kBookModify: {  // 图书修改/删除
+    case kBookModify: {  // 图书修改/删除 
+      // TODO:(TO/GA)根据管理员身份确定是Display还是Modify
       Book *new_book = malloc(sizeof(Book));
       memcpy(new_book, history->state.book_display->book, sizeof(Book));
       PopBackHistory();

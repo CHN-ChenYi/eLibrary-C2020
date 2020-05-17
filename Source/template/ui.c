@@ -76,7 +76,6 @@ CompList NewCompList() {
 // Free the list
 void FreeList(CompList L) {
   for (PTCNode p = L->next; p != L;) {
-    //printf("%d\n", p->type);
     PTCNode next = p->next;
     free(p->component);
     free(p);
@@ -159,8 +158,6 @@ Frame* CreateFrame(Rect rect, char* color, double alpha) {
 Image* CreateImage(Rect rect, LibImage ui_image, int id) {
   Image* ret = malloc(sizeof(Image));
   ret->position = rect;
-  ret->position.right = ret->position.left + ui_image.width;
-  ret->position.top = ret->position.bottom - ui_image.height;
   ret->ui_image = ui_image;
   ret->id = id;
   return ret;
@@ -227,6 +224,14 @@ void DrawButton(Button* button, int mouse_x) {
   DrawTextString(button->caption);
 }
 
+// Judge whether str[pos ~ pos + 1] is a Chinese
+int IsInsideChinese (char* str, int pos) {
+  if (pos >= strlen(str) - 1 || pos < 0) {
+    return 0;
+  }
+  return !isascii(str[pos]) && !isascii(str[pos + 1]);
+}
+
 // Get the length of the [left, right) characters in a string
 int GetStringWidthN (char* str, int left, int right) {
   if (right > strlen(str)) {
@@ -238,6 +243,7 @@ int GetStringWidthN (char* str, int left, int right) {
   str[right] = tmp;
   return ret;
 }
+
 
 // Draw [left, right) of the string str
 void DrawTextStringN (char* str, int left, int right) {
@@ -255,20 +261,22 @@ void DrawContent(InputBox* input_box, int draw_cursor) {
   if (GetStringWidthN(input_box->context, 0, input_box->cursor) <= inner_length) {
     left_most = 0;
     right_most = len;
-    for (int i = input_box->cursor; i <= len; i++) {
+    for (int i = input_box->cursor; i <= len;) {
       if (GetStringWidthN(input_box->context, left_most, i) > inner_length) {
-        right_most = i - 1;
+        right_most = i - 1 - IsInsideChinese(input_box->context, i - 2);
         break;
       }
+      i += 1 + IsInsideChinese(input_box->context, i);
     }
   } else {
     left_most = 0;
     right_most = input_box->cursor;
-    for (int i = input_box->cursor; i >= 0; i--) {
+    for (int i = input_box->cursor; i >= 0;) {
       if (GetStringWidthN(input_box->context, i, right_most) > inner_length) {
-        left_most = i + 1;
+        left_most = i + IsInsideChinese(input_box->context, i) + 1;
         break;
       }
+      i -= 1 + IsInsideChinese(input_box->context, i - 2);
     }
   }
   // Draw the text string
@@ -552,15 +560,19 @@ void MoveCursor(int delta) {
   } else if (input_box->cursor + delta < 0) {
     input_box->cursor = 0;
   } else {
-    input_box->cursor += delta;
-    if (input_box->cursor > 0 && !isascii(input_box->context[input_box->cursor - 1])) {
-      switch (delta) {
-        case 1:
-          input_box->cursor++;
-          break;
-        case -1:
-          input_box->cursor--;
-          break;
+    switch (delta) {
+    case 1:
+      if (IsInsideChinese(input_box->context, input_box->cursor)) {
+        input_box->cursor += 2;
+      } else {
+        input_box->cursor++;
+      }
+      break;
+    case -1:
+      if (IsInsideChinese(input_box->context, input_box->cursor - 2)) {
+        input_box->cursor -= 2;
+      } else {
+        input_box->cursor--;
       }
     }
   }
@@ -580,8 +592,14 @@ void DeleteChar(char* str, int position) {
   if (position >= len || position < 0) {
     return;
   }
-  for (int i = position; i < len; i++) {
-    str[i] = str[i + 1];
+  if (IsInsideChinese(str, position)) {
+    for (int i = position; i < len; i++) {
+      str[i] = str[i + 2];
+    }
+  } else {
+    for (int i = position; i < len; i++) {
+      str[i] = str[i + 1];
+    }
   }
 }
 
@@ -592,7 +610,7 @@ void ChangeInputBox(int key) {
   if (!iscntrl(key)) {
     InputBox* input_box = (InputBox*)focus->component;
     InsertChar(input_box->context, key, input_box->cursor);
-    MoveCursor(1);
+    input_box->cursor++;
   }
 }
 
@@ -609,8 +627,10 @@ void BackSpaceInputBox() {
     return;
   }
   InputBox* input_box = (InputBox*)focus->component;
-  DeleteChar(input_box->context, input_box->cursor - 1);
-  MoveCursor(-1);
+  if(input_box->cursor > 0) {
+    MoveCursor(-1);
+    DeleteChar(input_box->context, input_box->cursor);
+  }
 }
 
 // Handle the mouse movement on components

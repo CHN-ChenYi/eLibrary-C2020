@@ -1264,8 +1264,19 @@ void AddBookDisplay() {
 
   int info_x = middle;
   LibImage img = book_display->book_cover;
+  int available_width = middle - left_border - 100;
+  int availabel_height = bottom - top - 100;
+  int height, width;
+  if (availabel_height * img.width < img.height * available_width) {
+    height = availabel_height;
+    width = height * img.width / img.height;
+  } else {
+    width = available_width;
+    height = width * img.height / img.width;
+  }
   Image* book_cover = CreateImage(
-    (Rect){(left_border + middle - img.width) / 2, 0, 0, (top + bottom + img.height) / 2},
+    (Rect){(left_border + middle - width) / 2, (left_border + middle + width) / 2,
+           (top + bottom - height) / 2, (top + bottom + height) / 2},
     img, NULL_ID
   );
   InsertComp(book_cover, kImage);
@@ -1375,10 +1386,20 @@ void AddBookModify() {
 
   Book *book = book_modify->book;
   LibImage img = book_modify->book_cover;
-
+  int available_width = middle - left_border - 100;
+  int availabel_height = bottom - top - 100;
+  int height, width;
+  if (availabel_height * img.width < img.height * available_width) {
+    height = availabel_height;
+    width = height * img.width / img.height;
+  } else {
+    width = available_width;
+    height = width * img.height / img.width;
+  }
   Image* book_cover = CreateImage(
-    (Rect){(left_border + middle - img.width) / 2, 0, 0, (top + bottom + img.height) / 2},
-    img, 802
+    (Rect){(left_border + middle - width) / 2, (left_border + middle + width) / 2,
+           (top + bottom - height) / 2, (top + bottom + height) / 2},
+    img, NULL_ID
   );
   InsertComp(book_cover, kImage);
 
@@ -1919,7 +1940,7 @@ void CallbackById(int id) {
       NavigationCallback(kBookInit);
       break;
     case 6:
-      NavigationCallback(kBookDisplay);
+      NavigationCallback(kLibrary);
       break;
     case 7:
       NavigationCallback(kUserLogIn);

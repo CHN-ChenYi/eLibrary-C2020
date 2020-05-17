@@ -72,16 +72,16 @@ int StringToModel(void** handle, Model model, String str){
   }
   else if(model == BORROWRECORD){
     BorrowRecord* p_br = (BorrowRecord* ) malloc(sizeof(BorrowRecord));
-    StringToUser(p_br, str);
+    StringToRecord(p_br, str);
     *handle = (void* ) p_br;
   }
   return 0;
 }
 
 #define process(ptr, format, variable)\
-  sprintf(p_str_2, format";", ptr->variable); strcat(*p_str, p_str_2); 
+  sprintf(p_str_2, format";", ptr->variable); strcat(*p_str, (const) p_str_2); 
 int ModelToString(void* handle, Model model, String* p_str){
-  String p_str_2;
+  char* p_str_2[100];
   if(model == BOOK){
     Book* p_b = (Book* ) handle;
     process(p_b, "%u", uid);
@@ -135,18 +135,18 @@ int DBOpen(const char* filename, Model model){
 }
 int DBClose(Model model){
   int ok;
-  ok = fclose(DBs[model].filename);
+  ok = fclose(DBs[model].database);
   if(ok != 0) return DB_NOT_CLOSE;
   else return DB_SUCCESS;
 }
 int DBInit(Model model){
   int ok;
-  String str;
+  char str[100];
   FILE** database = &DBs[model].database;
   List** data = &DBs[model].data;
   *data = NewList();
   ListNode* current = (*data)->dummy_head;
-  if(fgets(str, 50, database) == NULL){
+  if(fgets(str, 50, *database) == NULL){
     return DB_ENTRY_EMPTY;
   }
   ok = sscanf(str, "%d %d", &(DBs[model].pk), &(DBs[model].size));
@@ -156,7 +156,7 @@ int DBInit(Model model){
     return DB_SUCCESS;
   }
   else if(ok != 2) return DB_FAIL_ON_INIT;
-  while(fgets(str, 1000, database) != NULL){
+  while(fgets(str, 1000, *database) != NULL){
     void *handle;
     ok = StringToModel(&handle, model, str);
     if(ok != 0) return DB_FAIL_ON_INIT;
@@ -245,7 +245,6 @@ int Find(ListNode** target, unsigned int id, Model model){
 }
 
 int Create(void* handle, Model model) {
-  int ok;
   if(!DBExists(model)) return DB_NOT_FOUND;
   if(InsertList(DBs[model].data, DBs[model].data->dummy_tail, handle) == DBs[model].data->dummy_tail){
     return DB_FAIL_ON_CREATE;
@@ -284,6 +283,7 @@ int UserCopy(User* destination, User* source){
   if(strcpy(destination->department, source->department) == NULL) return err;
   destination->whoami = source->whoami;
   destination->verified = 0;
+  return DB_SUCCESS;
 }
 int RecordCopy(BorrowRecord* destination, BorrowRecord* source){
   int err = DB_FAIL_ON_FETCHING;
@@ -302,7 +302,6 @@ int GetById(void* handle, unsigned int id, Model model) {
   int ok;
   if(!DBExists(model)) return DB_NOT_FOUND;
   ListNode* cur = DBs[model].data->dummy_head;
-  void* cur;
   ok = Find(&cur, id, model);
   if(ok == 0){
     if(model == BOOK) return BookCopy((Book*) handle, (Book*) cur);
@@ -312,7 +311,7 @@ int GetById(void* handle, unsigned int id, Model model) {
   return DB_NOT_EXISTS;  
 }
 
-int Cmp(const char str1, const char str2, int insensitive, int equal){
+int Cmp(const char* str1, const char* str2, int insensitive, int equal){
   if(insensitive) return strstr(str1, str2) != NULL ? 1 : 0;
   else if(equal) return strcmp(str1, str2) == 0 ? 1 : 0;
   else return strcmp(str1, str2) == 0 ? 0 : 1;
@@ -369,6 +368,7 @@ int BookFilter(Book* p_b, String queries){
     if(!flag) break;
     property = strtok(NULL, "=");
   }
+  return DB_SUCCESS;
 }
 
 int UserFilter(User* p_u, String queries){
@@ -416,6 +416,7 @@ int UserFilter(User* p_u, String queries){
     if(!flag) break;
     property = strtok(NULL, "=");
   }
+  return DB_SUCCESS;
 }
 
 int RecordFilter(BorrowRecord* p_r, String queries){
@@ -463,6 +464,7 @@ int RecordFilter(BorrowRecord* p_r, String queries){
     if(!flag) break;
     property = strtok(NULL, "=");
   }
+  return DB_SUCCESS;
 }
 
 int Filter(void* list_handle, String queries, Model model) {
@@ -496,7 +498,7 @@ int Filter(void* list_handle, String queries, Model model) {
     while(cur = cur->nxt && cur != data->dummy_tail){
       if(RecordFilter(cur->value, queries)){
         BorrowRecord* p_r = (BorrowRecord* ) malloc(sizeof(BorrowRecord));
-        BookCopy(p_r, (BorrowRecord* )cur->value);
+        RecordCopy(p_r, (BorrowRecord* )cur->value);
         InsertList(handle, handle->dummy_tail, p_r);
       }
     }
@@ -518,7 +520,7 @@ int GetNextPK(Model model, unsigned int *pk) {
 
 int Update(void* handle, unsigned int id, Model model){ 
   if(!DBExists(model)) return DB_NOT_FOUND;
-  void* target;
+  ListNode* target;
   int ok, uid;
   ok = Find(&target, id, model);
   if(ok != DB_SUCCESS) return DB_NOT_EXISTS;

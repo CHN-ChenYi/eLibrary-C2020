@@ -550,7 +550,7 @@ int Filter(List* list_handle, String queries, Model model) {
 
 int GetDBSize(Model model, unsigned int *size) {
 	if (!DBExists(model)) return DB_NOT_FOUND;
-	*size = DBs[model].size + 1;
+	*size = DBs[model].size;
 	return DB_SUCCESS;
 }
 

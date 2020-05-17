@@ -96,7 +96,7 @@ static inline void Navigation_Statistics(char *msg);
 static inline void Navigation_Return(char *msg);
 static inline void Navigation_Exit();
 extern void NavigationCallback(Page nav_page);
-// TODO:(TO/GA) 加载edit_cover和unknown_cover
+
 void Init() {
   InitConsole();               // TODO:(TO/GA) 可以删掉了？
   InitGraphics();              // TODO:(TO/GA) 可以删掉了？
@@ -964,9 +964,10 @@ static void Library_SwitchCallback() {
 
 void Library_TurnPage(bool direction) {
   Library *state = TopHistory()->state.library;
-  MoveInList(&state->books_start, state->books, kLibraryMax, direction, "", "");
-  char *msg = MoveInList(&state->books_covers_start, state->book_covers,
-                         kLibraryMax, direction, "Book", "Library");
+  MoveInList(&state->books_covers_start, state->book_covers, kLibraryMax,
+             direction, "", "");
+  char *msg = MoveInList(&state->books_start, state->books, kLibraryMax,
+                         direction, "Book", "Library");
   DrawUI(kLibrary, &user, state, msg);
 }
 
@@ -1221,7 +1222,10 @@ static inline void Navigation_Library(char *msg) {
     LibImage *image = malloc(sizeof(LibImage));
     sprintf(image_path + image_path_len, "%d.jpg",
             ((Book *)cur_node->value)->uid);
-    loadImage(image_path, image);
+    if (!_access(image_path, 4))
+      loadImage(image_path, image);    
+    else
+      loadImage(".\\Resource\\unknown_cover.jpg", image);
     InsertList(book_covers, book_covers->dummy_tail, image);
   }
 
@@ -1488,7 +1492,14 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
   if (!type) {
     char *image_path = malloc(sizeof(char) * (12 + lib_path_len + 10));
     sprintf(image_path, "%s\\image\\%d.jpg", lib_path, book->uid);
-    loadImage(image_path, &new_history->state.book_display->book_cover);
+    if (!_access(image_path, 4))
+      loadImage(image_path, &new_history->state.book_display->book_cover);
+    else
+      loadImage(".\\Resource\\unknown_cover.jpg",
+                &new_history->state.book_display->book_cover);
+  } else {
+    loadImage(".\\Resource\\edit_cover.jpg",
+              &new_history->state.book_display->book_cover);
   }
   PushBackHistory(new_history);
 

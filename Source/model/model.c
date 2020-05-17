@@ -2,6 +2,7 @@
 #include"basictype.h"
 #include"list.h"
 #include<stdio.h>
+#include<stdlib.h>
 #include<string.h>
 #define N_MODEL 3
 static DB DBs[N_MODEL];
@@ -9,24 +10,120 @@ static DB DBs[N_MODEL];
 inline int DBExists(Model model){
   return (model >= 0 && model <= N_MODEL);
 }
+#define process_to_unsigned(ptr, str, variable) \
+pch = strtok(str, ";\n"); \
+ptr->variable = (unsigned) strtol(pch, NULL, 10);
+#define process_to_str(ptr, str, variable) \
+pch = strtok(str, ";\n"); \
+strcpy(ptr->variable, pch);
+
+int StringToBook(Book* p_b, String str){
+  char *pch;
+  process_to_unsigned(p_b, str, uid);
+  process_to_str(p_b, NULL, id);
+  process_to_str(p_b, NULL, title);
+  int i;
+  for(i = 0; i < 3; i++) process_to_str(p_b, NULL, authors[i]);
+  process_to_str(p_b, NULL, category);
+  process_to_str(p_b, NULL, press);
+  for(i = 0; i < 5; i++) process_to_str(p_b, NULL, keywords[i]);
+  process_to_unsigned(p_b, NULL, number_on_the_shelf);
+  process_to_unsigned(p_b, NULL, available_borrowed_days);
+  return 0;
+}
+int StringToUser(User* p_u, String str){
+  char* pch;
+  process_to_unsigned(p_u, str, uid);
+  process_to_str(p_u, NULL, username);
+  process_to_str(p_u, NULL, salt);
+  int i;
+  for(i = 0; i < 8; i++) process_to_unsigned(p_u, NULL, password[i]);
+  process_to_unsigned(p_u, NULL, gender);
+  process_to_str(p_u, NULL, department);
+  process_to_unsigned(p_u, NULL, whoami);
+  process_to_unsigned(p_u, NULL, verified);
+  return 0;
+}
+int StringToRecord(BorrowRecord* p_r, String str){
+  char* pch;
+  process_to_unsigned(p_r, str, uid);
+  process_to_unsigned(p_r, NULL, book_uid);
+  process_to_unsigned(p_r, NULL, user_uid);
+  process_to_str(p_r, NULL, book_name);
+  process_to_str(p_r, NULL, user_name);
+  process_to_str(p_r, NULL, borrowed_date);
+  process_to_unsigned(p_r, NULL, book_status);
+  process_to_str(p_r, NULL, returned_date);
+  return 0;
+}
+#undef process_to_unsigned
+#undef process_to_str
+
 int StringToModel(void** handle, Model model, String str){
-
-}
-int ModelToString(void* handle, Model model, String* p_str){
-  switch (model){
-    case BOOK:
-      /* code */
-      break; 
-    case USER:
-
-      break;
-    case BORROWRECORD:
-
-      break;
-    default:
-      break;
+  if(model == BOOK){
+    Book* p_b = (Book* ) malloc(sizeof(Book));
+    StringToBook(p_b, str);
+    *handle = (void* ) p_b;
   }
+  else if(model == USER){
+    User* p_u = (User* ) malloc(sizeof(User));
+    StringToUser(p_u, str);
+    *handle = (void* ) p_u;
+  }
+  else if(model == BORROWRECORD){
+    BorrowRecord* p_br = (BorrowRecord* ) malloc(sizeof(BorrowRecord));
+    StringToUser(p_br, str);
+    *handle = (void* ) p_br;
+  }
+  return 0;
 }
+
+#define process(ptr, format, variable)\
+  sprintf(p_str_2, format";", ptr->variable); strcat(*p_str, p_str_2); 
+int ModelToString(void* handle, Model model, String* p_str){
+  String p_str_2;
+  if(model == BOOK){
+    Book* p_b = (Book* ) handle;
+    process(p_b, "%u", uid);
+    process(p_b, "%s", id);
+    int i;
+    for(i = 0; i < 3; i++) process(p_b, "%s", authors[i]);
+    process(p_b, "%s", category);
+    process(p_b, "%s", press);
+    for(i = 0; i < 5; i++) process(p_b, "%s", keywords[i]);
+    process(p_b, "%u", number_on_the_shelf);
+    process(p_b, "%u", available_borrowed_days);
+    strcat(*p_str, "\n");
+  }
+  else if(model == USER){
+    User* p_u = (User* ) handle;
+    process(p_u, "%u", uid);
+    process(p_u, "%s", username);
+    process(p_u, "%s", salt);
+    for(int i = 0; i < 8 ; i++){
+      process(p_u, "%u", password[i]);
+    }
+    process(p_u, "%u", gender);
+    process(p_u, "%s", department);
+    process(p_u, "%u", whoami);
+    process(p_u, "%u", verified);
+    strcat(*p_str, "\n");
+  }
+  else if(model == BORROWRECORD){
+    BorrowRecord* p_r = (BorrowRecord* ) handle;
+    process(p_r, "%u", uid);
+    process(p_r, "%u", book_uid);
+    process(p_r, "%u", user_uid);
+    process(p_r, "%s", book_name);
+    process(p_r, "%s", user_name);
+    process(p_r, "%s", borrowed_date);
+    process(p_r, "%u", book_status);
+    process(p_r, "%s", returned_date);
+    strcat(*p_str, "\n");
+  }
+  return 0;  
+}
+#undef process
 
 int DBOpen(const char* filename, Model model){
   FILE* database;
@@ -67,7 +164,6 @@ int DBInit(Model model){
   }
   return DB_SUCCESS;
 }
-
 int DBUninit(Model model){
   int ok;
   String str;
@@ -91,7 +187,6 @@ int DBUninit(Model model){
   ClearList(data, NULL);
   return DB_SUCCESS;
 }
-
 int OpenDBConnection(const char* filename, Model model) { 
   int ok; 
   if(!DBExists(model)) return DB_NOT_FOUND;
@@ -100,7 +195,6 @@ int OpenDBConnection(const char* filename, Model model) {
   ok = DBInit(model);
   return ok;
 }
-
 int CloseDBConnection(Model model) {
   int ok;
   if(!DBExists(model)) return DB_NOT_FOUND;
@@ -218,7 +312,195 @@ int GetById(void* handle, unsigned int id, Model model) {
   return DB_NOT_EXISTS;  
 }
 
+int Cmp(const char str1, const char str2, int insensitive, int equal){
+  if(insensitive) return strstr(str1, str2) != NULL ? 1 : 0;
+  else if(equal) return strcmp(str1, str2) == 0 ? 1 : 0;
+  else return strcmp(str1, str2) == 0 ? 0 : 1;
+}
+
+int BookFilter(Book* p_b, String queries){
+  if(strlen(queries) == 0) return 1;
+  char* property, *para; int insensitive = 0, equal = 1, flag = 1;
+  property = strtok(queries, "=");
+  while(1){
+    if(property == NULL) break;
+    para = strtok(NULL, "&");
+    if(*(property + strlen(property) - 2) == ';') insensitive = 1;
+    if(*(property + strlen(property) - 2) == '!') equal = 0;
+    if(*(property) == 'u' && *(property+1) == 'i'){
+      char uid_str[50];
+      sprintf(uid_str, "%u", p_b->uid);
+      flag = Cmp(uid_str, para, insensitive, equal);
+    }
+    else if(*(property) == 'i' && *(property+1) == 'd'){
+      flag = Cmp(p_b->id, para, insensitive, equal);
+    }
+    else if(*(property) == 'a' && *(property+1) == 'u'){
+      int i;
+      for( i = 0; i < 3; i++){
+        flag = Cmp(p_b->authors[i], para, insensitive, equal);
+        if(flag) break;
+      } 
+    }
+    else if(*(property) == 'c' && *(property+1) == 'a'){
+      flag = Cmp(p_b->category, para, insensitive, equal);
+    }
+    else if(*(property) == 'p' && *(property+1) == 'r'){
+      flag = Cmp(p_b->press, para, insensitive, equal);
+    }
+    else if(*(property) == 'k' && *(property+1) == 'e'){
+      int i;
+      for( i = 0; i < 5; i++){
+        flag = Cmp(p_b->keywords[i], para, insensitive, equal);
+        if(flag) break;
+      } 
+    } 
+    else if(*(property) == 'n' && *(property+1) == 'u'){
+      char nots_str[50];
+      sprintf(nots_str, "%u", p_b->number_on_the_shelf);
+      flag = Cmp(nots_str, para, insensitive, equal);
+    }
+    else if(*(property) == 'a' && *(property+1) == 'v'){
+      char abd_str[50];
+      sprintf(abd_str, "%u", p_b->available_borrowed_days);
+      flag = Cmp(abd_str, para, insensitive, equal);
+    }
+    else flag = 0;
+    if(!flag) break;
+    property = strtok(NULL, "=");
+  }
+}
+
+int UserFilter(User* p_u, String queries){
+  if(strlen(queries) == 0) return 1;
+  char* property, *para; int insensitive = 0, equal = 1, flag = 1;
+  property = strtok(queries, "=");
+  while(1){
+    if(property == NULL) break;
+    para = strtok(NULL, "&");
+    if(*(property + strlen(property) - 2) == ';') insensitive = 1;
+    if(*(property + strlen(property) - 2) == '!') equal = 0;
+    if(*(property) == 'u' && *(property+1) == 'i'){
+      char uid_str[50];
+      sprintf(uid_str, "%u", p_u->uid);
+      flag = Cmp(uid_str, para, insensitive, equal);
+    }
+    else if(*(property) == 'u' && *(property+1) == 's'){
+      flag = Cmp(p_u->username, para, insensitive, equal);
+    }
+    else if(*(property) == 's' && *(property+1) == 'a'){
+      flag = Cmp(p_u->salt, para, insensitive, equal);
+    }
+    else if(*(property) == 'p' && *(property+1) == 'a'){
+      int i; char str[50];
+      for( i = 0; i < 8; i++){
+        sprintf(str, "%u", p_u->password[i]);
+        flag = Cmp(str, para, insensitive, equal);
+        if(flag) break;
+      } 
+    } 
+    else if(*(property) == 'd' && *(property+1) == 'e'){
+      flag = Cmp(p_u->department, para, insensitive, equal);
+    }
+    else if(*(property) == 'w' && *(property+1) == 'h'){
+      char str[50];
+      sprintf(str, "%d", p_u->whoami);
+      flag = Cmp(str, para, insensitive, equal);
+    }
+    else if(*(property) == 'v' && *(property+1) == 'e'){
+      char str[50];
+      sprintf(str, "%d", p_u->verified);
+      flag = Cmp(str, para, insensitive, equal);
+    }
+    else flag = 0;
+    if(!flag) break;
+    property = strtok(NULL, "=");
+  }
+}
+
+int RecordFilter(BorrowRecord* p_r, String queries){
+  if(strlen(queries) == 0) return 1;
+  char* property, *para; int insensitive = 0, equal = 1, flag = 1;
+  property = strtok(queries, "=");
+  while(1){
+    if(property == NULL) break;
+    para = strtok(NULL, "&");
+    if(*(property + strlen(property) - 2) == ';') insensitive = 1;
+    if(*(property + strlen(property) - 2) == '!') equal = 0;
+    if(*(property) == 'u' && *(property+1) == 'i'){
+      char str[50];
+      sprintf(str, "%u", p_r->uid);
+      flag = Cmp(str, para, insensitive, equal);
+    }
+    else if(*(property) == 'b' && *(property+5) == 'u'){
+      char str[50];
+      sprintf(str, "%u", p_r->book_uid);
+      flag = Cmp(str, para, insensitive, equal);
+    }
+    else if(*(property) == 'u' && *(property+5) == 'u'){
+      char str[50];
+      sprintf(str, "%u", p_r->user_uid);
+      flag = Cmp(str, para, insensitive, equal);
+    }
+    else if(*(property) == 'b' && *(property+1) == 'n'){
+      flag = Cmp(p_r->book_name, para, insensitive, equal);
+    }
+    else if(*(property) == 'u' && *(property+5) == 'n'){
+      flag = Cmp(p_r->user_name, para, insensitive, equal);
+    } 
+    else if(*(property) == 'b' && *(property+9) == 'd'){
+      flag = Cmp(p_r->borrowed_date, para, insensitive, equal);
+    }
+    else if(*(property) == 'b' && *(property+5) == 's'){
+      char str[50];
+      sprintf(str, "%d", p_r->book_status);
+      flag = Cmp(str, para, insensitive, equal);
+    }
+    else if(*(property) == 'r' && *(property+9) == 'd'){
+      flag = Cmp(p_r->returned_date, para, insensitive, equal);
+    }
+    else flag = 0;
+    if(!flag) break;
+    property = strtok(NULL, "=");
+  }
+}
+
 int Filter(void* list_handle, String queries, Model model) {
+  List* handle = NewList();
+  List* data;
+  if(model == BOOK){
+    data = DBs[model].data;
+    ListNode* cur = data->dummy_head;
+    while(cur = cur->nxt && cur != data->dummy_tail){
+      if(BookFilter(cur->value, queries)){
+        Book* p_b = (Book* ) malloc(sizeof(Book));
+        BookCopy(p_b, (Book* )cur->value);
+        InsertList(handle, handle->dummy_tail, p_b);
+      }
+    } 
+  }
+  else if(model == USER){
+    data = DBs[model].data;
+    ListNode* cur = data->dummy_head;
+    while(cur = cur->nxt && cur != data->dummy_tail){
+      if(UserFilter(cur->value, queries)){
+        User* p_u = (User* ) malloc(sizeof(User));
+        UserCopy(p_u, (User* )cur->value);
+        InsertList(handle, handle->dummy_tail, p_u);
+      }
+    }
+  }
+  else if(model == BORROWRECORD){
+    data = DBs[model].data;
+    ListNode* cur = data->dummy_head;
+    while(cur = cur->nxt && cur != data->dummy_tail){
+      if(RecordFilter(cur->value, queries)){
+        BorrowRecord* p_r = (BorrowRecord* ) malloc(sizeof(BorrowRecord));
+        BookCopy(p_r, (BorrowRecord* )cur->value);
+        InsertList(handle, handle->dummy_tail, p_r);
+      }
+    }
+  }
   return DB_SUCCESS;
 }
 

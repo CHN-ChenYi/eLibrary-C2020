@@ -54,7 +54,7 @@ typedef struct Label {
   int id;
   Rect position;      // only the left and the buttom matters
   FontColor font_color;
-  char caption[50];
+  char caption[400];
 }Label;
 
 /* Rectangle with color (for framework) */

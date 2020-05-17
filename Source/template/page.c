@@ -1303,7 +1303,7 @@ void AddBookModify() {
 
   Image* book_cover = CreateImage(
     (Rect){(left_border + middle - img.width) / 2, 0, 0, (top + bottom + img.height) / 2},
-    img, NULL_ID
+    img, 802
   );
   InsertComp(book_cover, kImage);
 
@@ -1317,6 +1317,8 @@ void AddBookModify() {
       (Rect){left_border, 0, 0, top - 10}, "图书修改：", kBlack, NULL_ID
     );
   }
+
+  // Id
   Label* book_id_label = CreateLabel(
     (Rect){info_x, 0, 0, cur_y}, "书号：", kBlack, NULL_ID
   );
@@ -1325,6 +1327,8 @@ void AddBookModify() {
     book->id, NULL_ID
   );
   book_id_on_page = book_id_context->context;
+  
+  // Title
   Label* book_name_label = CreateLabel(
     (Rect){info_x, 0, 0, cur_y += delta_y}, "书名：", kBlack, NULL_ID
   );
@@ -1333,6 +1337,8 @@ void AddBookModify() {
     book->title, NULL_ID
   );
   book_name_on_page = book_name_context->context;
+  
+  // Authors
   Label* author_label = CreateLabel(
     (Rect){info_x, 0, 0, cur_y += delta_y}, "作者：（最多三人）", kBlack, NULL_ID 
   );
@@ -1345,15 +1351,18 @@ void AddBookModify() {
     book_authors_on_page[i] = author_context[i]->context;
     InsertComp(author_context[i], kInputBox);
   }
+
+  // Press
   Label* press_label = CreateLabel(
     (Rect){info_x, 0, 0, cur_y += delta_y}, "出版社：", kBlack, NULL_ID
   );
   InputBox* press_context = CreateInputBox(
     (Rect){info_x + TextStringWidth("出版社："), right_border - 10, 0, cur_y},
-    "ssss", NULL_ID
+    book->press, NULL_ID
   );
-  puts(book->press);
   book_press_on_page = press_context->context;
+  
+  // Keywords
   Label* keyword_label = CreateLabel(
     (Rect){info_x, 0, 0, cur_y += delta_y}, "关键词：（最多五个）", kBlack, NULL_ID
   );
@@ -1366,6 +1375,8 @@ void AddBookModify() {
     book_keywords_on_page[i] = keyword_context[i]->context;
     InsertComp(keyword_context[i], kInputBox);
   }
+
+  // Catagory
   Label* catagory_label = CreateLabel(
     (Rect){info_x, 0, 0, cur_y += delta_y}, "分类：", kBlack, NULL_ID
   );
@@ -1374,11 +1385,38 @@ void AddBookModify() {
     book->category, kBlack, NULL_ID
   );
   catagory_on_page = book->category;
-  
-  Button* confirm_button = CreateButton(
-    (Rect){GetWindowWidthPx() - 100, GetWindowWidthPx() - 20, GetWindowHeightPx() - 120, GetWindowHeightPx() - 70},
-    "确认", CONFIRM_COLOR, 1, kBlack, 801
+
+  Button *confirm_button = CreateButton(
+    (Rect){left_border, left_border + 80, bottom, bottom + 50},
+    "确认", SEARCH_COLOR, 1, kWhite, 801
   );
+  Button *delete_button = CreateButton(
+    (Rect){left_border + 80, left_border + 160, bottom, bottom + 50},
+    "删除", SEARCH_COLOR, 1, kWhite, 803
+  );
+  Button *borrow_button = CreateButton(
+    (Rect){left_border + 160, left_border + 240, bottom, bottom + 50},
+    "借书", SEARCH_COLOR, 1, kWhite, 804
+  );
+  Button *copy_button = CreateButton(
+    (Rect){left_border + 240, left_border + 300, bottom, bottom + 50},
+    "复制", SEARCH_COLOR, 1, kWhite, 805
+  );
+  Button *admin_button = CreateButton(
+    (Rect){left_border + 300, left_border + 400, bottom, bottom + 50},
+    "借阅记录", SEARCH_COLOR, 1, kWhite, 806
+  );
+  if (cur_page == kBookInit) {
+    InsertComp(delete_button, kButton);
+    InsertComp(confirm_button, kButton);
+  } else {
+    InsertComp(delete_button, kButton);
+    InsertComp(confirm_button, kButton);
+    InsertComp(borrow_button, kButton);
+    InsertComp(copy_button, kButton);
+    InsertComp(admin_button, kButton);
+  }
+
   InsertComp(title, kLabel);
   InsertComp(catagory_input, kInputBox);
   InsertComp(catagory_label, kLabel);
@@ -1424,6 +1462,10 @@ void HandleBookCallback(int id) {
     break;
   case 4:
     cur_state->borrow_callback();
+    break;
+  case 5:
+  case 6:
+    cur_state->admin_callback();
     break;
   }
 

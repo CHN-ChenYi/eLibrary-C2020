@@ -128,5 +128,11 @@
     <Image Include="Resource\sync_alt.jpg">
       <Filter>Resource</Filter>
     </Image>
+    <Image Include="Resource\edit_cover.jpg">
+      <Filter>Resource</Filter>
+    </Image>
+    <Image Include="Resource\unknown_cover.jpg">
+      <Filter>Resource</Filter>
+    </Image>
   </ItemGroup>
 </Project>

@@ -151,6 +151,7 @@ typedef struct BookDisplay {
   void (*confirm_callback)();  // 确认按钮
   void (*delete_callback)();   // 删除
   void (*borrow_callback)();   // 借书按钮
+  void (*copy_paste_callback)();  // 复制粘贴按钮
 } BookDisplay;
 
 /* 图书借还界面显示 */

@@ -83,9 +83,11 @@ void DrawTextString(string text);
  * ---------------------------------
  * This function returns the width of the text string if displayed
  * at the current font and size.
+ * 
+ * Modified: return pixels rather than inches
  */
 
-double TextStringWidth(string text);
+int TextStringWidth(string text);
 
 /*
  * Function: SetFont
@@ -196,7 +198,7 @@ int GetStyle(void);
 
 double GetFontAscent(void);
 double GetFontDescent(void);
-double GetFontHeight(void);
+int GetFontHeight(void);
 
 /* Section 5 -- Mouse support */
 
@@ -209,10 +211,12 @@ double GetFontHeight(void);
  * respectively.  The coordinate values are real numbers measured
  * in inches from the origin and therefore match the drawing
  * coordinates.
+ *
+ * Modified: return pixels instead of inches
  */
 
-double GetMouseX(void);
-double GetMouseY(void);
+int GetMouseX(void);
+int GetMouseY(void);
 
 /*
  * Functions: MouseButtonIsDown

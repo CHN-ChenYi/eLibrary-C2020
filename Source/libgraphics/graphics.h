@@ -66,7 +66,7 @@ void InitConsole(void);
  * then moved to its new position.
  */
 
-void MovePen(double x, double y);
+void MovePen(int x, int y);
 
 /*
  * Function: DrawLine
@@ -78,7 +78,7 @@ void MovePen(double x, double y);
  * becomes the new current point.
  */
 
-void DrawLine(double dx, double dy);
+void DrawLine(int pdx, int pdy);
 
 /*
  * Function: DrawArc
@@ -188,8 +188,7 @@ typedef struct {
 
 void loadImage(const char *image, LibImage *mapbuf);
 
-void DrawImage(LibImage *pImage, double x, double y, double width,
-               double height);
+void DrawImage(LibImage *pImage, int x, int y, int width, int height);
 
 // Creates an Open dialog box that lets the user specify a file to be opened.
 // The path of that file would be stored in char path[]
@@ -205,5 +204,32 @@ void SelectFile(const char filter[], const char extension[],
 // The path of that folder would be stored in char path[]
 // path[] must be at least MAX_PATH characters in size
 void SelectFolder(const char hint_text[], char path[]);
+
+// Color with alpha value consistent with wingdi
+typedef struct Color {
+  int R, G, B;
+  int Alpha;
+} Color;
+
+/* Point with color and position specified */
+typedef struct ColorPoint {
+  int x, y;
+  Color color;
+} ColorPoint;
+
+/* Rectangle (for position specifying) */
+typedef struct Rect {
+  int left, right, top, bottom;
+} Rect;
+
+// Clear a district
+void ClearDistrict(Rect* rect);
+// Draw a shaded trangle decided by the three vertices A, B, C
+void DrawShadedTriangle(ColorPoint* A, ColorPoint* B, ColorPoint* C);
+// Draw a shaded rectangle decided by the lower left point and the upper right point.
+void DrawShadedRectangle(ColorPoint* lower_right, ColorPoint* upper_left);
+
+int GetWindowWidthPx(void);
+int GetWindowHeightPx(void);
 
 #endif

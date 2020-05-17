@@ -1,3 +1,8 @@
-﻿#include "view.h"
+﻿#include "page.h"
+#include "view.h"
 
-void Main() { Init(); }
+
+void Main() {
+  InitGUI();
+  InitView();
+}

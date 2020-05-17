@@ -325,31 +325,6 @@ void InitGraphics(void) {
   InitGraphicsState();
 }
 
-void MovePen(double x, double y) {
-  InitCheck();
-  if (regionState == RegionActive) regionState = PenHasMoved;
-  cx = x;
-  cy = y;
-}
-
-void DrawLine(double dx, double dy) {
-  InitCheck();
-  switch (regionState) {
-    case NoRegion:
-      DisplayLine(cx, cy, dx, dy);
-      break;
-    case RegionStarting:
-    case RegionActive:
-      DisplayLine(cx, cy, dx, dy);
-      regionState = RegionActive;
-      break;
-    case PenHasMoved:
-      Error("Region segments must be contiguous");
-  }
-  cx += dx;
-  cy += dy;
-}
-
 void DrawArc(double r, double start, double sweep) {
   DrawEllipticalArc(r, r, start, sweep);
 }
@@ -363,6 +338,15 @@ double GetWindowWidth(void) {
   return (windowWidth);
 }
 
+// Modified: return width in px
+int GetWindowWidthPx(void) {
+  InitCheck();
+  RECT lpRect;
+  GetClientRect(graphicsWindow, &lpRect);
+  int width = lpRect.right - lpRect.left;
+  return width;
+}
+
 double GetWindowHeight(void) {
   InitCheck();
   RECT lpRect;
@@ -371,6 +355,48 @@ double GetWindowHeight(void) {
   windowHeight = InchesY(height);
   return (windowHeight);
 }
+
+// Modified: return height in px
+int GetWindowHeightPx(void) {
+  InitCheck();
+  RECT lpRect;
+  GetClientRect(graphicsWindow, &lpRect);
+  int height = lpRect.bottom - lpRect.top;
+  return height;
+}
+
+/*
+ * Note MovePen & Drawline has been modified
+ * to make them consistent with wingdi
+ */
+
+void MovePen(int x, int y) {
+  InitCheck();
+  if (regionState == RegionActive) regionState = PenHasMoved;
+  cx = InchesX(x);
+  cy = GetWindowHeight() - InchesY(y);
+}
+
+void DrawLine(int pdx, int pdy) {
+  InitCheck();
+  double dx = InchesX(pdx);
+  double dy = -InchesY(pdy);
+  switch (regionState) {
+  case NoRegion:
+    DisplayLine(cx, cy, dx, dy);
+    break;
+  case RegionStarting:
+  case RegionActive:
+    DisplayLine(cx, cy, dx, dy);
+    regionState = RegionActive;
+    break;
+  case PenHasMoved:
+    Error("Region segments must be contiguous");
+  }
+  cx += dx;
+  cy += dy;
+}
+
 
 double GetCurrentX(void) {
   InitCheck();
@@ -441,12 +467,13 @@ void DrawTextString(string text) {
   cx += TextStringWidth(text);
 }
 
-double TextStringWidth(string text) {
+/* A slite modify: return pixels instead of inches */
+int TextStringWidth(string text) {
   RECT r;
 
   InitCheck();
   SetTextBB(&r, cx, cy, text);
-  return (InchesX(RectWidth(&r)));
+  return (RectWidth(&r));
 }
 
 void SetFont(string font) {
@@ -489,23 +516,26 @@ double GetFontDescent(void) {
   return (InchesY(fontTable[currentFont].descent));
 }
 
-double GetFontHeight(void) {
+/* Modified: return pixels rather than inches */
+int GetFontHeight(void) {
   InitCheck();
-  return (InchesY(fontTable[currentFont].height));
+  return (fontTable[currentFont].height);
 }
 
 /* Section 5 -- Mouse support */
 
-double GetMouseX(void) {
+/* Modified: return pixels instead of Inches */
+int GetMouseX(void) {
   InitCheck();
   CheckEvents();
-  return (InchesX(mouseX));
+  return (mouseX);
 }
 
-double GetMouseY(void) {
+/* Modified: return pixels instead of Inches */
+int GetMouseY(void) {
   InitCheck();
   CheckEvents();
-  return (windowHeight - InchesY(mouseY));
+  return (mouseY);
 }
 
 bool MouseButtonIsDown(void) {
@@ -1904,8 +1934,23 @@ void loadImage(const char *image, LibImage *mapbuf) {
   CloseHandle(file);
 }
 
-void DrawImage(LibImage *pImage, double x, double y, double width,
-               double height) {
+void FlushDistrict(int min_x, int min_y, int max_x, int max_y) {
+  RECT r;
+  SetRect(&r, min_x, max_x, min_y, max_y);
+  InvalidateRect(graphicsWindow, &r, TRUE);
+}
+
+// Clear a district
+void ClearDistrict(Rect* rect) {
+  RECT r;
+  SetRect(&r, rect->left, rect->top, rect->right, rect->bottom);
+  InvalidateRect(graphicsWindow, &r, TRUE);
+  BitBlt(osdc, rect->left, rect->top, rect->right - rect->left, rect->bottom - rect->top,
+    NULL, 0, 0, WHITENESS);
+}
+
+void DrawImage(LibImage *pImage, int px_x, int px_y, int px_width,
+               int px_height) {
   if (!pImage) {
     Error("Can't draw a null image");
     return;
@@ -1913,11 +1958,6 @@ void DrawImage(LibImage *pImage, double x, double y, double width,
   if (pImage->height == 0 && pImage->width == 0)
     return;
   HDC hbitmapdc;
-  int px_width, px_height, px_x, px_y;
-  px_width = PixelsX(width);
-  px_height = PixelsY(height);
-  px_x = PixelsX(x);
-  px_y = PixelsY(GetWindowHeight() - y) - px_height;
   hbitmapdc = CreateCompatibleDC(osdc);
   SelectObject(hbitmapdc, pImage->hbitmap);
   if (px_width == -1) px_width = pImage->width;
@@ -1928,9 +1968,7 @@ void DrawImage(LibImage *pImage, double x, double y, double width,
   DeleteDC(hbitmapdc);
 
   // fflush
-  RECT r;
-  SetLineBB(&r, x, y, width, height);
-  InvalidateRect(graphicsWindow, &r, TRUE);
+  FlushDistrict(px_x, px_y, px_x + px_width, px_y + px_height);
 }
 
 void SelectFile(const char filter[], const char extension[],
@@ -1976,4 +2014,74 @@ void SelectFolder(const char hint_text[], char path[]) {
   // Convert the result into path
   if (!SHGetPathFromIDList(lpDlist, path))
     Error("Failed to convert an item identifier list to a file system path");
+}
+
+#pragma comment(lib, "MSImg32")
+
+void DrawShadedTriangle(ColorPoint* A, ColorPoint* B, ColorPoint* C) {
+  // Create an array of TRIVERTEX structures that describe 
+  // positional and color values for each vertex given.
+
+  TRIVERTEX vertex[3];
+  vertex[0].x     = A->x;
+  vertex[0].y     = A->y;
+  vertex[0].Red   = A->color.R;
+  vertex[0].Green = A->color.G;
+  vertex[0].Blue  = A->color.B;
+  vertex[0].Alpha = A->color.Alpha;
+
+  vertex[1].x     = B->x;
+  vertex[1].y     = B->y; 
+  vertex[1].Red   = B->color.R;
+  vertex[1].Green = B->color.G;
+  vertex[1].Blue  = B->color.B;
+  vertex[1].Alpha = B->color.Alpha;
+
+  vertex[2].x     = C->x;
+  vertex[2].y     = C->y;
+  vertex[2].Red   = C->color.R;
+  vertex[2].Green = C->color.G;
+  vertex[2].Blue  = C->color.B;
+  vertex[2].Alpha = C->color.Alpha;
+
+  // Create a GRADIENT_RECT structure that 
+  // references the TRIVERTEX vertices. 
+  GRADIENT_TRIANGLE gTri;
+  gTri.Vertex1 = 0;
+  gTri.Vertex2 = 1;
+  gTri.Vertex3 = 2;
+
+  // Draw a shaded triangle. 
+  GradientFill(osdc, vertex, 3, &gTri, 1, GRADIENT_FILL_TRIANGLE);
+
+  int min_x = min(A->x, min(B->x, C->x));
+  int min_y = min(A->y, min(B->y, C->y));
+  int max_x = max(A->x, max(B->x, C->x));
+  int max_y = max(A->y, max(B->y, C->y));
+  FlushDistrict(min_x, min_y, max_x, max_y);
+}
+
+// Draw a shaded Rectangle with its lower right corner & upperleft corner given
+void DrawShadedRectangle(ColorPoint* lower_right, ColorPoint* upper_left) {
+  TRIVERTEX vertex[2];
+  vertex[0].x = lower_right->x;
+  vertex[0].y = lower_right->y;
+  vertex[0].Red = lower_right->color.R;
+  vertex[0].Green = lower_right->color.G;
+  vertex[0].Blue = lower_right->color.B;
+  vertex[0].Alpha = lower_right->color.Alpha;
+
+  vertex[1].x = upper_left->x;
+  vertex[1].y = upper_left->y;
+  vertex[1].Red = upper_left->color.R;
+  vertex[1].Green = upper_left->color.G;
+  vertex[1].Blue = upper_left->color.B;
+  vertex[1].Alpha = upper_left->color.Alpha;
+
+  GRADIENT_RECT gRect;
+  gRect.LowerRight = 0;
+  gRect.UpperLeft = 1;
+
+  GradientFill(osdc, vertex, 2, &gRect, 1, GRADIENT_FILL_RECT_H);
+  FlushDistrict(upper_left->x, upper_left->y, lower_right->x, lower_right->y);
 }

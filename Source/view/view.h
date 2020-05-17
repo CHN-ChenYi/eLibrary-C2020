@@ -3,6 +3,6 @@
 
 #define HISTORY_MAX 100
 
-void Init();
+void InitView();
 
 #endif  // !VIEW_H_

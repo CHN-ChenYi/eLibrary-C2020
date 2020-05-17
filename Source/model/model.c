@@ -81,7 +81,7 @@ int StringToModel(void** handle, Model model, String str) {
 #define process(ptr, format, variable)\
   sprintf(p_str_2, format";", ptr->variable); strcat(*p_str, (const) p_str_2); 
 int ModelToString(void* handle, Model model, String* p_str) {
-	char* p_str_2[100];
+	char p_str_2[100];
 	if (model == BOOK) {
 		Book* p_b = (Book*)handle;
 		process(p_b, "%u", uid);
@@ -128,14 +128,20 @@ int ModelToString(void* handle, Model model, String* p_str) {
 int DBOpen(const char* filename, Model model) {
 	FILE* database;
 	database = fopen(filename, "a+");
-	if (database == NULL) return DB_NOT_OPEN;
-	DBs[model].filename = filename;
+	if (database == NULL) {
+		DBs[model].database = NULL;
+		return DB_NOT_OPEN;
+	}
+	DBs[model].filename = (char *)malloc(sizeof(char) * 500);
+	strcpy(DBs[model].filename, filename);
 	DBs[model].database = database;
 	return DB_SUCCESS;
 }
 int DBClose(Model model) {
 	int ok;
 	ok = fclose(DBs[model].database);
+	if(DBs[model].filename != NULL) free(DBs[model].filename);
+	DBs[model].filename == NULL;
 	if (ok != 0) return DB_NOT_CLOSE;
 	else return DB_SUCCESS;
 }
@@ -168,6 +174,7 @@ int DBUninit(Model model) {
 	int ok;
 	char str[3000] = "";
 	FILE* database = DBs[model].database;
+	if (database == NULL) return DB_NOT_FOUND;
 	List* data = DBs[model].data;
 	ListNode* cur = data->dummy_head;
 	ok = fseek(database, 0, SEEK_SET); // reset FILE pointer to its starting point.

@@ -1464,6 +1464,8 @@ void HandleBookCallback(int id) {
     cur_state->borrow_callback();
     break;
   case 5:
+    cur_state->copy_paste_callback();
+    break;
   case 6:
     cur_state->admin_callback();
     break;

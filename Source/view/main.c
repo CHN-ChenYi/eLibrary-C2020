@@ -8,4 +8,5 @@
 
 void Main() {
   InitGUI();
+  InitView();
 }

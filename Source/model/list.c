@@ -58,7 +58,6 @@ const ListNode *EraseList(List *const list, const ListNode *const node,
   CombineListNode(node->pre, node->nxt);
   list->size--;
   if (Free) Free(node->value);
-  free(node->value);
   free((void *)node);
   return ret;
 }

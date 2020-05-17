@@ -64,6 +64,7 @@ static void BookDisplay_CoverCallback();
 static void BookDisplay_ConfirmCallback();
 static void BookDisplay_DeleteCallback();
 static void BookDisplay_BorrowCallback();
+static void BookDisplay_CopyPasteCallback();
 static void BorrowDisplay_TurnPage(bool direction);
 static void Library_BookCallback(ListNode *book);
 static bool CmpById(const void *const lhs, const void *const rhs);
@@ -95,7 +96,6 @@ static inline void Navigation_Return(char *msg);
 static inline void Navigation_Exit();
 extern void NavigationCallback(Page nav_page);
 // TODO:(TO/GA) 加载edit_cover和unknown_cover
-// TODO:(TO/GA) 写copy_paste_callback
 void Init() {
   InitConsole();               // TODO:(TO/GA) 可以删掉了？
   InitGraphics();              // TODO:(TO/GA) 可以删掉了？
@@ -859,17 +859,10 @@ static void BookDisplay_ConfirmCallback() {
 }
 
 static void BookDisplay_DeleteCallback() {
-  // TODO:(TO/GA) 确认一下是删除Init还是删除Display？
-  if (user.whoami != ADMINISTRATOR) {
-    char *msg = malloc(sizeof(char) * (60 + username_len));
-    sprintf(msg, "[Error] [%s] Permission denied. Can't modify any book",
-            user.username);
-    ReturnHistory(history_list->dummy_tail->pre, msg);
-    return;
-  }
-
   Book *new_book = TopHistory()->state.book_display->book;
-  if (ErrorHandle(Delete(new_book->uid, BOOK))) return;
+  if (TopHistory()->page == kBookModify) {
+    if (ErrorHandle(Delete(new_book->uid, BOOK))) return;
+  }
 
   char *msg =
       malloc(sizeof(char) * (25 + username_len + strlen(new_book->title)));
@@ -879,6 +872,22 @@ static void BookDisplay_DeleteCallback() {
 
 static void BookDisplay_BorrowCallback() {
   BookSearch_BorrowCallback(TopHistory()->state.book_display->book);
+}
+
+static void BookDisplay_CopyPasteCallback() {
+  Book *book = TopHistory()->state.book_display->book;
+  const unsigned old_uid = book->uid;
+  if (ErrorHandle(GetById(book, old_uid, BOOK)) || 
+      ErrorHandle(GetNextPK(BOOK, &book->uid)) ||
+      ErrorHandle(Create(book, BOOK))) {
+    book->uid = old_uid;
+    char *msg = malloc(sizeof(char) *  (34 + username_len));
+    sprintf(msg, "[Error] [%s] Fail to copy and paste", user.username);
+    DrawUI(kBookModify, &user, TopHistory()->state.book_display, msg);
+  }
+  char *msg = malloc(sizeof(char) * (33 + username_len + strlen(book->title)));
+  sprintf(msg, "[Info] [%s] Copy and paste book [%s]", user.username, book->title);
+  DrawUI(kBookModify, &user, TopHistory()->state.book_display, msg);
 }
 
 static void BorrowDisplay_TurnPage(bool direction) {
@@ -1481,6 +1490,7 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
       BookDisplay_ConfirmCallback;
   new_history->state.book_display->delete_callback = BookDisplay_DeleteCallback;
   new_history->state.book_display->borrow_callback = BookDisplay_BorrowCallback;
+  new_history->state.book_display->copy_paste_callback = BookDisplay_CopyPasteCallback;
   new_history->state.book_display->book = new_book;
   if (!type) {
     char *image_path = malloc(sizeof(char) * (12 + lib_path_len + 10));
@@ -1768,8 +1778,7 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
     // case kSaveLibrary:  // 图书库保存
     // break;
     case kBookDisplay:   // 图书显示
-    case kBookModify: {  // 图书修改/删除 
-      // TODO:(TO/GA)根据管理员身份确定是Display还是Modify
+    case kBookModify: {  // 图书修改/删除
       Book *new_book = malloc(sizeof(Book));
       memcpy(new_book, history->state.book_display->book, sizeof(Book));
       PopBackHistory();

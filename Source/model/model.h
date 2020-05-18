@@ -4,7 +4,6 @@
 #include "basictype.h"
 #include "list.h"
 #include <stdio.h>
-typedef char* String;
 
 enum DBErrno {
   DB_SUCCESS = 0,

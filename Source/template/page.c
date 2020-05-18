@@ -1500,8 +1500,9 @@ void AddBookModify() {
     (Rect){info_x, 0, 0, cur_y += delta_y}, "可借阅天数：", kBlack, NULL_ID
   );
   InputBox *days_to_borrow_input = CreateInputBox(
-    (Rect){info_x + TextStringWidth("可节约天数："), right_border - 10, 0, cur_y}, "", NULL_ID
+    (Rect){info_x + TextStringWidth("可借阅天数："), right_border - 10, 0, cur_y}, "", NULL_ID
   );
+  days_to_borrow_on_page = days_to_borrow_input->context;
 
   // Books on shelf
   Label *books_on_shelf_label = CreateLabel(
@@ -1510,6 +1511,7 @@ void AddBookModify() {
   InputBox *books_on_shelf_input = CreateInputBox(
     (Rect){info_x + TextStringWidth("在架数："), right_border - 10, 0, cur_y}, "", NULL_ID
   );
+  number_of_books_on_page = books_on_shelf_input->context;
 
   Button *confirm_button = CreateButton(
     (Rect){left_border, left_border + 80, bottom, bottom + 50},
@@ -1579,6 +1581,8 @@ void HandleBookCallback(int id) {
     strcpy(cur_state->book->keywords[i], book_keywords_on_page[i]);
   }
   strcpy(cur_state->book->category, catagory_on_page);
+  cur_state->book->available_borrowed_days = atoi(days_to_borrow_on_page);
+  cur_state->book->number_on_the_shelf = atoi(number_of_books_on_page);
   switch (id) {
   case 1:
     cur_state->confirm_callback();

@@ -74,6 +74,8 @@ static char *book_press_on_page;
 static char *book_authors_on_page[3];
 static char *book_keywords_on_page[5];
 static char *catagory_on_page;
+static char *days_to_borrow_on_page;
+static char *number_of_books_on_page;
 
 /* Submenu */
 
@@ -1382,7 +1384,7 @@ void AddBookModify() {
 
   int info_x = middle;
   int cur_y = top;
-  int delta_y = (bottom - top) / 14;
+  int delta_y = (bottom - top) / 16;
 
   Book *book = book_modify->book;
   LibImage img = book_modify->book_cover;
@@ -1480,7 +1482,23 @@ void AddBookModify() {
     (Rect){info_x + TextStringWidth("分类："), right_border - 10, 0, cur_y},
     book->category, kBlack, NULL_ID
   );
-  catagory_on_page = book->category;
+  catagory_on_page = catagory_input->context;
+
+  // Days to borrow
+  Label* days_to_borrow_label = CreateLabel(
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "可借阅天数：", kBlack, NULL_ID
+  );
+  InputBox *days_to_borrow_input = CreateInputBox(
+    (Rect){info_x + TextStringWidth("可节约天数："), right_border - 10, 0, cur_y}, "", NULL_ID
+  );
+
+  // Books on shelf
+  Label *books_on_shelf_label = CreateLabel(
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "在架数：", kBlack, NULL_ID
+  );
+  InputBox *books_on_shelf_input = CreateInputBox(
+    (Rect){info_x + TextStringWidth("在架数："), right_border - 10, 0, cur_y}, "", NULL_ID
+  );
 
   Button *confirm_button = CreateButton(
     (Rect){left_border, left_border + 80, bottom, bottom + 50},
@@ -1513,6 +1531,10 @@ void AddBookModify() {
     InsertComp(admin_button, kButton);
   }
 
+  InsertComp(books_on_shelf_label, kLabel);
+  InsertComp(books_on_shelf_input, kInputBox);
+  InsertComp(days_to_borrow_label, kLabel);
+  InsertComp(days_to_borrow_input, kInputBox);
   InsertComp(title, kLabel);
   InsertComp(catagory_input, kInputBox);
   InsertComp(catagory_label, kLabel);

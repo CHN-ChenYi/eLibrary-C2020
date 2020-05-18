@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<string.h>
+#include<stdlib.h>
 #include"basictype.h"
 #include"utils.h"
 
@@ -66,7 +67,7 @@ int Cmp(const char* str1, const char* str2, int insensitive, int equal) {
 	else return strcmp(str1, str2) == 0 ? 0 : 1;
 }
 
-int BookFilter(Book* p_b, char* queries) {
+int BookFilter(Book* p_b, String queries) {
 	if (strlen(queries) == 0) return 1; // empty queries, always return true.
 	char* property, *para; int insensitive = 0, equal = 1, flag = 1;
 	char q[1000];
@@ -124,7 +125,7 @@ int BookFilter(Book* p_b, char* queries) {
 	}
 	return flag;
 }
-int UserFilter(User* p_u, char* queries) {
+int UserFilter(User* p_u, String queries) {
 	if (strlen(queries) == 0) return 1;
 	char* property, *para; int insensitive = 0, equal = 1, flag = 1;
 	char q[1000];
@@ -173,7 +174,7 @@ int UserFilter(User* p_u, char* queries) {
 	}
 	return flag;
 }
-int RecordFilter(BorrowRecord* p_r, char* queries) {
+int RecordFilter(BorrowRecord* p_r, String queries) {
 	if (strlen(queries) == 0) return 1;
 	char* property, *para; int insensitive = 0, equal = 1, flag = 1;
 	char q[1000];

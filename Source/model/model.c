@@ -16,8 +16,7 @@ int DBOpen(const char* filename, Model model) {
 	FILE* database;
 	database = fopen(filename, "r+");
 	if (database == NULL) {
-		DBs[model].database = NULL;
-		return DB_NOT_OPEN;
+		database = fopen(filename, "w+");
 	}
 	DBs[model].filename = (char *)malloc(sizeof(char) * 500);
 	strcpy(DBs[model].filename, filename);
@@ -28,7 +27,7 @@ int DBClose(Model model) {
 	int ok;
 	ok = fclose(DBs[model].database);
 	if(DBs[model].filename != NULL) free(DBs[model].filename);
-	DBs[model].filename == NULL;
+	DBs[model].filename = NULL;
 	if (ok != 0) return DB_NOT_CLOSE;
 	else return DB_SUCCESS;
 }

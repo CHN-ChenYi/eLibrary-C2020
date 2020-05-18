@@ -1408,7 +1408,7 @@ void AddBookModify() {
   Image* book_cover = CreateImage(
     (Rect){(left_border + middle - width) / 2, (left_border + middle + width) / 2,
            (top + bottom - height) / 2, (top + bottom + height) / 2},
-    img, NULL_ID
+    img, 802
   );
   InsertComp(book_cover, kImage);
 
@@ -1921,6 +1921,7 @@ void InitGUI() {
  * 12 ”√ªß ÷≤·
  */
 void CallbackById(int id) {
+  printf("%d\n", id);
   if (id < 0) {
     // click on the head bar
     InitSurface();

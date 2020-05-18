@@ -55,6 +55,7 @@ static Frame *hb_frame, *fb_frame;
 // 数组作用：将callback id和对应的组件结合起来
 #define MAX_ON_PAGE 20
 static Book* books_to_borrow_on_page[MAX_ON_PAGE];
+static ListNode* borrow_records_on_page[MAX_ON_PAGE];
 static ListNode* books_on_page[MAX_ON_PAGE];
 static User *user_on_page[MAX_ON_PAGE];
 static ListNode* tbv_user_on_page[MAX_ON_PAGE]; 
@@ -448,6 +449,7 @@ void AddLendAndBorrow() {
   for (ListNode* p = cur_state->borrow_records_start;
        p != cur_state->borrow_records->dummy_tail && count <= kLendAndBorrowMax;
        p = p->nxt, count++) {
+    borrow_records_on_page[count] = p;
     BorrowRecord *cur_borrow = p->value;
     Label* label = CreateLabel(
       (Rect){left_border + 500, 0, 0, cur_y += delta_y}, cur_borrow->returned_date, kBlack, NULL_ID
@@ -489,7 +491,7 @@ void HandleLendAndBorrowCallback(int id) {
     cur_state->search_callback(keyword_on_page);
     break;
   default:
-    cur_state->search_callback(books_on_page[id - 50]);
+    cur_state->return_callback(books_on_page[id - 50], borrow_records_on_page[id - 50]);
     break;
   }
 }
@@ -1489,7 +1491,7 @@ void AddBookModify() {
   );
   InputBox *catagory_input = CreateInputBox(
     (Rect){info_x + TextStringWidth("分类："), right_border - 10, 0, cur_y},
-    book->category, kBlack, NULL_ID
+    book->category, NULL_ID
   );
   catagory_on_page = catagory_input->context;
 

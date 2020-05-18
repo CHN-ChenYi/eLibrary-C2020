@@ -24,10 +24,12 @@ const int C2D[128] = {
 
 // convert a CSS color string into color
 Color ColorConvert(char* color, double alpha) {
-  return (Color){((C2D[color[0]] << 4) | C2D[color[1]]) << 8,
-                 ((C2D[color[2]] << 4) | C2D[color[3]]) << 8,
-                 ((C2D[color[4]] << 4) | C2D[color[5]]) << 8,
-                 (int)alpha * 65535};
+  return (Color) {
+    ((C2D[color[0]] << 4) | C2D[color[1]]) << 8,
+      ((C2D[color[2]] << 4) | C2D[color[3]]) << 8,
+      ((C2D[color[4]] << 4) | C2D[color[5]]) << 8,
+      (int)alpha * 65535
+  };
 }
 /* End of color handling */
 
@@ -88,13 +90,13 @@ void FreeList(CompList L) {
 /* End of linked list */
 
 /* Create components */
-Button* CreateButton (
-    Rect rect,
-    char* caption,
-    char* bg_color,
-    double alpha,
-    FontColor color,
-    int id) {
+Button* CreateButton(
+  Rect rect,
+  char* caption,
+  char* bg_color,
+  double alpha,
+  FontColor color,
+  int id) {
   Button* ret = malloc(sizeof(Button));
   ret->id = id;
   ret->position = rect;
@@ -174,8 +176,8 @@ void DrawRectangle(Rect* rect) {
 }
 
 void DrawFrame(Frame* rect) {
-  ColorPoint lower_right = (ColorPoint){rect->position.right, rect->position.bottom, rect->color};
-  ColorPoint upper_left = (ColorPoint){rect->position.left, rect->position.top, rect->color};
+  ColorPoint lower_right = (ColorPoint){ rect->position.right, rect->position.bottom, rect->color };
+  ColorPoint upper_left = (ColorPoint){ rect->position.left, rect->position.top, rect->color };
   DrawShadedRectangle(&lower_right, &upper_left);
 }
 
@@ -194,21 +196,22 @@ void DrawButton(Button* button, int mouse_x) {
   SetPenSize(1);
   Color bg_color = button->bg_color;
   Color white = ColorConvert("E3F2FD", 1);
-  ColorPoint upper_left = (ColorPoint){button->position.left, button->position.top, bg_color};
-  ColorPoint lower_right = (ColorPoint){button->position.right, button->position.bottom, bg_color};
+  ColorPoint upper_left = (ColorPoint){ button->position.left, button->position.top, bg_color };
+  ColorPoint lower_right = (ColorPoint){ button->position.right, button->position.bottom, bg_color };
   if (button->status == kHover) {
-    ColorPoint upper_middle = (ColorPoint){mouse_x, button->position.top, white};
-    ColorPoint lower_middle = (ColorPoint){mouse_x, button->position.bottom, white};
+    ColorPoint upper_middle = (ColorPoint){ mouse_x, button->position.top, white };
+    ColorPoint lower_middle = (ColorPoint){ mouse_x, button->position.bottom, white };
     DrawShadedRectangle(&lower_middle, &upper_left);
     DrawShadedRectangle(&lower_right, &upper_middle);
-  } else {
-    DrawShadedRectangle(&lower_right, &upper_left); 
+  }
+  else {
+    DrawShadedRectangle(&lower_right, &upper_left);
   }
   // Draw the caption string in the center
   int middle_x = (button->position.left + button->position.right
-                  - TextStringWidth(button->caption)) >> 1;
+    - TextStringWidth(button->caption)) >> 1;
   int middle_y = (button->position.top + button->position.bottom
-                  + GetFontHeight()) >> 1;
+    + GetFontHeight()) >> 1;
   MovePen(middle_x, middle_y);
   switch (button->font_color) {
   case kRed:
@@ -225,7 +228,7 @@ void DrawButton(Button* button, int mouse_x) {
 }
 
 // Judge whether str[pos ~ pos + 1] is a Chinese
-int IsInsideChinese (char* str, int pos) {
+int IsInsideChinese(char* str, int pos) {
   if (pos >= strlen(str) - 1 || pos < 0) {
     return 0;
   }
@@ -233,7 +236,7 @@ int IsInsideChinese (char* str, int pos) {
 }
 
 // Get the length of the [left, right) characters in a string
-int GetStringWidthN (char* str, int left, int right) {
+int GetStringWidthN(char* str, int left, int right) {
   if (right > strlen(str)) {
     return -1;
   }
@@ -246,7 +249,7 @@ int GetStringWidthN (char* str, int left, int right) {
 
 
 // Draw [left, right) of the string str
-void DrawTextStringN (char* str, int left, int right) {
+void DrawTextStringN(char* str, int left, int right) {
   char tmp = str[right];
   str[right] = '\0';
   DrawTextString(str + left);
@@ -268,7 +271,8 @@ void DrawContent(InputBox* input_box, int draw_cursor) {
       }
       i += 1 + IsInsideChinese(input_box->context, i);
     }
-  } else {
+  }
+  else {
     left_most = 0;
     right_most = input_box->cursor;
     for (int i = input_box->cursor; i >= 0;) {
@@ -293,14 +297,14 @@ void DrawContent(InputBox* input_box, int draw_cursor) {
 
 void DrawInputBox(InputBox* input_box, int draw_cursor) {
   switch (input_box->status) {
-    case kNormal:
-      SetPenSize(2);
-      SetPenColor("black");
-      break;
-    case kHover:
-      SetPenSize(4);
-      SetPenColor("red");
-      break;
+  case kNormal:
+    SetPenSize(2);
+    SetPenColor("black");
+    break;
+  case kHover:
+    SetPenSize(4);
+    SetPenColor("red");
+    break;
   }
   DrawRectangle(&input_box->position);
   DrawContent(input_box, draw_cursor);
@@ -319,14 +323,14 @@ void DrawLink(Link* link) {
     SetPenColor("black");
     break;
   }
-  switch(link->status) {
-    case kHover:
-      MovePen(link->position.left, link->position.bottom);
-      DrawLine(TextStringWidth(link->caption), 0);
-    case kNormal:
-      MovePen(link->position.left, link->position.bottom);
-      DrawTextString(link->caption);
-      break;
+  switch (link->status) {
+  case kHover:
+    MovePen(link->position.left, link->position.bottom);
+    DrawLine(TextStringWidth(link->caption), 0);
+  case kNormal:
+    MovePen(link->position.left, link->position.bottom);
+    DrawTextString(link->caption);
+    break;
   }
 }
 
@@ -391,7 +395,8 @@ void DisplayAnimateComponents(CompList L, int x, int y) {
       rect = &button->position;
       if (Inbox(x, y, rect)) {
         button->status = kHover;
-      } else {
+      }
+      else {
         button->status = kNormal;
       }
       DrawButton(button, x);
@@ -401,7 +406,8 @@ void DisplayAnimateComponents(CompList L, int x, int y) {
       rect = &input_box->position;
       if (Inbox(x, y, rect)) {
         input_box->status = kHover;
-      } else {
+      }
+      else {
         input_box->status = kNormal;
       }
       DrawInputBox(input_box, focus == p);
@@ -411,7 +417,8 @@ void DisplayAnimateComponents(CompList L, int x, int y) {
       rect = &link->position;
       if (Inbox(x, y, rect)) {
         link->status = kHover;
-      } else {
+      }
+      else {
         link->status = kNormal;
       }
       DrawLink(link);
@@ -432,20 +439,79 @@ void DisplayAnimateComponents(CompList L, int x, int y) {
   }
 }
 
-void FlushScreen(int x, int y) {
-  DisplayClear();
-  DrawFramwork();
-  DisplayAnimateComponents(cur_list, x, y);
-  DisplayAnimateComponents(surface, x, y);
+PTCNode CheckHover(CompList L, int x, int y) {
+  PTCNode ret = NULL;
+  Button* button = NULL;
+  InputBox* input_box = NULL;
+  Link* link = NULL;
+  Label* label = NULL;
+  Image* image = NULL;
+  Rect* rect = NULL;
+  for (PTCNode p = L->next; p != L; p = p->next) {
+    switch (p->type) {
+    case kButton:
+      button = (Button*)p->component;
+      rect = &button->position;
+      if (Inbox(x, y, rect)) {
+        ret = p;
+      }
+      break;
+    case kInputBox:
+      input_box = (InputBox*)p->component;
+      rect = &input_box->position;
+      if (Inbox(x, y, rect)) {
+        ret = p;
+      }
+      break;
+    case kLink:
+      link = (Link*)(p->component);
+      rect = &link->position;
+      if (Inbox(x, y, rect)) {
+        ret = p;
+      }
+      break;
+    }
+  }
+  return ret;
+}
+
+// TODO: force draw
+void FlushScreen(int x, int y, int force) {
+  PTCNode hover1 = CheckHover(cur_list, x, y);
+  PTCNode hover2 = CheckHover(surface, x, y);
+  if (force == 1) {
+    DisplayClear();
+    DrawFramwork();
+    DisplayAnimateComponents(cur_list, x, y);
+    DisplayAnimateComponents(surface, x, y);
+    return;
+  }
+  if (hover1 == NULL && hover2 == NULL) {
+    return;
+  }
+  else if (hover1 != NULL && hover1->type == kButton) {
+    DrawButton(hover1->component, x);
+  }
+  else if (hover2 != NULL && hover2->type == kButton) {
+    DrawButton(hover2->component, x);
+  }
+  else {
+    DisplayClear();
+    DrawFramwork();
+    DisplayAnimateComponents(cur_list, x, y);
+    DisplayAnimateComponents(surface, x, y);
+  }
 }
 
 // Press enter on focus or click it
 void PushButton() {
   if (focus->type == kButton && focus != cur_list) {
     CallbackById(((Button*)focus->component)->id);
-  } else if (focus->type == kLink) {
+  }
+  else if (focus->type == kLink) {
     CallbackById(((Link*)focus->component)->id);
-  } else if (focus->type == kImage) {
+  }
+  else if (focus->type == kImage) {
     CallbackById(((Image*)focus->component)->id);
   }
 }
@@ -473,13 +539,14 @@ void HandleClickOnSur(int x, int y, int mouse_button, int event) {
       }
       if (click_on_margin) {
         ExitSurface();
-      } else {
+      }
+      else {
         CallbackById(id);
       }
     }
     break;
   }
-  FlushScreen(x, y);
+  FlushScreen(x, y, 1);
 }
 
 void HandleClickOnComp(int x, int y, int mouse_button, int event) {
@@ -490,59 +557,59 @@ void HandleClickOnComp(int x, int y, int mouse_button, int event) {
   Rect* rect = NULL;
   Image* image = NULL;
   int click_on_margin = 1;  // whether this click is on none of the components
-  switch(event) {
-    case BUTTON_UP:
-      if (mouse_button == LEFT_BUTTON) {
-        for (PTCNode p = cur_list->next; p != cur_list; p = p->next) {
-          switch (p->type) {
-            case kButton:
-              button = (Button*)p->component;
-              rect = &button->position;
-              if (Inbox(x, y, rect)) {
-                focus = p;
-                click_on_margin = 0;
-              }
-              break;
-            case kInputBox:
-              input_box = (InputBox*)p->component;
-              rect = &input_box->position;
-              if (Inbox(x, y, rect)) {
-                focus = p;
-                click_on_margin = 0;
-              }
-              break;
-            case kLink:
-              link = (Link*)(p->component);
-              rect = &link->position;
-              if (Inbox(x, y, rect)) {
-                focus = p;
-                click_on_margin = 0;
-              }
-              break;
-            case kImage:
-              image = (Image*)(p->component);
-              rect = &image->position;
-              if (Inbox(x, y, rect)) {
-                focus = p;
-                click_on_margin = 0;
-              }
+  switch (event) {
+  case BUTTON_UP:
+    if (mouse_button == LEFT_BUTTON) {
+      for (PTCNode p = cur_list->next; p != cur_list; p = p->next) {
+        switch (p->type) {
+        case kButton:
+          button = (Button*)p->component;
+          rect = &button->position;
+          if (Inbox(x, y, rect)) {
+            focus = p;
+            click_on_margin = 0;
           }
-          
+          break;
+        case kInputBox:
+          input_box = (InputBox*)p->component;
+          rect = &input_box->position;
+          if (Inbox(x, y, rect)) {
+            focus = p;
+            click_on_margin = 0;
+          }
+          break;
+        case kLink:
+          link = (Link*)(p->component);
+          rect = &link->position;
+          if (Inbox(x, y, rect)) {
+            focus = p;
+            click_on_margin = 0;
+          }
+          break;
+        case kImage:
+          image = (Image*)(p->component);
+          rect = &image->position;
+          if (Inbox(x, y, rect)) {
+            focus = p;
+            click_on_margin = 0;
+          }
         }
-        if (click_on_margin) {
-          focus = cur_list;
-        }
-        PushButton();
+
       }
-      break;
+      if (click_on_margin) {
+        focus = cur_list;
+      }
+      PushButton();
+    }
+    break;
   }
-  FlushScreen(x, y);
+  FlushScreen(x, y, 1);
 }
 
 // Move focus to the next components
 void MoveFocus() {
   focus = focus->next;
-  while(focus->type == kLabel) {
+  while (focus->type == kLabel) {
     focus = focus->next;
   }
 }
@@ -557,21 +624,25 @@ void MoveCursor(int delta) {
   int len = strlen(input_box->context);
   if (input_box->cursor + delta > len) {
     input_box->cursor = len;
-  } else if (input_box->cursor + delta < 0) {
+  }
+  else if (input_box->cursor + delta < 0) {
     input_box->cursor = 0;
-  } else {
+  }
+  else {
     switch (delta) {
     case 1:
       if (IsInsideChinese(input_box->context, input_box->cursor)) {
         input_box->cursor += 2;
-      } else {
+      }
+      else {
         input_box->cursor++;
       }
       break;
     case -1:
       if (IsInsideChinese(input_box->context, input_box->cursor - 2)) {
         input_box->cursor -= 2;
-      } else {
+      }
+      else {
         input_box->cursor--;
       }
     }
@@ -596,7 +667,8 @@ void DeleteChar(char* str, int position) {
     for (int i = position; i < len; i++) {
       str[i] = str[i + 2];
     }
-  } else {
+  }
+  else {
     for (int i = position; i < len; i++) {
       str[i] = str[i + 1];
     }
@@ -627,7 +699,7 @@ void BackSpaceInputBox() {
     return;
   }
   InputBox* input_box = (InputBox*)focus->component;
-  if(input_box->cursor > 0) {
+  if (input_box->cursor > 0) {
     MoveCursor(-1);
     DeleteChar(input_box->context, input_box->cursor);
   }
@@ -637,39 +709,39 @@ void BackSpaceInputBox() {
 void MouseMoveEventHandler(int x, int y, int mouse_button, int event) {
   HandleClickOnSur(x, y, mouse_button, event);
   HandleClickOnComp(x, y, mouse_button, event);
-  FlushScreen(x, y);
+  FlushScreen(x, y, 0);
 }
 
 void KeyboardEventHandler(int key, int event) {
-  if(event == KEY_UP) {
+  if (event == KEY_UP) {
     switch (key) {
-      case VK_TAB:
-        MoveFocus();
-        break;
-      case VK_LEFT:
-        MoveCursor(-1);
-        break;
-      case VK_RIGHT:
-        MoveCursor(1);
-        break;
-      case VK_UP:
-        MoveCursor(-1000);
-        break;
-      case VK_DOWN:
-        MoveCursor(1000);
-        break;
-      case VK_DELETE:
-        DeleteInputBox();
-        break;
-      case VK_BACK:
-        BackSpaceInputBox();
-        break;
-      case VK_RETURN:
-        PushButton();
-        break;
-      case VK_CONTROL:
-        ctrl_down = 0;
-        break;
+    case VK_TAB:
+      MoveFocus();
+      break;
+    case VK_LEFT:
+      MoveCursor(-1);
+      break;
+    case VK_RIGHT:
+      MoveCursor(1);
+      break;
+    case VK_UP:
+      MoveCursor(-1000);
+      break;
+    case VK_DOWN:
+      MoveCursor(1000);
+      break;
+    case VK_DELETE:
+      DeleteInputBox();
+      break;
+    case VK_BACK:
+      BackSpaceInputBox();
+      break;
+    case VK_RETURN:
+      PushButton();
+      break;
+    case VK_CONTROL:
+      ctrl_down = 0;
+      break;
     }
   }
   if (event == KEY_DOWN) {
@@ -679,16 +751,17 @@ void KeyboardEventHandler(int key, int event) {
       break;
     }
   }
-  FlushScreen(GetMouseX(), GetMouseY());
+  FlushScreen(GetMouseX(), GetMouseY(), 1);
 }
 
 void CharEventHandler(int key) {
   if (ctrl_down == 1) {
     HandleCtrl(key);
-  } else {
+  }
+  else {
     ChangeInputBox(key);
   }
-  FlushScreen(GetMouseX(), GetMouseY());
+  FlushScreen(GetMouseX(), GetMouseY(), 1);
 }
 
 void ClearComponents() {

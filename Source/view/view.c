@@ -607,6 +607,11 @@ static void LoginOrRegister_LoginCallback() {
     List *users = NewList();
     char *query = malloc(sizeof(char) * (10 + strlen(new_user->username)));
     sprintf(query, "username=%s", new_user->username);
+    if (ErrorHandle(Filter(users, query, USER), 1, DB_ENTRY_EMPTY)) {
+      free(query);
+      DeleteList(users, free);
+      return;
+    }
     free(query);
     if (users->size != 0) {
       DeleteList(users, free);
@@ -642,6 +647,8 @@ static void LoginOrRegister_LoginCallback() {
       free(msg);
       return;
     }
+    if (new_user->verified == TRUE)
+      memcpy(&user, new_user, sizeof(User));
 
     History *const new_history = malloc(sizeof(History));
     new_history->page = kWelcome;
@@ -655,6 +662,11 @@ static void LoginOrRegister_LoginCallback() {
     List *users = NewList();
     char *query = malloc(sizeof(char) * (10 + strlen(new_user->username)));
     sprintf(query, "username=%s", new_user->username);
+    if (ErrorHandle(Filter(users, query, USER), 1, DB_ENTRY_EMPTY)) {
+      free(query);
+      DeleteList(users, free);
+      return;
+    }
     free(query);
     if (users->size != 1) {
       DeleteList(users, free);
@@ -663,8 +675,8 @@ static void LoginOrRegister_LoginCallback() {
       ReturnHistory(history_list->dummy_tail->pre, msg);
       return;
     }
-    DeleteList(users, free);
     memcpy(new_user, users->dummy_head->nxt->value, sizeof(User));
+    DeleteList(users, free);
 
     char pwd_type[59];
     sprintf(pwd_type, "%s%s", TopHistory()->state.login_or_register->password,
@@ -1347,6 +1359,11 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
       system(command);
       free(command);
     } else {  // book database doesn't exist
+      char *command =
+          malloc(sizeof(char) * (15 + lib_path_len + 12));
+      sprintf(command, "copy /Y nul \"%s\"", user_db_dir);
+      system(command);
+      free(command);
       flag |= 2;
     }
     free(user_database_path);
@@ -1369,6 +1386,10 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
       system(command);
       free(command);
     } else {  // book database doesn't exist
+      char *command = malloc(sizeof(char) * (15 + lib_path_len + 12));
+      sprintf(command, "copy /Y nul \"%s\"", book_db_dir);
+      system(command);
+      free(command);
       flag |= 2;
     }
     free(book_database_path);
@@ -1387,12 +1408,16 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
     if (!_access(borrowrecord_database_path,
                  6)) {  // borrowrecord database exists
       char *command =
-          malloc(sizeof(char) * (14 + lib_path_len + 8 + lib_path_len + 12));
+          malloc(sizeof(char) * (14 + lib_path_len + 16 + lib_path_len + 20));
       sprintf(command, "copy /Y \"%s\" \"%s\"", borrowrecord_database_path,
               borrowrecord_db_dir);
       system(command);
       free(command);
     } else {  // borrowrecord database doesn't exist
+      char *command = malloc(sizeof(char) * (15 + lib_path_len + 20));
+      sprintf(command, "copy /Y nul \"%s\"", borrowrecord_db_dir);
+      system(command);
+      free(command);
       flag |= 2;
     }
     free(borrowrecord_database_path);
@@ -1420,22 +1445,27 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
                 "[Info] [%s] Log out, Clear history and init library from %s",
                 user.username, lib_path);
     } else {
-      if ((flag & 2) == 2)
+      if ((flag & 2) == 2) {
         sprintf(msg,
                 "[Error] [%s] Log out, Clear history and fail to open library "
                 "from %s, "
                 "init one at there, undefined behavior may occur",
                 user.username, lib_path);
-      else if ((flag & 1) == 1)
+        char *command = malloc(sizeof(char) * (15 + lib_path_len));
+        sprintf(command, "mkdir \"%s\\image\"", lib_path);
+        system(command);
+        free(command);
+      } else if ((flag & 1) == 1) {
         sprintf(msg,
                 "[Warning] [%s] Log out, Clear history and open library from "
                 "%s using "
                 "swap file",
                 user.username, lib_path);
-      else if (!flag)
+      } else if (!flag) {
         sprintf(msg,
                 "[Info] [%s] Log out, Clear history and open library from %s",
                 user.username, lib_path);
+      }
     }
   }
 
@@ -1450,6 +1480,11 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
 static inline void Navigation_SaveLibrary(bool type, char *msg) {
   char *command =
       malloc(sizeof(char) * (14 + lib_path_len + 16 + lib_path_len + 20));
+
+  // TODO:(TO/GA) delete them
+  CloseDBConnection(USER);
+  CloseDBConnection(BOOK);
+  CloseDBConnection(BORROWRECORD);
 
   char *user_database_path = malloc(sizeof(char) * (lib_path_len + 9));
   sprintf(user_database_path, "%s\\user.db", lib_path);
@@ -1471,6 +1506,11 @@ static inline void Navigation_SaveLibrary(bool type, char *msg) {
   system(command);
 
   free(command);
+
+  // TODO:(TO/GA) delete them
+  OpenDBConnection(user_db_dir, USER);
+  OpenDBConnection(book_db_dir, BOOK);
+  OpenDBConnection(borrowrecord_db_dir, BORROWRECORD);
 
   if (type) {
     if (!msg) {
@@ -1663,6 +1703,7 @@ static inline void Navigation_Exit() {
   ClearHistory();
   DeleteList(history_list, free);
 
+  Log("Shutdown");
   fclose(log_file);
 
   exit(0);

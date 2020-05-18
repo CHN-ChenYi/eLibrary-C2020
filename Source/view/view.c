@@ -307,6 +307,8 @@ static void FreeHistory(void *const history_) {
 }
 
 static void BookSearch_BorrowCallback(Book *book) {
+  if (ErrorHandle(GetById(book, book->uid, BOOK), 0))
+    return;
   if (!book->number_on_the_shelf) {
     char *msg =
         malloc(sizeof(char) * (38 + username_len + strlen(book->title)));

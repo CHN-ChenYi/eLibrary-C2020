@@ -12,7 +12,7 @@ inline int DBExists(Model model) {
 }
 #define process_to_unsigned(ptr, str, variable) \
 pch = strtok(str, ";\n"); \
-ptr->variable = (unsigned) strtol(pch, NULL, 10);
+ptr->variable = (unsigned) strtoll(pch, NULL, 10);
 #define process_to_str(ptr, str, variable) \
 pch = strtok(str, ";\n"); \
 strcpy(ptr->variable, pch);
@@ -23,10 +23,10 @@ int StringToBook(Book* p_b, String str) {
 	process_to_str(p_b, NULL, id);
 	process_to_str(p_b, NULL, title);
 	int i;
-	for (i = 0; i < 3; i++) process_to_str(p_b, NULL, authors[i]);
+	for (i = 0; i < 3; i++) { process_to_str(p_b, NULL, authors[i]); }
 	process_to_str(p_b, NULL, category);
 	process_to_str(p_b, NULL, press);
-	for (i = 0; i < 5; i++) process_to_str(p_b, NULL, keywords[i]);
+	for (i = 0; i < 5; i++) { process_to_str(p_b, NULL, keywords[i]); }
 	process_to_unsigned(p_b, NULL, number_on_the_shelf);
 	process_to_unsigned(p_b, NULL, available_borrowed_days);
 	return 0;
@@ -37,7 +37,7 @@ int StringToUser(User* p_u, String str) {
 	process_to_str(p_u, NULL, username);
 	process_to_str(p_u, NULL, salt);
 	int i;
-	for (i = 0; i < 8; i++) process_to_unsigned(p_u, NULL, password[i]);
+	for (i = 0; i < 8; i++) { process_to_unsigned(p_u, NULL, password[i]); }
 	process_to_unsigned(p_u, NULL, gender);
 	process_to_str(p_u, NULL, department);
 	process_to_unsigned(p_u, NULL, whoami);
@@ -79,21 +79,22 @@ int StringToModel(void** handle, Model model, String str) {
 }
 
 #define process(ptr, format, variable)\
-  sprintf(p_str_2, format";", ptr->variable); strcat(*p_str, (const) p_str_2); 
-int ModelToString(void* handle, Model model, String* p_str) {
-	char p_str_2[100];
-	if (model == BOOK) {
+  sprintf(p_str_2, format";", ptr->variable); strcat(p_str, (const) p_str_2); 
+int ModelToString(void* handle, Model model, char* p_str) {
+	char p_str_2[100] = "";
+	if (model == BOOK){
 		Book* p_b = (Book*)handle;
 		process(p_b, "%u", uid);
 		process(p_b, "%s", id);
+		process(p_b, "%s", title);
 		int i;
-		for (i = 0; i < 3; i++) process(p_b, "%s", authors[i]);
+		for (i = 0; i < 3; i++) { process(p_b, "%s", authors[i]); }
 		process(p_b, "%s", category);
 		process(p_b, "%s", press);
-		for (i = 0; i < 5; i++) process(p_b, "%s", keywords[i]);
+		for (i = 0; i < 5; i++) { process(p_b, "%s", keywords[i]); }
 		process(p_b, "%u", number_on_the_shelf);
 		process(p_b, "%u", available_borrowed_days);
-		strcat(*p_str, "\n");
+		strcat(p_str, "\n");
 	}
 	else if (model == USER) {
 		User* p_u = (User*)handle;
@@ -107,7 +108,7 @@ int ModelToString(void* handle, Model model, String* p_str) {
 		process(p_u, "%s", department);
 		process(p_u, "%u", whoami);
 		process(p_u, "%u", verified);
-		strcat(*p_str, "\n");
+		strcat(p_str, "\n");
 	}
 	else if (model == BORROWRECORD) {
 		BorrowRecord* p_r = (BorrowRecord*)handle;
@@ -119,7 +120,7 @@ int ModelToString(void* handle, Model model, String* p_str) {
 		process(p_r, "%s", borrowed_date);
 		process(p_r, "%u", book_status);
 		process(p_r, "%s", returned_date);
-		strcat(*p_str, "\n");
+		strcat(p_str, "\n");
 	}
 	return 0;
 }
@@ -127,7 +128,7 @@ int ModelToString(void* handle, Model model, String* p_str) {
 
 int DBOpen(const char* filename, Model model) {
 	FILE* database;
-	database = fopen(filename, "a+");
+	database = fopen(filename, "r+");
 	if (database == NULL) {
 		DBs[model].database = NULL;
 		return DB_NOT_OPEN;
@@ -147,11 +148,10 @@ int DBClose(Model model) {
 }
 int DBInit(Model model) {
 	int ok;
-	char str[100] = "";
+	char str[1000] = "";
 	FILE** database = &DBs[model].database;
 	List** data = &DBs[model].data;
 	*data = NewList();
-	ListNode* current = (*data)->dummy_head;
 	if (fgets(str, 50, *database) == NULL) {
 		if (strlen(str) == 0) {
 			DBs[model].pk = 0;
@@ -166,13 +166,12 @@ int DBInit(Model model) {
 		void *handle;
 		ok = StringToModel(&handle, model, str);
 		if (ok != 0) return DB_FAIL_ON_INIT;
-		current = InsertList(*data, current, handle);
+		InsertList(*data, (*data)->dummy_tail, handle);
 	}
 	return DB_SUCCESS;
 }
 int DBUninit(Model model) {
 	int ok;
-	char str[3000] = "";
 	FILE* database = DBs[model].database;
 	if (database == NULL) return DB_NOT_FOUND;
 	List* data = DBs[model].data;
@@ -182,16 +181,17 @@ int DBUninit(Model model) {
 		ClearList(data, NULL);
 		return DB_FAIL_ON_UNINIT;
 	}
-	fprintf(database, "%d %d", DBs[model].pk, DBs[model].size);
+	fprintf(database, "%d %d\n", DBs[model].pk, DBs[model].size);
 	while (1) {
 		cur = cur->nxt;
 		if (cur == data->dummy_tail) break;
-		ok = ModelToString(cur->value, model, &str);
+		char str[3000] = "";
+		ok = ModelToString(cur->value, model, str);
 		if (ok != 0) {
 			ClearList(data, NULL);
 			return DB_FAIL_ON_UNINIT;
 		}
-		fprintf(database, "\n%s", str);
+		fprintf(database, "%s", str);
 	}
 	ClearList(data, NULL);
 	return DB_SUCCESS;
@@ -216,36 +216,39 @@ int CloseDBConnection(Model model) {
 int Find(ListNode** target, unsigned int id, Model model) {
 	if (model == BOOK) {
 		ListNode* cur = DBs[model].data->dummy_head;
-		while (cur != DBs[model].data->dummy_tail) {
+		while (1) {
+			cur = cur->nxt;
+			if (cur == DBs[model].data->dummy_tail) break;
 			if (id == ((Book *)cur->value)->uid) {
 				*target = cur;
 				break;
 			}
-			cur = cur->nxt;
 		}
 		if (cur == DBs[model].data->dummy_tail) return DB_NOT_EXISTS;
 		else return DB_SUCCESS;
 	}
 	else if (model == USER) {
 		ListNode* cur = DBs[model].data->dummy_head;
-		while (cur != DBs[model].data->dummy_tail) {
+		while (1) {
+			cur = cur->nxt;
+			if (cur == DBs[model].data->dummy_tail) break;
 			if (id == ((User *)cur->value)->uid) {
 				*target = cur;
 				break;
 			}
-			cur = cur->nxt;
 		}
 		if (cur == DBs[model].data->dummy_tail) return DB_NOT_EXISTS;
 		else return DB_SUCCESS;
 	}
 	else if (model == BORROWRECORD) {
 		ListNode* cur = DBs[model].data->dummy_head;
-		while (cur != DBs[model].data->dummy_tail) {
+		while (1) {
+			cur = cur->nxt;
+			if (cur == DBs[model].data->dummy_tail) break;
 			if (id == ((BorrowRecord *)cur->value)->uid) {
 				*target = cur;
 				break;
 			}
-			cur = cur->nxt;
 		}
 		if (cur == DBs[model].data->dummy_tail) return DB_NOT_EXISTS;
 		else return DB_SUCCESS;
@@ -255,19 +258,24 @@ int Find(ListNode** target, unsigned int id, Model model) {
 
 int Create(void* handle, Model model) {
 	if (!DBExists(model)) return DB_NOT_FOUND;
-	void* target;
+	void* target = NULL;
+	int ok;
 	if (model == BOOK) {
 		target = malloc(sizeof(Book));
-		BookCopy((Book*)handle, (Book*)target);
+		ok = BookCopy((Book*)target, (Book*)handle);
+		if (ok != DB_SUCCESS) return DB_FAIL_ON_CREATE;
 	}
 	else if (model == USER) {
 		target = malloc(sizeof(User));
-		UserCopy((User*)handle, (User*)target);
+		ok = UserCopy((User*)target, (User*)handle);
+		if (ok != DB_SUCCESS) return DB_FAIL_ON_CREATE;
 	}
 	else if (model == BORROWRECORD) {
 		target = malloc(sizeof(BorrowRecord));
-		RecordCopy((BorrowRecord*)handle, (BorrowRecord*)target);
+		ok = RecordCopy((BorrowRecord*)target, (BorrowRecord*)handle);
+		if (ok != DB_SUCCESS) return DB_FAIL_ON_CREATE;
 	}
+	if (target == NULL) return DB_FAIL_ON_CREATE;
 	if (InsertList(DBs[model].data, DBs[model].data->dummy_tail, target) == DBs[model].data->dummy_tail) {
 		return DB_FAIL_ON_CREATE;
 	}
@@ -304,7 +312,7 @@ int UserCopy(User* destination, User* source) {
 	destination->gender = source->gender;
 	if (strcpy(destination->department, source->department) == NULL) return err;
 	destination->whoami = source->whoami;
-	destination->verified = 0;
+	destination->verified = source->verified;
 	return DB_SUCCESS;
 }
 int RecordCopy(BorrowRecord* destination, BorrowRecord* source) {
@@ -323,12 +331,12 @@ int RecordCopy(BorrowRecord* destination, BorrowRecord* source) {
 int GetById(void* handle, unsigned int id, Model model) {
 	int ok;
 	if (!DBExists(model)) return DB_NOT_FOUND;
-	ListNode* cur = DBs[model].data->dummy_head;
+	ListNode* cur = NULL;
 	ok = Find(&cur, id, model);
 	if (ok == 0) {
-		if (model == BOOK) return BookCopy((Book*)handle, (Book*)cur);
-		else if (model == USER) return UserCopy((User*)handle, (User*)cur);
-		else if (model == USER) return RecordCopy((BorrowRecord*)handle, (BorrowRecord*)cur);
+		if (model == BOOK) return BookCopy((Book*)handle, (Book*)cur->value);
+		else if (model == USER) return UserCopy((User*)handle, (User*)cur->value);
+		else if (model == USER) return RecordCopy((BorrowRecord*)handle, (BorrowRecord*)cur->value);
 	}
 	return DB_NOT_EXISTS;
 }
@@ -342,12 +350,14 @@ int Cmp(const char* str1, const char* str2, int insensitive, int equal) {
 int BookFilter(Book* p_b, String queries) {
 	if (strlen(queries) == 0) return 1;
 	char* property, *para; int insensitive = 0, equal = 1, flag = 1;
-	property = strtok(queries, "=");
-	while (1) {
+	char q[1000];
+	strcpy(q, queries);
+	property = strtok(q, "=");
+	while (1) {	
 		if (property == NULL) break;
 		para = strtok(NULL, "&");
-		if (*(property + strlen(property) - 2) == ';') insensitive = 1;
-		if (*(property + strlen(property) - 2) == '!') equal = 0;
+		if (*(property + strlen(property) - 1) == ';') insensitive = 1;
+		if (*(property + strlen(property) - 1) == '!') equal = 0;
 		if (*(property) == 'u' && *(property + 1) == 'i') {
 			char uid_str[50];
 			sprintf(uid_str, "%u", p_b->uid);
@@ -355,6 +365,9 @@ int BookFilter(Book* p_b, String queries) {
 		}
 		else if (*(property) == 'i' && *(property + 1) == 'd') {
 			flag = Cmp(p_b->id, para, insensitive, equal);
+		}
+		else if (*(property) == 't' && *(property + 1) == 'i') {
+			flag = Cmp(p_b->title, para, insensitive, equal);
 		}
 		else if (*(property) == 'a' && *(property + 1) == 'u') {
 			int i;
@@ -390,18 +403,20 @@ int BookFilter(Book* p_b, String queries) {
 		if (!flag) break;
 		property = strtok(NULL, "=");
 	}
-	return DB_SUCCESS;
+	return flag;
 }
 
 int UserFilter(User* p_u, String queries) {
 	if (strlen(queries) == 0) return 1;
 	char* property, *para; int insensitive = 0, equal = 1, flag = 1;
-	property = strtok(queries, "=");
+	char q[1000];
+	strcpy(q, queries);
+	property = strtok(q, "=");
 	while (1) {
 		if (property == NULL) break;
 		para = strtok(NULL, "&");
-		if (*(property + strlen(property) - 2) == ';') insensitive = 1;
-		if (*(property + strlen(property) - 2) == '!') equal = 0;
+		if (*(property + strlen(property) - 1) == ';') insensitive = 1;
+		if (*(property + strlen(property) - 1) == '!') equal = 0;
 		if (*(property) == 'u' && *(property + 1) == 'i') {
 			char uid_str[50];
 			sprintf(uid_str, "%u", p_u->uid);
@@ -438,18 +453,20 @@ int UserFilter(User* p_u, String queries) {
 		if (!flag) break;
 		property = strtok(NULL, "=");
 	}
-	return DB_SUCCESS;
+	return flag;
 }
 
 int RecordFilter(BorrowRecord* p_r, String queries) {
 	if (strlen(queries) == 0) return 1;
 	char* property, *para; int insensitive = 0, equal = 1, flag = 1;
-	property = strtok(queries, "=");
+	char q[1000];
+	strcpy(q, queries);
+	property = strtok(q, "=");
 	while (1) {
 		if (property == NULL) break;
 		para = strtok(NULL, "&");
-		if (*(property + strlen(property) - 2) == ';') insensitive = 1;
-		if (*(property + strlen(property) - 2) == '!') equal = 0;
+		if (*(property + strlen(property) - 1) == ';') insensitive = 1;
+		if (*(property + strlen(property) - 1) == '!') equal = 0;
 		if (*(property) == 'u' && *(property + 1) == 'i') {
 			char str[50];
 			sprintf(str, "%u", p_r->uid);
@@ -486,15 +503,16 @@ int RecordFilter(BorrowRecord* p_r, String queries) {
 		if (!flag) break;
 		property = strtok(NULL, "=");
 	}
-	return DB_SUCCESS;
+	return flag;
 }
 
-int Filter(void* list_handle, String queries, Model model) {
-	List* handle = NewList();
+int Filter(List* list_handle, String queries, Model model) {
 	List* data;
+	data = DBs[model].data;
+	if ( !DBExists(model) || data == NULL) return DB_NOT_FOUND;
+	ListNode* cur = data->dummy_head;
+	List* handle = list_handle;
 	if (model == BOOK) {
-		data = DBs[model].data;
-		ListNode* cur = data->dummy_head;
 		while (1) {
 			cur = cur->nxt;
 			if (cur == data->dummy_tail) break;
@@ -506,8 +524,6 @@ int Filter(void* list_handle, String queries, Model model) {
 		}
 	}
 	else if (model == USER) {
-		data = DBs[model].data;
-		ListNode* cur = data->dummy_head;
 		while (1) {
 			cur = cur->nxt;
 			if (cur == data->dummy_tail) break;
@@ -519,8 +535,6 @@ int Filter(void* list_handle, String queries, Model model) {
 		}
 	}
 	else if (model == BORROWRECORD) {
-		data = DBs[model].data;
-		ListNode* cur = data->dummy_head;
 		while (1) {
 			cur = cur->nxt;
 			if (cur == data->dummy_tail) break;
@@ -536,29 +550,34 @@ int Filter(void* list_handle, String queries, Model model) {
 
 int GetDBSize(Model model, unsigned int *size) {
 	if (!DBExists(model)) return DB_NOT_FOUND;
-	*size = DBs[model].size + 1;
+	*size = DBs[model].size;
 	return DB_SUCCESS;
 }
 
 int GetNextPK(Model model, unsigned int *pk) {
 	if (!DBExists(model)) return DB_NOT_FOUND;
-	*pk = DBs[model].pk + 1;
+	*pk = DBs[model].pk;
 	return DB_SUCCESS;
 }
 
 int Update(void* handle, unsigned int id, Model model) {
 	if (!DBExists(model)) return DB_NOT_FOUND;
 	ListNode* target;
-	int ok, uid;
+	int ok, uid = id;
 	ok = Find(&target, id, model);
 	if (ok != DB_SUCCESS) return DB_NOT_EXISTS;
-	if (model == BOOK) uid = ((Book*)target)->uid;
-	else if (model == USER) uid = ((User*)target)->uid;
-	else if (model == BORROWRECORD) uid = ((BorrowRecord*)target)->uid;
-	ok = Delete(uid, model);
-	if (ok != DB_SUCCESS) return DB_FAIL_ON_DELETE;
-	ok = Create(handle, model);
-	if (ok != DB_SUCCESS) return DB_FAIL_ON_UPDATE;
+	if (model == BOOK) {
+		BookCopy((Book*) target->value, (Book*)handle);
+		((Book*)target->value)->uid = uid;
+	} 
+	else if (model == USER) {
+		UserCopy((User*)target->value, (User*)handle);
+		((User*)target->value)->uid = uid;
+	}
+	else if (model == BORROWRECORD) {
+		RecordCopy((BorrowRecord*)target->value, (BorrowRecord*)handle);
+		((BorrowRecord*)target->value)->uid = uid;
+	}
 	return ok;
 }
 

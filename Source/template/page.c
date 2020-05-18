@@ -430,7 +430,8 @@ void AddLendAndBorrow() {
   int cur_y = 150;
   int delta_y = 50;
   for (ListNode* p = cur_state->books_start;
-       p != NULL && count <= kLendAndBorrowMax; p = p->nxt, count++) {
+       p != cur_state->books->dummy_tail && count <= kLendAndBorrowMax;
+       p = p->nxt, count++) {
     books_on_page[count] = p;
     Book *cur_book = p->value;
     Label *label = CreateLabel(
@@ -445,7 +446,8 @@ void AddLendAndBorrow() {
   cur_y = 150;
   count = 1;
   for (ListNode* p = cur_state->borrow_records_start;
-       p != NULL && count <= kLendAndBorrowMax; p = p->nxt, count++) {
+       p != cur_state->borrow_records->dummy_tail && count <= kLendAndBorrowMax;
+       p = p->nxt, count++) {
     BorrowRecord *cur_borrow = p->value;
     Label* label = CreateLabel(
       (Rect){left_border + 500, 0, 0, cur_y += delta_y}, cur_borrow->returned_date, kBlack, NULL_ID
@@ -526,7 +528,8 @@ void AddBookSearch() {
   int count = 1;
 
   for (ListNode* p = book_search->book_result_start;
-       p != NULL && count <= 10; p = p->nxt, count++) {
+       p != book_search->book_result->dummy_tail && count <= 10;
+       p = p->nxt, count++) {
     Book* book = p->value;
     books_to_borrow_on_page[count] = book;
     Label *title = CreateLabel(
@@ -625,7 +628,8 @@ void AddUserSearch() {
   int count = 1;
 
   for (ListNode* p = user_search->user_result_start;
-       p != NULL && count <= kUserSearchMax; p = p->nxt, count++) {
+       p != user_search->user_result->dummy_tail && count <= kUserSearchMax;
+       p = p->nxt, count++) {
     User* user = p->value;
     user_on_page[count] = user;
     Label* name = CreateLabel(
@@ -928,7 +932,7 @@ void AddUserModify() {
 
   int count = 1;
   for (ListNode* p = user_modify->borrowrecords_start;
-       p != NULL && count <= kUserModifyMax; p = p->nxt, count++) {
+       p != user_modify->borrowrecords->dummy_tail && count <= kUserModifyMax; p = p->nxt, count++) {
     BorrowRecord *borrow_record = p->value;
     Label* user_name = CreateLabel(
       (Rect){right_x, 0, 0, cur_y += delta_y},
@@ -1053,7 +1057,9 @@ void AddUserManagement() {
 
   int count = 1;
   for (ListNode* p = user_management->to_be_verified_start;
-       p != NULL && count <= kUserManagementUsersMax; p = p->nxt, count++) {
+       p != user_management->to_be_verified->dummy_tail &&
+       count <= kUserManagementUsersMax;
+       p = p->nxt, count++) {
     User *user = p->value;
     tbv_user_on_page[count] = p;
     Label* label = CreateLabel(
@@ -1072,8 +1078,10 @@ void AddUserManagement() {
   }
 
   count = 1;
-  for (ListNode *p = user_management->users_start; 
-       p != NULL && count <= kUserManagementUsersMax; p = p->nxt, count++) {
+  for (ListNode* p = user_management->users_start;
+       p != user_management->users->dummy_tail &&
+       count <= kUserManagementUsersMax;
+       p = p->nxt, count++) {
     User *user = p->value;
     v_user_on_page[count] = p;
     Label* label = CreateLabel(
@@ -1188,8 +1196,9 @@ void AddLibrary() {
   int count = 1;
   cur_y = top;
   delta_y = (bottom - top - 100) / kLibraryMax;
-  for (ListNode* p = library->books_start; 
-       p != NULL && count <= kLibraryMax; p = p->nxt, count++) {
+  for (ListNode* p = library->books_start;
+       p != library->books->dummy_tail && count <= kLibraryMax;
+       p = p->nxt, count++) {
     books_on_page[count] = p;
     Book* book = p->value;
     Label *name_label = CreateLabel(
@@ -1622,8 +1631,10 @@ void AddBorrowDisplay() {
     (Rect){title->position.right + 10, 0, 0, cur_y}, borrow_display->book_name, kBlack, NULL_ID
   );
   int count = 1;
-  for (ListNode* p = borrow_display->borrow_record_start; 
-       p != NULL && count <= kBorrowDisplayMax; p = p->nxt, count++) {
+  for (ListNode* p = borrow_display->borrow_record_start;
+       p != borrow_display->borrow_record->dummy_tail &&
+       count <= kBorrowDisplayMax;
+       p = p->nxt, count++) {
     BorrowRecord *borrow_record = p->value;
     Label* user_name = CreateLabel(
       (Rect){left_border + 10, 0, 0, cur_y += delta_y},
@@ -1725,7 +1736,8 @@ void AddStatistics() {
   InsertComp(catalog_title, kLabel);
   int count = 1;
   for (ListNode* p = statistics->catalogs_start;
-       p != NULL && count <= kStatisticsCatalogsMax; p = p->nxt, count++) {
+       p != statistics->catalogs->dummy_tail && count <= kStatisticsCatalogsMax;
+       p = p->nxt, count++) {
     char* catalog = p->value;
     catalog_on_page[count] = p;
     Link* catalog_link = CreateLink(
@@ -1742,7 +1754,9 @@ void AddStatistics() {
   );
   InsertComp(record_title, kLabel);
   for (ListNode* p = statistics->borrow_record_start;
-    p != NULL && count <= kStatisticsCatalogsMax; p = p->nxt, count++) {
+       p != statistics->borrow_record->dummy_tail &&
+       count <= kStatisticsCatalogsMax;
+       p = p->nxt, count++) {
     BorrowRecord *borrow_record = p->value;
     Label* user_name = CreateLabel(
       (Rect){right_x, 0, 0, cur_y += delta_y},

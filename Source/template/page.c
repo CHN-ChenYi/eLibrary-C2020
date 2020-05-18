@@ -55,6 +55,7 @@ static Frame *hb_frame, *fb_frame;
 // 数组作用：将callback id和对应的组件结合起来
 #define MAX_ON_PAGE 20
 static Book* books_to_borrow_on_page[MAX_ON_PAGE];
+static ListNode* borrow_records_on_page[MAX_ON_PAGE];
 static ListNode* books_on_page[MAX_ON_PAGE];
 static User *user_on_page[MAX_ON_PAGE];
 static ListNode* tbv_user_on_page[MAX_ON_PAGE]; 
@@ -74,6 +75,8 @@ static char *book_press_on_page;
 static char *book_authors_on_page[3];
 static char *book_keywords_on_page[5];
 static char *catagory_on_page;
+static char *days_to_borrow_on_page;
+static char *number_of_books_on_page;
 
 /* Submenu */
 
@@ -446,6 +449,7 @@ void AddLendAndBorrow() {
   for (ListNode* p = cur_state->borrow_records_start;
        p != cur_state->borrow_records->dummy_tail && count <= kLendAndBorrowMax;
        p = p->nxt, count++) {
+    borrow_records_on_page[count] = p;
     BorrowRecord *cur_borrow = p->value;
     Label* label = CreateLabel(
       (Rect){left_border + 500, 0, 0, cur_y += delta_y}, cur_borrow->returned_date, kBlack, NULL_ID
@@ -487,7 +491,7 @@ void HandleLendAndBorrowCallback(int id) {
     cur_state->search_callback(keyword_on_page);
     break;
   default:
-    cur_state->search_callback(books_on_page[id - 50]);
+    cur_state->return_callback(books_on_page[id - 50], borrow_records_on_page[id - 50]);
     break;
   }
 }
@@ -1262,8 +1266,8 @@ void AddBookDisplay() {
   
   int left_border = 200;
   int right_border = GetWindowWidthPx() - 200;
-  int top = 150;
-  int bottom = GetWindowHeightPx() - 200;
+  int top = 100;
+  int bottom = GetWindowHeightPx() - 120;
   int middle = GetWindowWidthPx() / 2;
 
   Frame* frame = CreateFrame(
@@ -1290,7 +1294,7 @@ void AddBookDisplay() {
   );
   InsertComp(book_cover, kImage);
   int cur_y = top;
-  int delta_y = (bottom - top) / 14;
+  int delta_y = (bottom - top) / 16;
   Label* title = CreateLabel(
     (Rect){left_border, 0, 0, top - 5}, "图书信息", kBlack, NULL_ID
   );
@@ -1352,10 +1356,38 @@ void AddBookDisplay() {
     book_display->book->category, kBlack, NULL_ID
   );
   catagory_on_page = catagory_context->caption;
+  // Days to borrow
+  Book* book = book_display->book;
+  Label* days_to_borrow_label = CreateLabel(
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "可借阅天数：", kBlack, NULL_ID
+  );
+  char borrowed_days[50];
+  sprintf(borrowed_days, "%d", book->available_borrowed_days);
+  Label *days_to_borrow_info = CreateLabel(
+    (Rect){info_x + TextStringWidth("可借阅天数："), right_border - 10, 0, cur_y},
+    borrowed_days, kBlack, NULL_ID
+  );
+  days_to_borrow_on_page = days_to_borrow_info->caption;
+
+  // Books on shelf
+  Label *books_on_shelf_label = CreateLabel(
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "在架数：", kBlack, NULL_ID
+  );
+  char number_on_the_shelf[50];
+  sprintf(number_on_the_shelf, "%d", book->number_on_the_shelf);
+  Label *books_on_shelf_info = CreateLabel(
+    (Rect){info_x + TextStringWidth("在架数："), right_border - 10, 0, cur_y},
+    number_on_the_shelf, kBlack, NULL_ID
+  );
+  number_of_books_on_page = books_on_shelf_info->caption;
   Button *borrow_button = CreateButton(
     (Rect){left_border, left_border + 80, bottom, bottom + 50},
     "借书", SEARCH_COLOR, 1, kWhite, 804
   );
+  InsertComp(days_to_borrow_label, kLabel);
+  InsertComp(days_to_borrow_info, kLabel);
+  InsertComp(books_on_shelf_label, kLabel);
+  InsertComp(books_on_shelf_info, kLabel);
   InsertComp(borrow_button, kButton);
   InsertComp(title, kLabel);
   InsertComp(catagory_label, kLabel);
@@ -1379,8 +1411,8 @@ void AddBookModify() {
 
   int left_border = 200;
   int right_border = GetWindowWidthPx() - 200;
-  int top = 150;
-  int bottom = GetWindowHeightPx() - 150;
+  int top = 100;
+  int bottom = GetWindowHeightPx() - 120;
   int middle = GetWindowWidthPx() / 2;
 
   Frame* frame = CreateFrame(
@@ -1391,7 +1423,7 @@ void AddBookModify() {
 
   int info_x = middle;
   int cur_y = top;
-  int delta_y = (bottom - top) / 14;
+  int delta_y = (bottom - top) / 16;
 
   Book *book = book_modify->book;
   LibImage img = book_modify->book_cover;
@@ -1408,7 +1440,7 @@ void AddBookModify() {
   Image* book_cover = CreateImage(
     (Rect){(left_border + middle - width) / 2, (left_border + middle + width) / 2,
            (top + bottom - height) / 2, (top + bottom + height) / 2},
-    img, NULL_ID
+    img, 802
   );
   InsertComp(book_cover, kImage);
 
@@ -1487,9 +1519,33 @@ void AddBookModify() {
   );
   InputBox *catagory_input = CreateInputBox(
     (Rect){info_x + TextStringWidth("分类："), right_border - 10, 0, cur_y},
-    book->category, kBlack, NULL_ID
+    book->category, NULL_ID
   );
-  catagory_on_page = book->category;
+  catagory_on_page = catagory_input->context;
+
+  // Days to borrow
+  Label* days_to_borrow_label = CreateLabel(
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "可借阅天数：", kBlack, NULL_ID
+  );
+  char borrowed_days[50];
+  sprintf(borrowed_days, "%d", book->available_borrowed_days);
+  InputBox *days_to_borrow_input = CreateInputBox(
+    (Rect){info_x + TextStringWidth("可借阅天数："), right_border - 10, 0, cur_y},
+    borrowed_days, NULL_ID
+  );
+  days_to_borrow_on_page = days_to_borrow_input->context;
+
+  // Books on shelf
+  Label *books_on_shelf_label = CreateLabel(
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "在架数：", kBlack, NULL_ID
+  );
+  char number_on_the_shelf[50];
+  sprintf(number_on_the_shelf, "%d", book->number_on_the_shelf);
+  InputBox *books_on_shelf_input = CreateInputBox(
+    (Rect){info_x + TextStringWidth("在架数："), right_border - 10, 0, cur_y},
+    number_on_the_shelf, NULL_ID
+  );
+  number_of_books_on_page = books_on_shelf_input->context;
 
   Button *confirm_button = CreateButton(
     (Rect){left_border, left_border + 80, bottom, bottom + 50},
@@ -1522,6 +1578,10 @@ void AddBookModify() {
     InsertComp(admin_button, kButton);
   }
 
+  InsertComp(books_on_shelf_label, kLabel);
+  InsertComp(books_on_shelf_input, kInputBox);
+  InsertComp(days_to_borrow_label, kLabel);
+  InsertComp(days_to_borrow_input, kInputBox);
   InsertComp(title, kLabel);
   InsertComp(catagory_input, kInputBox);
   InsertComp(catagory_label, kLabel);
@@ -1555,6 +1615,8 @@ void HandleBookCallback(int id) {
     strcpy(cur_state->book->keywords[i], book_keywords_on_page[i]);
   }
   strcpy(cur_state->book->category, catagory_on_page);
+  cur_state->book->available_borrowed_days = atoi(days_to_borrow_on_page);
+  cur_state->book->number_on_the_shelf = atoi(number_of_books_on_page);
   switch (id) {
   case 1:
     cur_state->confirm_callback();
@@ -1921,6 +1983,7 @@ void InitGUI() {
  * 12 用户手册
  */
 void CallbackById(int id) {
+  printf("%d\n", id);
   if (id < 0) {
     // click on the head bar
     InitSurface();

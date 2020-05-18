@@ -12,7 +12,7 @@ inline int DBExists(Model model) {
 }
 #define process_to_unsigned(ptr, str, variable) \
 pch = strtok(str, ";\n"); \
-ptr->variable = (unsigned) strtol(pch, NULL, 10);
+ptr->variable = (unsigned) strtoll(pch, NULL, 10);
 #define process_to_str(ptr, str, variable) \
 pch = strtok(str, ";\n"); \
 strcpy(ptr->variable, pch);
@@ -312,7 +312,7 @@ int UserCopy(User* destination, User* source) {
 	destination->gender = source->gender;
 	if (strcpy(destination->department, source->department) == NULL) return err;
 	destination->whoami = source->whoami;
-	destination->verified = 0;
+	destination->verified = source->verified;
 	return DB_SUCCESS;
 }
 int RecordCopy(BorrowRecord* destination, BorrowRecord* source) {

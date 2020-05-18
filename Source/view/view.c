@@ -831,7 +831,7 @@ static void BookDisplay_CoverCallback() {
     sprintf(msg, "[Error] [%s] Fail to change the book(uid = %d)'s cover",
             user.username, uid);
     free(command);
-    DrawUI(kBookModify, &user, TopHistory()->state.book_display, msg);
+    DrawUI(TopHistory()->page, &user, TopHistory()->state.book_display, msg);
     return;
   }
   free(command);
@@ -840,14 +840,18 @@ static void BookDisplay_CoverCallback() {
   sprintf(msg, "[Info] [%s] Change the book(uid = %d)'s cover", user.username,
           uid);
   Log(msg);
-  DrawUI(kBookModify, &user, TopHistory()->state.book_display, msg);
+  DrawUI(TopHistory()->page, &user, TopHistory()->state.book_display, msg);
 }
 
 static void BookDisplay_ConfirmCallback() {
   if (user.whoami != ADMINISTRATOR) {
     char *msg = malloc(sizeof(char) * (60 + username_len));
-    sprintf(msg, "[Error] [%s] Permission denied. Can't modify any book",
-            user.username);
+    if (TopHistory()->page == kBookModify)
+      sprintf(msg, "[Error] [%s] Permission denied. Can't modify any book",
+              user.username);
+    else
+      sprintf(msg, "[Error] [%s] Permission denied. Can't init any book",
+              user.username);
     ReturnHistory(history_list->dummy_tail->pre, msg);
     return;
   }
@@ -865,12 +869,23 @@ static void BookDisplay_ConfirmCallback() {
     ReturnHistory(history_list->dummy_tail->pre, msg);
     return;
   }
-  if (ErrorHandle(Update(new_book, new_book->uid, BOOK), 0)) return;
+  if (TopHistory()->page == kBookInit) {
+    if (ErrorHandle(Create(new_book, BOOK), 0)) return;
 
-  char *msg =
-      malloc(sizeof(char) * (25 + username_len + strlen(new_book->title)));
-  sprintf(msg, "[Info] [%s] Modify book [%s]", user.username, new_book->title);
-  ReturnHistory(history_list->dummy_tail->pre, msg);
+    char *msg =
+        malloc(sizeof(char) * (25 + username_len + strlen(new_book->title)));
+    sprintf(msg, "[Info] [%s] Init book [%s]", user.username,
+            new_book->title);
+    Navigation_Library(msg);
+  } else {
+    if (ErrorHandle(Update(new_book, new_book->uid, BOOK), 0)) return;
+
+    char *msg =
+        malloc(sizeof(char) * (25 + username_len + strlen(new_book->title)));
+    sprintf(msg, "[Info] [%s] Modify book [%s]", user.username,
+            new_book->title);
+    Navigation_Library(msg);
+  }
 }
 
 static void BookDisplay_DeleteCallback() {
@@ -1077,7 +1092,7 @@ static inline void Navigation_LendAndBorrow(char *msg) {
   SortList(borrow_records_list, CmpLessBorrowRecordByReturnTime);
 
   List *books = NewList();
-  for (ListNode *cur_node = borrow_records_list->dummy_head;
+  for (ListNode *cur_node = borrow_records_list->dummy_head->nxt;
        cur_node != borrow_records_list->dummy_tail; cur_node = cur_node->nxt) {
     Book *book = malloc(sizeof(Book));
     if (ErrorHandle(GetById(book, ((BorrowRecord *)cur_node->value)->book_uid,
@@ -1249,7 +1264,7 @@ static inline void Navigation_Library(char *msg) {
   for (ListNode *cur_node = books->dummy_head->nxt;
        cur_node != books->dummy_tail; cur_node = cur_node->nxt) {
     LibImage *image = malloc(sizeof(LibImage));
-    sprintf(image_path + image_path_len, "%d.jpg",
+    sprintf(image_path + image_path_len - 1, "%d.jpg",
             ((Book *)cur_node->value)->uid);
     if (!_access(image_path, 4))
       loadImage(image_path, image);    

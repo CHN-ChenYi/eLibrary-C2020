@@ -385,7 +385,9 @@ static void inline BookSearchDisplay(char *keyword, char *msg) {
 }
 
 static void BookSearch_SearchCallback(char *keyword) {
-  BookSearchDisplay(keyword, NULL);
+  char *new_keyword = malloc(sizeof(char) * (strlen(keyword) + 1));
+  strcpy(new_keyword, keyword);
+  BookSearchDisplay(new_keyword, NULL);
 }
 
 static void BookSearch_TurnPage(bool direction) {
@@ -396,6 +398,8 @@ static void BookSearch_TurnPage(bool direction) {
 }
 
 static void LendAndBorrow_SearchCallback(char *keyword) {
+  // 由于 BookSearch 的 Callback 里面已经有了 keyword
+  // 的深拷贝，所以这里浅拷贝就可以了
   BookSearch_SearchCallback(keyword);
 }
 
@@ -589,7 +593,9 @@ static void inline UserSearchDisplay(char *keyword, char *msg) {
 }
 
 static void UserSearch_SearchCallback(char *keyword) {
-  UserSearchDisplay(keyword, NULL);
+  char *new_keyword = malloc(sizeof(char) * (strlen(keyword) + 1));
+  strcpy(new_keyword, keyword);
+  UserSearchDisplay(new_keyword, NULL);
 }
 
 static void UserSearch_TurnPage(bool direction) {
@@ -1149,11 +1155,15 @@ static inline void Navigation_LendAndBorrow(char *msg) {
 }
 
 static inline void Navigation_BookSearch(char *msg) {
-  BookSearchDisplay("", msg);
+  char *keyword = malloc(sizeof(char));
+  *keyword = '\0';
+  BookSearchDisplay(keyword, msg);
 }
 
 static inline void Navigation_UserSearch(char *msg) {
-  UserSearchDisplay("", msg);
+  char *keyword = malloc(sizeof(char));
+  *keyword = '\0';
+  UserSearchDisplay(keyword, msg);
 }
 
 // type = 0 => Manual

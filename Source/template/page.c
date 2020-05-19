@@ -1266,8 +1266,8 @@ void AddBookDisplay() {
   
   int left_border = 200;
   int right_border = GetWindowWidthPx() - 200;
-  int top = 150;
-  int bottom = GetWindowHeightPx() - 200;
+  int top = 100;
+  int bottom = GetWindowHeightPx() - 120;
   int middle = GetWindowWidthPx() / 2;
 
   Frame* frame = CreateFrame(
@@ -1294,7 +1294,7 @@ void AddBookDisplay() {
   );
   InsertComp(book_cover, kImage);
   int cur_y = top;
-  int delta_y = (bottom - top) / 14;
+  int delta_y = (bottom - top) / 16;
   Label* title = CreateLabel(
     (Rect){left_border, 0, 0, top - 5}, "图书信息", kBlack, NULL_ID
   );
@@ -1356,10 +1356,38 @@ void AddBookDisplay() {
     book_display->book->category, kBlack, NULL_ID
   );
   catagory_on_page = catagory_context->caption;
+  // Days to borrow
+  Book* book = book_display->book;
+  Label* days_to_borrow_label = CreateLabel(
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "可借阅天数：", kBlack, NULL_ID
+  );
+  char borrowed_days[50];
+  sprintf(borrowed_days, "%d", book->available_borrowed_days);
+  Label *days_to_borrow_info = CreateLabel(
+    (Rect){info_x + TextStringWidth("可借阅天数："), right_border - 10, 0, cur_y},
+    borrowed_days, kBlack, NULL_ID
+  );
+  days_to_borrow_on_page = days_to_borrow_info->caption;
+
+  // Books on shelf
+  Label *books_on_shelf_label = CreateLabel(
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "在架数：", kBlack, NULL_ID
+  );
+  char number_on_the_shelf[50];
+  sprintf(number_on_the_shelf, "%d", book->number_on_the_shelf);
+  Label *books_on_shelf_info = CreateLabel(
+    (Rect){info_x + TextStringWidth("在架数："), right_border - 10, 0, cur_y},
+    number_on_the_shelf, kBlack, NULL_ID
+  );
+  number_of_books_on_page = books_on_shelf_info->caption;
   Button *borrow_button = CreateButton(
     (Rect){left_border, left_border + 80, bottom, bottom + 50},
     "借书", SEARCH_COLOR, 1, kWhite, 804
   );
+  InsertComp(days_to_borrow_label, kLabel);
+  InsertComp(days_to_borrow_info, kLabel);
+  InsertComp(books_on_shelf_label, kLabel);
+  InsertComp(books_on_shelf_info, kLabel);
   InsertComp(borrow_button, kButton);
   InsertComp(title, kLabel);
   InsertComp(catagory_label, kLabel);
@@ -1383,8 +1411,8 @@ void AddBookModify() {
 
   int left_border = 200;
   int right_border = GetWindowWidthPx() - 200;
-  int top = 150;
-  int bottom = GetWindowHeightPx() - 150;
+  int top = 100;
+  int bottom = GetWindowHeightPx() - 120;
   int middle = GetWindowWidthPx() / 2;
 
   Frame* frame = CreateFrame(
@@ -1499,17 +1527,25 @@ void AddBookModify() {
   Label* days_to_borrow_label = CreateLabel(
     (Rect){info_x, 0, 0, cur_y += delta_y}, "可借阅天数：", kBlack, NULL_ID
   );
+  char borrowed_days[50];
+  sprintf(borrowed_days, "%d", book->available_borrowed_days);
   InputBox *days_to_borrow_input = CreateInputBox(
-    (Rect){info_x + TextStringWidth("可节约天数："), right_border - 10, 0, cur_y}, "", NULL_ID
+    (Rect){info_x + TextStringWidth("可借阅天数："), right_border - 10, 0, cur_y},
+    borrowed_days, NULL_ID
   );
+  days_to_borrow_on_page = days_to_borrow_input->context;
 
   // Books on shelf
   Label *books_on_shelf_label = CreateLabel(
     (Rect){info_x, 0, 0, cur_y += delta_y}, "在架数：", kBlack, NULL_ID
   );
+  char number_on_the_shelf[50];
+  sprintf(number_on_the_shelf, "%d", book->number_on_the_shelf);
   InputBox *books_on_shelf_input = CreateInputBox(
-    (Rect){info_x + TextStringWidth("在架数："), right_border - 10, 0, cur_y}, "", NULL_ID
+    (Rect){info_x + TextStringWidth("在架数："), right_border - 10, 0, cur_y},
+    number_on_the_shelf, NULL_ID
   );
+  number_of_books_on_page = books_on_shelf_input->context;
 
   Button *confirm_button = CreateButton(
     (Rect){left_border, left_border + 80, bottom, bottom + 50},
@@ -1579,6 +1615,8 @@ void HandleBookCallback(int id) {
     strcpy(cur_state->book->keywords[i], book_keywords_on_page[i]);
   }
   strcpy(cur_state->book->category, catagory_on_page);
+  cur_state->book->available_borrowed_days = atoi(days_to_borrow_on_page);
+  cur_state->book->number_on_the_shelf = atoi(number_of_books_on_page);
   switch (id) {
   case 1:
     cur_state->confirm_callback();

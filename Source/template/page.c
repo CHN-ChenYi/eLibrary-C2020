@@ -85,7 +85,7 @@ static Button *init_lib, *open_lib, *save_lib, *quit;
 // submenu for Book
 static Button *new_book, *display_book;
 // submenu for User
-static Button *login, *new_user, *varify, *logout;
+static Button *login, *new_user, *varify, *logout, *modify;
 // submenu for Help
 static Button *about, *manual;
 // submenu for Search
@@ -107,6 +107,7 @@ static Button *search_user, *search_book;
  * 12 用户手册
  * 13 用户搜索
  * 14 图书搜索
+ * 15 用户修改
  * 101 用户搜索
  * 102 用户搜索上一页
  * 103 用户搜索下一页
@@ -208,19 +209,19 @@ void ExitSurface() {
 
 void AddSubmenuFile() {
   init_lib = CreateButton(
-    (Rect) {0, 150, 70, 110},
+    (Rect) {FileButton->position.left, FileButton->position.left + 150, 70, 110},
     "新建", MENU_COLOR, 1, kWhite, 1
   );
   open_lib = CreateButton(
-    (Rect) {0, 150, 110, 150},
+    (Rect) {FileButton->position.left, FileButton->position.left + 150, 110, 150},
     "打开", MENU_COLOR, 1, kWhite, 2
   );
   save_lib = CreateButton(
-    (Rect) {0, 150, 150, 190},
+    (Rect) {FileButton->position.left, FileButton->position.left + 150, 150, 190},
     "保存", MENU_COLOR, 1, kWhite, 3
   );
   quit = CreateButton(
-    (Rect) {0, 150, 190, 230},
+    (Rect) {FileButton->position.left, FileButton->position.left + 150, 190, 230},
     "退出", MENU_COLOR, 1, kWhite, 4
   );
   InsertSurface(init_lib, kButton);
@@ -231,11 +232,11 @@ void AddSubmenuFile() {
 
 void AddSubmenuBook() {
   new_book = CreateButton(
-    (Rect) {70, 220, 70, 110},
+    (Rect) {BookButton->position.left, BookButton->position.left + 150, 70, 110},
     "新建", MENU_COLOR, 1, kWhite, 5
   );
   display_book = CreateButton(
-    (Rect) {70, 220, 110, 150},
+    (Rect) {BookButton->position.left, BookButton->position.left + 150, 110, 150},
     "显示", MENU_COLOR, 1, kWhite, 6
   );
   InsertSurface(new_book, kButton);
@@ -244,21 +245,26 @@ void AddSubmenuBook() {
 
 void AddSubmenuUser() {
   login = CreateButton(
-    (Rect) {200, 350, 70, 110},
+    (Rect) {UserButton->position.left, UserButton->position.left + 150, 70, 110},
     "登录", MENU_COLOR, 1, kWhite, 7
   );
   new_user = CreateButton(
-    (Rect) {200, 350, 110, 150},
+    (Rect) {UserButton->position.left, UserButton->position.left + 150, 110, 150},
     "新建", MENU_COLOR, 1, kWhite, 8
   );
   varify = CreateButton(
-    (Rect) {200, 350, 150, 190},
+    (Rect) {UserButton->position.left, UserButton->position.left + 150, 150, 190},
     "审核", MENU_COLOR, 1, kWhite, 9
   );
   logout = CreateButton(
-    (Rect) {200, 350, 190, 230},
+    (Rect) {UserButton->position.left, UserButton->position.left + 150, 190, 230},
     "登出", MENU_COLOR, 1, kWhite, 10
   );
+  modify = CreateButton(
+    (Rect) {UserButton->position.left, UserButton->position.left + 150, 230, 270},
+    "修改", MENU_COLOR, 1, kWhite, 15
+  );
+  InsertSurface(modify, kButton);
   InsertSurface(login, kButton);
   InsertSurface(new_user, kButton);
   InsertSurface(varify, kButton);
@@ -1980,6 +1986,9 @@ void InitGUI() {
  * 10 用户登出
  * 11 关于
  * 12 用户手册
+ * 13 用户搜索
+ * 14 图书搜索
+ * 15 用户修改
  */
 void CallbackById(int id) {
   printf("%d\n", id);
@@ -2041,6 +2050,9 @@ void CallbackById(int id) {
       break;
     case 14:
       NavigationCallback(kBookSearch);
+      break;
+    case 15:
+      NavigationCallback(kUserModify);
       break;
     }
   } else {

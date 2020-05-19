@@ -663,8 +663,6 @@ void AddUserSearch() {
   );
   InsertComp(next_page_button, kButton);
   InsertComp(pre_page_button, kButton);
-  InsertComp(next_page_button, kButton);
-  InsertComp(pre_page_button, kButton);
   InsertComp(button, kButton);
   InsertComp(search_title, kLabel);
   InsertComp(search_info, kLabel);

@@ -1798,7 +1798,7 @@ static inline void Navigation_Exit() {
   ClearHistory();
   DeleteList(history_list, free);
 
-  Log("Shutdown");
+  Log("[Info] Shutdown");
   fclose(log_file);
 
   exit(0);

@@ -335,7 +335,7 @@ void AddHeadBar() {
     "ÓÃ»§", kWhite, USER_ID
   );
   Label *user_name = NULL;
-  if (cur_user->username[0] == '\0') {
+  if (cur_user == NULL || cur_user->username[0] == '\0') {
     user_name = CreateLabel(
       (Rect){UserButton->position.right + 10, 0, 0, 45}, "Î´µÇÂ¼", kBlack, NULL_ID
     );

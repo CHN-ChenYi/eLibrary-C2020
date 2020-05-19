@@ -100,6 +100,7 @@ static inline void Navigation_Exit();
 extern void NavigationCallback(Page nav_page);
 // TODO:(TO/GA) 检查权限控制
 // TODO:(TO/GA) 导航栏的cb都要检查图书库是否已经打开
+// TODO:(TO/GA) 再想想什么时候要更新数据（好像cb的时候都不用？
 void InitView() {
   // init history
   history_list = NewList();
@@ -318,8 +319,6 @@ static void FreeHistory(void *const history_) {
 }
 
 static void BookSearch_BorrowCallback(Book *book) {
-  if (ErrorHandle(GetById(book, book->uid, BOOK), 0))
-    return;
   if (!book->number_on_the_shelf) {
     char *msg =
         malloc(sizeof(char) * (38 + username_len + strlen(book->title)));

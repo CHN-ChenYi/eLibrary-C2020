@@ -316,41 +316,41 @@ void AddSubmenu(int status) {
 void AddHeadBar() {
   // Head bar
   FileButton = CreateLink(
-    (Rect) {15, 75, 5, 45},
+    (Rect) {15, 0, 0, 45},
     "文件", kWhite, FILE_ID
   );
   BookButton = CreateLink(
-    (Rect) {85, 145, 5, 45},
+    (Rect) {FileButton->position.right + 10, 0, 0, 45},
     "图书", kWhite, BOOK_ID
   );
   LendAndBorrowButton = CreateLink(
-    (Rect) {155, 215, 5, 45},
+    (Rect) {BookButton->position.right + 10, 0, 0, 45},
     "借还", kWhite, LEND_ID
   );
   UserButton = CreateLink(
-    (Rect) {225, 285, 5, 45},
+    (Rect) {LendAndBorrowButton->position.right + 10, 0, 0, 45},
     "用户", kWhite, USER_ID
   );
   Label *user_name = NULL;
-  if (cur_user == NULL) {
+  if (cur_user->username[0] == '\0') {
     user_name = CreateLabel(
-      (Rect){295, 355, 5, 45}, "未登录", kBlack, NULL_ID
+      (Rect){UserButton->position.right + 10, 0, 0, 45}, "未登录", kBlack, NULL_ID
     );
   } else {
     user_name = CreateLabel(
-      (Rect){295, 355, 5, 45}, cur_user->username, kBlack, NULL_ID
+      (Rect){UserButton->position.right + 10, 0, 0, 45}, cur_user->username, kBlack, NULL_ID
     );
   }
   SearchButton = CreateLink(
-    (Rect) {295, 355, 5, 45},
+    (Rect) {user_name->position.right + 10, 0, 0, 45},
     "搜索", kWhite, SEARCH_ID
   );
   Statistic = CreateLink(
-    (Rect) {365, 425, 5, 45},
+    (Rect) {SearchButton->position.right + 10, 0, 0, 45},
     "统计", kWhite, ST_ID
   );
   return_button = CreateButton(
-    (Rect) {435, 495, 15, 55},
+    (Rect) {Statistic->position.right + 10, Statistic->position.right + 80, 15, 55},
     "返回", "757575", 1, kWhite, RTN_ID
   );
   HelpButton = CreateLink(
@@ -362,6 +362,7 @@ void AddHeadBar() {
     "2979FF", 0.5
   );
   InsertFrame(hb_frame);
+  InsertComp(user_name, kLabel);
   InsertComp(HelpButton, kLink);
   InsertComp(return_button, kButton);
   InsertComp(Statistic, kLink);
@@ -1890,7 +1891,7 @@ void InitPage() {
   AddHeadBar();
   AddFooBar();
   AddContents();
-  FlushScreen(GetMouseX(), GetMouseY());
+  FlushScreen(GetMouseX(), GetMouseY(), 1);
 }
 
 void InitGUI() {

@@ -228,7 +228,7 @@ int Slice(const char* str, char* slice, int* pos){
   char* ch; int i = 0;
   if(slice == NULL) return DB_FAIL_ON_INIT;
   int str_n = strlen(str);
-  memset(slice, 0, sizeof(slice));
+  memset(slice, '\0', sizeof(char) * strlen(slice));
   for(ch = str + (*pos); *(ch+i) != ';' && i < str_n; i++){
     if(*(ch+i) == '\n' || *(ch+i) == '\0') return DB_FAIL_ON_INIT;
     *(slice+i) = *(ch+i);

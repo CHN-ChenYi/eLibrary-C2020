@@ -1749,7 +1749,7 @@ void AddStatistics() {
 
   int left_border = 100;
   int right_border = GetWindowWidthPx() - 100;
-  int middle = GetWindowWidthPx() * 0.3 ;
+  int middle = GetWindowWidthPx() * 0.4 ;
   int top = 100;
   int bottom = GetWindowHeightPx() - 70;
 
@@ -1782,7 +1782,7 @@ void AddStatistics() {
     char* catalog = p->value;
     catalog_on_page[count] = p;
     Link* catalog_link = CreateLink(
-      (Rect){left_x + 10, 0, 0, cur_y += delta_y}, catalog, kBlack, 1150 + count
+      (Rect){left_x + 10, 0, 0, cur_y += delta_y}, catalog, kBlack, 1050 + count
     );
     InsertComp(catalog_link, kLink);
   }

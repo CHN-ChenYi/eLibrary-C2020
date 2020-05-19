@@ -98,7 +98,9 @@ static inline void Navigation_Statistics(char *msg);
 static inline void Navigation_Return(char *msg);
 static inline void Navigation_Exit();
 extern void NavigationCallback(Page nav_page);
-
+// TODO:(TO/GA) 检查权限控制
+// TODO:(TO/GA) 导航栏的cb都要检查图书库是否已经打开
+// TODO:(TO/GA) 再想想什么时候要更新数据（好像cb的时候都不用？
 void InitView() {
   // init history
   history_list = NewList();
@@ -150,9 +152,19 @@ static inline char *MoveInList(ListNode **const node, List *list, int max_size,
               user.username, list_name, page_name);
     }
   } else {
-    for (int i = max_size; i; i--) *node = (*node)->pre;
-    sprintf(msg, "[Info] [%s] Turn to the prev page in List %s of Page %s",
-            user.username, list_name, page_name);
+    ListNode *new_node = *node;
+    for (int i = max_size; i && new_node != list->dummy_head; i--)
+      new_node = new_node->pre;
+    if (new_node == list->dummy_head) {
+      sprintf(
+          msg,
+          "[Error] [%s] Fail to turn to the prev page in List %s of Page %s",
+          user.username, list_name, page_name);
+    } else {
+      *node = new_node;
+      sprintf(msg, "[Info] [%s] Turn to the prev page in List %s of Page %s",
+              user.username, list_name, page_name);
+    }
   }
   return msg;
 }
@@ -329,12 +341,20 @@ static void BookSearch_BorrowCallback(Book *book) {
   time_t nxt_time_t =
       now_time_t + (time_t)86400 * book->available_borrowed_days;
   struct tm *nxt_tm = localtime(&nxt_time_t);
-  sprintf(new_record.returned_date, "%04d%02d%02d\n", nxt_tm->tm_year + 1900,
+  sprintf(new_record.returned_date, "%04d%02d%02d", nxt_tm->tm_year + 1900,
           nxt_tm->tm_mon + 1, nxt_tm->tm_mday);
-  if (ErrorHandle(GetNextPK(BORROWRECORD, &new_record.uid), 0)) return;
+  if (ErrorHandle(GetNextPK(BORROWRECORD, &new_record.uid), 0)) {
+    book->number_on_the_shelf++;
+    if (ErrorHandle(Update(book, book->uid, BOOK), 0)) return;
+    return;
+  }
   strcpy(new_record.user_name, user.username);
   new_record.user_uid = user.uid;
-  if (ErrorHandle(Create(&new_record, BORROWRECORD), 0)) return;
+  if (ErrorHandle(Create(&new_record, BORROWRECORD), 0)) {
+    book->number_on_the_shelf++;
+    if (ErrorHandle(Update(book, book->uid, BOOK), 0)) return;
+    return;
+  }
 
   char *msg = malloc(sizeof(char) * (25 + username_len + strlen(book->title)));
   sprintf(msg, "[Info] [%s] Borrow book [%s]", user.username, book->title);
@@ -387,7 +407,7 @@ static void LendAndBorrow_ReturnCallback(ListNode *book,
   returned_book->number_on_the_shelf++;
   if (ErrorHandle(Update(returned_book, returned_book->uid, BOOK), 0)) return;
 
-  char *msg = malloc(sizeof(char) * (49 + strlen(returned_book->title) + 8));
+  char *msg = malloc(sizeof(char) * (49 + strlen(returned_book->title) + 16));
   sprintf(msg, "[Info] [%s] Return book [%s], expected return date[%s]",
           user.username, returned_book->title,
           returned_borrow_record->returned_date);
@@ -1082,8 +1102,8 @@ static bool CmpLessBorrowRecordByReturnTime(const void *const lhs,
 static inline void Navigation_LendAndBorrow(char *msg) {
   List *borrow_records_list = NewList();
   char *query = malloc(sizeof(char) * (31 + 10));
-  sprintf(query, "user_uid=%d&book_status=BORROWED", user.uid);
-  if (ErrorHandle(Filter(borrow_records_list, query, USER), 0)) {
+  sprintf(query, "user_uid=%d&book_status=1", user.uid);
+  if (ErrorHandle(Filter(borrow_records_list, query, BORROWRECORD), 0)) {
     DeleteList(borrow_records_list, free);
     free(query);
     return;
@@ -1096,7 +1116,7 @@ static inline void Navigation_LendAndBorrow(char *msg) {
        cur_node != borrow_records_list->dummy_tail; cur_node = cur_node->nxt) {
     Book *book = malloc(sizeof(Book));
     if (ErrorHandle(GetById(book, ((BorrowRecord *)cur_node->value)->book_uid,
-                            BORROWRECORD),
+                            BOOK),
                     0)) {
       DeleteList(borrow_records_list, free);
       DeleteList(books, free);

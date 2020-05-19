@@ -85,7 +85,7 @@ static Button *init_lib, *open_lib, *save_lib, *quit;
 // submenu for Book
 static Button *new_book, *display_book;
 // submenu for User
-static Button *login, *new_user, *varify, *logout;
+static Button *login, *new_user, *varify, *logout, *modify;
 // submenu for Help
 static Button *about, *manual;
 // submenu for Search
@@ -107,6 +107,7 @@ static Button *search_user, *search_book;
  * 12 用户手册
  * 13 用户搜索
  * 14 图书搜索
+ * 15 用户修改
  * 101 用户搜索
  * 102 用户搜索上一页
  * 103 用户搜索下一页
@@ -208,19 +209,19 @@ void ExitSurface() {
 
 void AddSubmenuFile() {
   init_lib = CreateButton(
-    (Rect) {0, 150, 70, 110},
+    (Rect) {FileButton->position.left, FileButton->position.left + 150, 70, 110},
     "新建", MENU_COLOR, 1, kWhite, 1
   );
   open_lib = CreateButton(
-    (Rect) {0, 150, 110, 150},
+    (Rect) {FileButton->position.left, FileButton->position.left + 150, 110, 150},
     "打开", MENU_COLOR, 1, kWhite, 2
   );
   save_lib = CreateButton(
-    (Rect) {0, 150, 150, 190},
+    (Rect) {FileButton->position.left, FileButton->position.left + 150, 150, 190},
     "保存", MENU_COLOR, 1, kWhite, 3
   );
   quit = CreateButton(
-    (Rect) {0, 150, 190, 230},
+    (Rect) {FileButton->position.left, FileButton->position.left + 150, 190, 230},
     "退出", MENU_COLOR, 1, kWhite, 4
   );
   InsertSurface(init_lib, kButton);
@@ -231,11 +232,11 @@ void AddSubmenuFile() {
 
 void AddSubmenuBook() {
   new_book = CreateButton(
-    (Rect) {70, 220, 70, 110},
+    (Rect) {BookButton->position.left, BookButton->position.left + 150, 70, 110},
     "新建", MENU_COLOR, 1, kWhite, 5
   );
   display_book = CreateButton(
-    (Rect) {70, 220, 110, 150},
+    (Rect) {BookButton->position.left, BookButton->position.left + 150, 110, 150},
     "显示", MENU_COLOR, 1, kWhite, 6
   );
   InsertSurface(new_book, kButton);
@@ -244,21 +245,26 @@ void AddSubmenuBook() {
 
 void AddSubmenuUser() {
   login = CreateButton(
-    (Rect) {200, 350, 70, 110},
+    (Rect) {UserButton->position.left, UserButton->position.left + 150, 70, 110},
     "登录", MENU_COLOR, 1, kWhite, 7
   );
   new_user = CreateButton(
-    (Rect) {200, 350, 110, 150},
+    (Rect) {UserButton->position.left, UserButton->position.left + 150, 110, 150},
     "新建", MENU_COLOR, 1, kWhite, 8
   );
   varify = CreateButton(
-    (Rect) {200, 350, 150, 190},
+    (Rect) {UserButton->position.left, UserButton->position.left + 150, 150, 190},
     "审核", MENU_COLOR, 1, kWhite, 9
   );
   logout = CreateButton(
-    (Rect) {200, 350, 190, 230},
+    (Rect) {UserButton->position.left, UserButton->position.left + 150, 190, 230},
     "登出", MENU_COLOR, 1, kWhite, 10
   );
+  modify = CreateButton(
+    (Rect) {UserButton->position.left, UserButton->position.left + 150, 230, 270},
+    "修改", MENU_COLOR, 1, kWhite, 15
+  );
+  InsertSurface(modify, kButton);
   InsertSurface(login, kButton);
   InsertSurface(new_user, kButton);
   InsertSurface(varify, kButton);
@@ -319,41 +325,41 @@ void AddSubmenu(int status) {
 void AddHeadBar() {
   // Head bar
   FileButton = CreateLink(
-    (Rect) {15, 75, 5, 45},
+    (Rect) {15, 0, 0, 45},
     "文件", kWhite, FILE_ID
   );
   BookButton = CreateLink(
-    (Rect) {85, 145, 5, 45},
+    (Rect) {FileButton->position.right + 10, 0, 0, 45},
     "图书", kWhite, BOOK_ID
   );
   LendAndBorrowButton = CreateLink(
-    (Rect) {155, 215, 5, 45},
+    (Rect) {BookButton->position.right + 10, 0, 0, 45},
     "借还", kWhite, LEND_ID
   );
   UserButton = CreateLink(
-    (Rect) {225, 285, 5, 45},
+    (Rect) {LendAndBorrowButton->position.right + 10, 0, 0, 45},
     "用户", kWhite, USER_ID
   );
   Label *user_name = NULL;
-  if (cur_user == NULL) {
+  if (cur_user == NULL || cur_user->username[0] == '\0') {
     user_name = CreateLabel(
-      (Rect){295, 355, 5, 45}, "未登录", kBlack, NULL_ID
+      (Rect){UserButton->position.right + 10, 0, 0, 45}, "未登录", kBlack, NULL_ID
     );
   } else {
     user_name = CreateLabel(
-      (Rect){295, 355, 5, 45}, cur_user->username, kBlack, NULL_ID
+      (Rect){UserButton->position.right + 10, 0, 0, 45}, cur_user->username, kBlack, NULL_ID
     );
   }
   SearchButton = CreateLink(
-    (Rect) {295, 355, 5, 45},
+    (Rect) {user_name->position.right + 10, 0, 0, 45},
     "搜索", kWhite, SEARCH_ID
   );
   Statistic = CreateLink(
-    (Rect) {365, 425, 5, 45},
+    (Rect) {SearchButton->position.right + 10, 0, 0, 45},
     "统计", kWhite, ST_ID
   );
   return_button = CreateButton(
-    (Rect) {435, 495, 15, 55},
+    (Rect) {Statistic->position.right + 10, Statistic->position.right + 80, 15, 55},
     "返回", "757575", 1, kWhite, RTN_ID
   );
   HelpButton = CreateLink(
@@ -365,6 +371,7 @@ void AddHeadBar() {
     "2979FF", 0.5
   );
   InsertFrame(hb_frame);
+  InsertComp(user_name, kLabel);
   InsertComp(HelpButton, kLink);
   InsertComp(return_button, kButton);
   InsertComp(Statistic, kLink);
@@ -660,8 +667,6 @@ void AddUserSearch() {
     (Rect){right_border - 80, right_border, bottom - 50, bottom},
     "下一页", TURN_COLOR, 1, kWhite, 103
   );
-  InsertComp(next_page_button, kButton);
-  InsertComp(pre_page_button, kButton);
   InsertComp(next_page_button, kButton);
   InsertComp(pre_page_button, kButton);
   InsertComp(button, kButton);
@@ -1748,7 +1753,7 @@ void AddStatistics() {
 
   int left_border = 100;
   int right_border = GetWindowWidthPx() - 100;
-  int middle = GetWindowWidthPx() * 0.3 ;
+  int middle = GetWindowWidthPx() * 0.4 ;
   int top = 100;
   int bottom = GetWindowHeightPx() - 70;
 
@@ -1781,7 +1786,7 @@ void AddStatistics() {
     char* catalog = p->value;
     catalog_on_page[count] = p;
     Link* catalog_link = CreateLink(
-      (Rect){left_x + 10, 0, 0, cur_y += delta_y}, catalog, kBlack, 1150 + count
+      (Rect){left_x + 10, 0, 0, cur_y += delta_y}, catalog, kBlack, 1050 + count
     );
     InsertComp(catalog_link, kLink);
   }
@@ -1952,7 +1957,7 @@ void InitPage() {
   AddHeadBar();
   AddFooBar();
   AddContents();
-  FlushScreen(GetMouseX(), GetMouseY());
+  FlushScreen(GetMouseX(), GetMouseY(), 1);
 }
 
 void InitGUI() {
@@ -1981,6 +1986,9 @@ void InitGUI() {
  * 10 用户登出
  * 11 关于
  * 12 用户手册
+ * 13 用户搜索
+ * 14 图书搜索
+ * 15 用户修改
  */
 void CallbackById(int id) {
   printf("%d\n", id);
@@ -2042,6 +2050,9 @@ void CallbackById(int id) {
       break;
     case 14:
       NavigationCallback(kBookSearch);
+      break;
+    case 15:
+      NavigationCallback(kUserModify);
       break;
     }
   } else {

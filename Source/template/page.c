@@ -1069,10 +1069,20 @@ void AddUserManagement() {
        p = p->nxt, count++) {
     User *user = p->value;
     tbv_user_on_page[count] = p;
-    Label* label = CreateLabel(
+    Label* name = CreateLabel(
       (Rect){left_x, 0, 0, left_cur_y += delta_y}, user->username, kBlack, NULL_ID
     );
-    InsertComp(label, kLabel);
+    InsertComp(name, kLabel);
+    Label* dpt = CreateLabel(
+      (Rect){name->position.right + 10, 0, 0, left_cur_y}, user->department, kBlack, NULL_ID
+    );
+    InsertComp(dpt, kLabel);
+    if (user->whoami == ADMINISTRATOR) {
+      Label* whoami = CreateLabel(
+        (Rect){dpt->position.right + 10, 0, 0, left_cur_y}, "…Í«Îπ‹¿Ì‘±", kBlack, NULL_ID
+      );
+      InsertComp(whoami, kLabel);
+    }
     Link *reject = CreateLink(
       (Rect){middle - 10 - TextStringWidth("æ‹æ¯") - 10, 0, 0, left_cur_y}, "æ‹æ¯", kBlack, 740 + 2 * count
     );

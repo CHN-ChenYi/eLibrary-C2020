@@ -837,6 +837,8 @@ static void BookDisplayAdminDisplay(char *msg) {
   History *const new_history = malloc(sizeof(History));
   new_history->page = kBorrowDisplay;
   new_history->state.borrow_display = malloc(sizeof(BorrowDisplay));
+  new_history->state.borrow_display->book_name =
+      malloc(sizeof(TopHistory()->state.book_display->book->title));
   strcpy(new_history->state.borrow_display->book_name,
          TopHistory()->state.book_display->book->title);
   new_history->state.borrow_display->turn_page = BorrowDisplay_TurnPage;
@@ -1895,14 +1897,14 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
       break;
     case kBookSearch: {  // 图书搜索
       char *keyword =
-          malloc(sizeof(char) * strlen(history->state.book_search->keyword));
+          malloc(sizeof(char) * (strlen(history->state.book_search->keyword) + 1));
       strcpy(keyword, history->state.book_search->keyword);
       PopBackHistory();
       BookSearchDisplay(keyword, msg);
     } break;
     case kUserSearch: {  // 用户搜索（管理员）
       char *keyword =
-          malloc(sizeof(char) * strlen(history->state.user_search->keyword));
+          malloc(sizeof(char) * (strlen(history->state.user_search->keyword) + 1));
       strcpy(keyword, history->state.user_search->keyword);
       PopBackHistory();
       UserSearchDisplay(keyword, msg);

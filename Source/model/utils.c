@@ -6,7 +6,7 @@
 
 // Copy
 int SaveStrCpy(char* t, const char* s){
-	if(strlen(t) >= strlen(s)){  strcpy(t,s); return DB_SUCCESS; }
+	if(t != NULL && s != NULL) {  strcpy(t,s); return DB_SUCCESS; }
 	else return DB_FAIL_ON_FETCHING;
 }
 int BookCopy(Book* destination, Book* source) { 

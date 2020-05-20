@@ -541,10 +541,10 @@ void AddBookSearch() {
        p = p->nxt, count++) {
     Book* book = p->value;
     books_to_borrow_on_page[count] = book;
-    Label *title = CreateLabel(
-      (Rect){left_border + 10, 0, 0, cur_y += delta_y}, book->title, kBlack, NULL_ID
+    Link *title = CreateLink(
+      (Rect){left_border + 10, 0, 0, cur_y += delta_y}, book->title, kBlack, 670 + count
     );
-    InsertComp(title, kLabel);
+    InsertComp(title, kLink);
     Label* press = CreateLabel(
       (Rect) {left_border + delta_x, 0, 0, cur_y}, book->press, kBlack, NULL_ID
     );
@@ -584,6 +584,7 @@ void AddBookSearch() {
  * 602 书籍搜索上一页
  * 603 书籍搜索下一页
  * 651 - ? 借书
+ * 671 - ? 图书详细信息
  */
 void HandleBookSearchCallback(int id) {
   State cur_state;

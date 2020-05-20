@@ -23,7 +23,7 @@ typedef enum Gender { MALE = 0, FEMALE } Gender;
 
 typedef struct User {
   unsigned uid;
-  char username[50];
+  char username[20];
   char salt[10];
   uint32_t password[8];
   Gender gender;

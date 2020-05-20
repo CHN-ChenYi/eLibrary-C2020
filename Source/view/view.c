@@ -102,6 +102,7 @@ static inline void Navigation_Return(char *msg);
 static inline void Navigation_Exit();
 extern void NavigationCallback(Page nav_page);
 // TODO:(TO/GA) 检查权限控制
+// TODO:(TO/GA) 完成 BookSearch::bookcallback
 // TODO:(TO/GA) 再想想什么时候要更新数据（好像cb的时候都不用？
 void InitView() {
   // init history
@@ -514,7 +515,7 @@ static void UserModify_ConfirmCallback() {
 
   if (ErrorHandle(Update(modified_user, modified_user->uid, USER), 0)) return;
   if (modified_user->uid == user.uid) {
-    memcpy(&user, modified_user, sizeof(USER));
+    memcpy(&user, modified_user, sizeof(User));
     username_len = strlen(user.username);
   }
 
@@ -837,6 +838,8 @@ static void BookDisplayAdminDisplay(char *msg) {
   History *const new_history = malloc(sizeof(History));
   new_history->page = kBorrowDisplay;
   new_history->state.borrow_display = malloc(sizeof(BorrowDisplay));
+  new_history->state.borrow_display->book_name =
+      malloc(sizeof(TopHistory()->state.book_display->book->title));
   strcpy(new_history->state.borrow_display->book_name,
          TopHistory()->state.book_display->book->title);
   new_history->state.borrow_display->turn_page = BorrowDisplay_TurnPage;
@@ -940,6 +943,13 @@ static void BookDisplay_ConfirmCallback() {
 }
 
 static void BookDisplay_DeleteCallback() {
+  if (user.whoami != ADMINISTRATOR) {
+    char *msg = malloc(sizeof(char) * (53 + username_len));
+    sprintf(msg, "[Error] [%s] Permission denied. Can't delete the book",
+            user.username);
+    ReturnHistory(history_list->dummy_tail->pre, msg);
+    return;
+  }
   Book *new_book = TopHistory()->state.book_display->book;
   if (TopHistory()->page == kBookModify) {
     if (ErrorHandle(Delete(new_book->uid, BOOK), 0)) return;
@@ -948,7 +958,7 @@ static void BookDisplay_DeleteCallback() {
   char *msg =
       malloc(sizeof(char) * (25 + username_len + strlen(new_book->title)));
   sprintf(msg, "[Info] [%s] Delete book [%s]", user.username, new_book->title);
-  ReturnHistory(history_list->dummy_tail->pre, msg);
+  ReturnHistory(history_list->dummy_tail->pre->pre, msg);
 }
 
 static void BookDisplay_BorrowCallback() {
@@ -1093,6 +1103,7 @@ static void Statistics_SelectCallback(ListNode *catalog) {
 
   History *const new_history = malloc(sizeof(History));
   new_history->page = kStatistics;
+  new_history->state.statistics = malloc(sizeof(Statistics));
   new_history->state.statistics->select_callback = Statistics_SelectCallback;
   new_history->state.statistics->turn_page = Statistics_TurnPage;
   new_history->state.statistics->catalogs =
@@ -1798,7 +1809,7 @@ static inline void Navigation_Exit() {
   ClearHistory();
   DeleteList(history_list, free);
 
-  Log("Shutdown");
+  Log("[Info] Shutdown");
   fclose(log_file);
 
   exit(0);
@@ -1895,14 +1906,14 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
       break;
     case kBookSearch: {  // 图书搜索
       char *keyword =
-          malloc(sizeof(char) * strlen(history->state.book_search->keyword));
+          malloc(sizeof(char) * (strlen(history->state.book_search->keyword) + 1));
       strcpy(keyword, history->state.book_search->keyword);
       PopBackHistory();
       BookSearchDisplay(keyword, msg);
     } break;
     case kUserSearch: {  // 用户搜索（管理员）
       char *keyword =
-          malloc(sizeof(char) * strlen(history->state.user_search->keyword));
+          malloc(sizeof(char) * (strlen(history->state.user_search->keyword) + 1));
       strcpy(keyword, history->state.user_search->keyword);
       PopBackHistory();
       UserSearchDisplay(keyword, msg);
@@ -1927,7 +1938,7 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
     // break;
     case kUserModify: {  // 用户信息修改
       User *new_user = malloc(sizeof(User));
-      memcpy(new_user, history->state.user_modify->user, sizeof(User));
+      if (ErrorHandle(GetById(new_user, history->state.user_modify->user->uid, USER), 0)) return;
       PopBackHistory();
       UserSearchInfoDisplay(new_user, msg);
       free(new_user);

@@ -102,6 +102,7 @@ static inline void Navigation_Return(char *msg);
 static inline void Navigation_Exit();
 extern void NavigationCallback(Page nav_page);
 // TODO:(TO/GA) 检查权限控制
+// TODO:(TO/GA) 完成 BookSearch::bookcallback
 // TODO:(TO/GA) 再想想什么时候要更新数据（好像cb的时候都不用？
 void InitView() {
   // init history
@@ -942,6 +943,13 @@ static void BookDisplay_ConfirmCallback() {
 }
 
 static void BookDisplay_DeleteCallback() {
+  if (user.whoami != ADMINISTRATOR) {
+    char *msg = malloc(sizeof(char) * (53 + username_len));
+    sprintf(msg, "[Error] [%s] Permission denied. Can't delete the book",
+            user.username);
+    ReturnHistory(history_list->dummy_tail->pre, msg);
+    return;
+  }
   Book *new_book = TopHistory()->state.book_display->book;
   if (TopHistory()->page == kBookModify) {
     if (ErrorHandle(Delete(new_book->uid, BOOK), 0)) return;
@@ -950,7 +958,7 @@ static void BookDisplay_DeleteCallback() {
   char *msg =
       malloc(sizeof(char) * (25 + username_len + strlen(new_book->title)));
   sprintf(msg, "[Info] [%s] Delete book [%s]", user.username, new_book->title);
-  ReturnHistory(history_list->dummy_tail->pre, msg);
+  ReturnHistory(history_list->dummy_tail->pre->pre, msg);
 }
 
 static void BookDisplay_BorrowCallback() {
@@ -1095,6 +1103,7 @@ static void Statistics_SelectCallback(ListNode *catalog) {
 
   History *const new_history = malloc(sizeof(History));
   new_history->page = kStatistics;
+  new_history->state.statistics = malloc(sizeof(Statistics));
   new_history->state.statistics->select_callback = Statistics_SelectCallback;
   new_history->state.statistics->turn_page = Statistics_TurnPage;
   new_history->state.statistics->catalogs =

@@ -68,6 +68,7 @@ typedef struct BookSearch {
   ListNode *book_result_start;             // 第一个要显示的结果
   void (*search_callback)(char *keyword);  // 搜索按钮
   void (*borrow_callback)(Book *book);     // 借书按钮
+  void (*book_callback)(Book *book);       // 图书详细信息按钮
   // direction = 0 上一页, direction = 1 下一页
   void (*turn_page)(bool direction);
 } BookSearch;

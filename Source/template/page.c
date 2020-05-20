@@ -541,10 +541,10 @@ void AddBookSearch() {
        p = p->nxt, count++) {
     Book* book = p->value;
     books_to_borrow_on_page[count] = book;
-    Label *title = CreateLabel(
-      (Rect){left_border + 10, 0, 0, cur_y += delta_y}, book->title, kBlack, NULL_ID
+    Link *title = CreateLink(
+      (Rect){left_border + 10, 0, 0, cur_y += delta_y}, book->title, kBlack, 670 + count
     );
-    InsertComp(title, kLabel);
+    InsertComp(title, kLink);
     Label* press = CreateLabel(
       (Rect) {left_border + delta_x, 0, 0, cur_y}, book->press, kBlack, NULL_ID
     );
@@ -584,6 +584,7 @@ void AddBookSearch() {
  * 602 书籍搜索上一页
  * 603 书籍搜索下一页
  * 651 - ? 借书
+ * 671 - ? 图书详细信息
  */
 void HandleBookSearchCallback(int id) {
   State cur_state;
@@ -599,7 +600,11 @@ void HandleBookSearchCallback(int id) {
     cur_state.book_search->turn_page(1);
     break;
   default:
-    cur_state.book_search->borrow_callback(books_to_borrow_on_page[id - 50]);
+    if (id <= 70) {
+      cur_state.book_search->borrow_callback(books_to_borrow_on_page[id - 50]);
+    } else {
+      cur_state.book_search->book_callback(books_to_borrow_on_page[id - 70]);
+    }
     break;
   }
 }
@@ -1069,10 +1074,20 @@ void AddUserManagement() {
        p = p->nxt, count++) {
     User *user = p->value;
     tbv_user_on_page[count] = p;
-    Label* label = CreateLabel(
+    Label* name = CreateLabel(
       (Rect){left_x, 0, 0, left_cur_y += delta_y}, user->username, kBlack, NULL_ID
     );
-    InsertComp(label, kLabel);
+    InsertComp(name, kLabel);
+    Label* dpt = CreateLabel(
+      (Rect){name->position.right + 10, 0, 0, left_cur_y}, user->department, kBlack, NULL_ID
+    );
+    InsertComp(dpt, kLabel);
+    if (user->whoami == ADMINISTRATOR) {
+      Label* whoami = CreateLabel(
+        (Rect){dpt->position.right + 10, 0, 0, left_cur_y}, "申请管理员", kBlack, NULL_ID
+      );
+      InsertComp(whoami, kLabel);
+    }
     Link *reject = CreateLink(
       (Rect){middle - 10 - TextStringWidth("拒绝") - 10, 0, 0, left_cur_y}, "拒绝", kBlack, 740 + 2 * count
     );

@@ -328,38 +328,80 @@ void AddHeadBar() {
     (Rect) {15, 0, 0, 45},
     "文件", kWhite, FILE_ID
   );
+  LibImage folder_icon_image;
+  loadImage(".\\Resource\\folder.jpg", &folder_icon_image);
+  Image* folder_icon = CreateImage(
+    (Rect) {FileButton->position.right, FileButton->position.right + 25, 25, 50},
+    folder_icon_image, FILE_ID
+  );
+  InsertComp(folder_icon, kImage);
   BookButton = CreateLink(
-    (Rect) {FileButton->position.right + 10, 0, 0, 45},
+    (Rect) {folder_icon->position.right + 10, 0, 0, 45},
     "图书", kWhite, BOOK_ID
   );
+  LibImage book_icon_image;
+  loadImage(".\\Resource\\book.jpg", &book_icon_image);
+  Image* book_icon = CreateImage(
+    (Rect) {BookButton->position.right, BookButton->position.right + 25, 25, 50},
+    book_icon_image, BOOK_ID
+  );
+  InsertComp(book_icon, kImage);
   LendAndBorrowButton = CreateLink(
-    (Rect) {BookButton->position.right + 10, 0, 0, 45},
+    (Rect) {book_icon->position.right + 10, 0, 0, 45},
     "借还", kWhite, LEND_ID
   );
+  LibImage lend_icon_image;
+  loadImage(".\\Resource\\sync_alt.jpg", &lend_icon_image);
+  Image* lend_icon = CreateImage(
+    (Rect) {LendAndBorrowButton->position.right, LendAndBorrowButton->position.right + 25, 25, 50},
+    lend_icon_image, LEND_ID
+  );
+  InsertComp(lend_icon, kImage);
   UserButton = CreateLink(
-    (Rect) {LendAndBorrowButton->position.right + 10, 0, 0, 45},
+    (Rect) {lend_icon->position.right + 10, 0, 0, 45},
     "用户", kWhite, USER_ID
   );
+  LibImage user_icon_image;
+  loadImage(".\\Resource\\person.jpg", &user_icon_image);
+  Image* user_icon = CreateImage(
+    (Rect) {UserButton->position.right, UserButton->position.right + 25, 25, 50},
+    user_icon_image, USER_ID
+  );
+  InsertComp(user_icon, kImage);
   Label *user_name = NULL;
   if (cur_user == NULL || cur_user->username[0] == '\0') {
     user_name = CreateLabel(
-      (Rect){UserButton->position.right + 10, 0, 0, 45}, "未登录", kBlack, NULL_ID
+      (Rect){user_icon->position.right + 10, 0, 0, 45}, "未登录", kBlack, NULL_ID
     );
   } else {
     user_name = CreateLabel(
-      (Rect){UserButton->position.right + 10, 0, 0, 45}, cur_user->username, kBlack, NULL_ID
+      (Rect){user_icon->position.right + 10, 0, 0, 45}, cur_user->username, kBlack, NULL_ID
     );
   }
   SearchButton = CreateLink(
     (Rect) {user_name->position.right + 10, 0, 0, 45},
     "搜索", kWhite, SEARCH_ID
   );
+  LibImage search_icon_image;
+  loadImage(".\\Resource\\search.jpg", &search_icon_image);
+  Image* search_icon = CreateImage(
+    (Rect) {SearchButton->position.right, SearchButton->position.right + 25, 25, 50},
+    search_icon_image, SEARCH_ID
+  );
+  InsertComp(search_icon, kImage);
   Statistic = CreateLink(
-    (Rect) {SearchButton->position.right + 10, 0, 0, 45},
+    (Rect) {search_icon->position.right + 10, 0, 0, 45},
     "统计", kWhite, ST_ID
   );
+  LibImage statistics_icon_image;
+  loadImage(".\\Resource\\show_chart.jpg", &statistics_icon_image);
+  Image* statistics_icon = CreateImage(
+    (Rect) {Statistic->position.right, Statistic->position.right + 25, 25, 50},
+    statistics_icon_image, ST_ID
+  );
+  InsertComp(statistics_icon, kImage);
   return_button = CreateButton(
-    (Rect) {Statistic->position.right + 10, Statistic->position.right + 80, 15, 55},
+    (Rect) {statistics_icon->position.right + 10, statistics_icon->position.right + 80, 15, 55},
     "返回", "757575", 1, kWhite, RTN_ID
   );
   HelpButton = CreateLink(

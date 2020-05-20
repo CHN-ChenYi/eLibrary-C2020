@@ -185,6 +185,7 @@ int GetById(void* handle, unsigned int id, Model model) {
 int Filter(List* list_handle, String queries, Model model) {
 	List* data;
 	data = DBs[model].data;
+	int ok;
 	if ( !DBExists(model) || data == NULL) return DB_NOT_FOUND;
 	ListNode* cur = data->dummy_head;
 	List* handle = list_handle;
@@ -194,7 +195,8 @@ int Filter(List* list_handle, String queries, Model model) {
 			if (cur == data->dummy_tail) break;
 			if (BookFilter(cur->value, queries)) {
 				Book* p_b = (Book*)malloc(sizeof(Book));
-				BookCopy(p_b, (Book*)cur->value);
+				ok = BookCopy(p_b, (Book*)cur->value);
+				if(ok != DB_SUCCESS) return ok;
 				InsertList(handle, handle->dummy_tail, p_b);
 			}
 		}
@@ -205,7 +207,8 @@ int Filter(List* list_handle, String queries, Model model) {
 			if (cur == data->dummy_tail) break;
 			if (UserFilter(cur->value, queries)) {
 				User* p_u = (User*)malloc(sizeof(User));
-				UserCopy(p_u, (User*)cur->value);
+				ok = UserCopy(p_u, (User*)cur->value);
+				if(ok != DB_SUCCESS) return ok;
 				InsertList(handle, handle->dummy_tail, p_u);
 			}
 		}
@@ -216,7 +219,8 @@ int Filter(List* list_handle, String queries, Model model) {
 			if (cur == data->dummy_tail) break;
 			if (RecordFilter(cur->value, queries)) {
 				BorrowRecord* p_r = (BorrowRecord*)malloc(sizeof(BorrowRecord));
-				RecordCopy(p_r, (BorrowRecord*)cur->value);
+				ok = RecordCopy(p_r, (BorrowRecord*)cur->value);
+				if(ok != DB_SUCCESS) return ok;
 				InsertList(handle, handle->dummy_tail, p_r);
 			}
 		}

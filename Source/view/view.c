@@ -514,7 +514,7 @@ static void UserModify_ConfirmCallback() {
 
   if (ErrorHandle(Update(modified_user, modified_user->uid, USER), 0)) return;
   if (modified_user->uid == user.uid) {
-    memcpy(&user, modified_user, sizeof(USER));
+    memcpy(&user, modified_user, sizeof(User));
     username_len = strlen(user.username);
   }
 
@@ -1798,7 +1798,7 @@ static inline void Navigation_Exit() {
   ClearHistory();
   DeleteList(history_list, free);
 
-  Log("Shutdown");
+  Log("[Info] Shutdown");
   fclose(log_file);
 
   exit(0);
@@ -1927,7 +1927,7 @@ static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
     // break;
     case kUserModify: {  // 用户信息修改
       User *new_user = malloc(sizeof(User));
-      memcpy(new_user, history->state.user_modify->user, sizeof(User));
+      if (ErrorHandle(GetById(new_user, history->state.user_modify->user->uid, USER), 0)) return;
       PopBackHistory();
       UserSearchInfoDisplay(new_user, msg);
       free(new_user);

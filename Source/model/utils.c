@@ -39,7 +39,7 @@ int UserCopy(User* destination, User* source) {
 	int i;
 	for (i = 0; i < 8; i++) t->password[i] = s->password[i];
 	t->gender = s->gender;
-	SaveStrCpy(t->department, s->department); if(err != DB_SUCCESS) return err;
+	err = SaveStrCpy(t->department, s->department); if(err != DB_SUCCESS) return err;
 	t->whoami = s->whoami;
 	t->verified = s->verified;
 	return DB_SUCCESS;
@@ -51,11 +51,11 @@ int RecordCopy(BorrowRecord* destination, BorrowRecord* source) {
 	t->uid = s->uid;
 	t->book_uid = s->book_uid;
 	t->user_uid = s->user_uid;
-	SaveStrCpy(t->book_name, s->book_name); if(err != DB_SUCCESS) return err;
-	SaveStrCpy(t->user_name, s->user_name); if(err != DB_SUCCESS) return err;
-	SaveStrCpy(t->borrowed_date, s->borrowed_date); if(err != DB_SUCCESS) return err;
+	err = SaveStrCpy(t->book_name, s->book_name); if(err != DB_SUCCESS) return err;
+	err = SaveStrCpy(t->user_name, s->user_name); if(err != DB_SUCCESS) return err;
+	err = SaveStrCpy(t->borrowed_date, s->borrowed_date); if(err != DB_SUCCESS) return err;
 	t->book_status = s->book_status;
-	SaveStrCpy(t->returned_date, s->returned_date); if(err != DB_SUCCESS) return err;
+	err = SaveStrCpy(t->returned_date, s->returned_date); if(err != DB_SUCCESS) return err;
 	return DB_SUCCESS;
 }
 

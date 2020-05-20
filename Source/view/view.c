@@ -43,6 +43,7 @@ static inline void PopBackHistory();
 static inline void ClearHistory();
 static inline void ReturnHistory(ListNode *go_back_to, char *msg);
 static void BookSearch_BorrowCallback(Book *book);
+static void BookSearch_BookCallback(Book *book);
 static void inline BookSearchDisplay(char *keyword, char *msg);
 static void BookSearch_SearchCallback(char *keyword);
 static void BookSearch_TurnPage(bool direction);
@@ -102,7 +103,6 @@ static inline void Navigation_Return(char *msg);
 static inline void Navigation_Exit();
 extern void NavigationCallback(Page nav_page);
 // TODO:(TO/GA) 检查权限控制
-// TODO:(TO/GA) 完成 BookSearch::bookcallback
 // TODO:(TO/GA) 再想想什么时候要更新数据（好像cb的时候都不用？
 void InitView() {
   // init history
@@ -380,6 +380,10 @@ static void BookSearch_BorrowCallback(Book *book) {
   ReturnHistory(history_list->dummy_tail->pre, msg);
 }
 
+static void BookSearch_BookCallback(Book *book) {
+  Navigation_BookDisplayOrInit(book, 0, NULL);
+}
+
 static void inline BookSearchDisplay(char *keyword, char *msg) {
   List *results = NewList();
   if (ErrorHandle(Filter(results, keyword, BOOK), 0)) return;
@@ -389,6 +393,7 @@ static void inline BookSearchDisplay(char *keyword, char *msg) {
   new_history->state.book_search = malloc(sizeof(BookSearch));
   new_history->state.book_search->keyword = keyword;
   new_history->state.book_search->borrow_callback = BookSearch_BorrowCallback;
+  new_history->state.book_search->book_callback = BookSearch_BookCallback;
   new_history->state.book_search->search_callback = BookSearch_SearchCallback;
   new_history->state.book_search->turn_page = BookSearch_TurnPage;
   new_history->state.book_search->book_result = results;
@@ -1670,14 +1675,15 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
   PushBackHistory(new_history);
 
   if (!msg) {
-    msg = malloc(sizeof(char) * (33 + username_len));
     if (type) {
+      msg = malloc(sizeof(char) * (30 + username_len));
       sprintf(msg, "[Info] [%s] Open book init page", user.username);
     } else {
+      msg = malloc(sizeof(char) * (36 + username_len + strlen(new_book->title)));
       if (user.whoami == ADMINISTRATOR)
-        sprintf(msg, "[Info] [%s] Open book modify page", user.username);
+        sprintf(msg, "[Info] [%s] Open book modify page [%s]", user.username, new_book->title);
       else
-        sprintf(msg, "[Info] [%s] Open book display page", user.username);
+        sprintf(msg, "[Info] [%s] Open book display page [%s]", user.username, new_book->title);
     }
   }
   Log(msg);

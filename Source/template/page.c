@@ -600,7 +600,11 @@ void HandleBookSearchCallback(int id) {
     cur_state.book_search->turn_page(1);
     break;
   default:
-    cur_state.book_search->borrow_callback(books_to_borrow_on_page[id - 50]);
+    if (id <= 70) {
+      cur_state.book_search->borrow_callback(books_to_borrow_on_page[id - 50]);
+    } else {
+      cur_state.book_search->book_callback(books_to_borrow_on_page[id - 70]);
+    }
     break;
   }
 }

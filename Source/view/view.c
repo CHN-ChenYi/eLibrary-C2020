@@ -933,9 +933,8 @@ static void BookDisplay_ConfirmCallback() {
 
     char *msg =
         malloc(sizeof(char) * (25 + username_len + strlen(new_book->title)));
-    sprintf(msg, "[Info] [%s] Init book [%s]", user.username,
-            new_book->title);
-    Navigation_Library(msg);
+    sprintf(msg, "[Info] [%s] Init book [%s]", user.username, new_book->title);
+    ReturnHistory(history_list->dummy_tail->pre, msg);
   } else {
     if (ErrorHandle(Update(new_book, new_book->uid, BOOK), 0)) return;
 
@@ -943,7 +942,7 @@ static void BookDisplay_ConfirmCallback() {
         malloc(sizeof(char) * (25 + username_len + strlen(new_book->title)));
     sprintf(msg, "[Info] [%s] Modify book [%s]", user.username,
             new_book->title);
-    Navigation_Library(msg);
+    ReturnHistory(history_list->dummy_tail->pre, msg);
   }
 }
 
@@ -973,17 +972,35 @@ static void BookDisplay_BorrowCallback() {
 static void BookDisplay_CopyPasteCallback() {
   Book *book = TopHistory()->state.book_display->book;
   const unsigned old_uid = book->uid;
-  if (ErrorHandle(GetById(book, old_uid, BOOK), 0) || 
-      ErrorHandle(GetNextPK(BOOK, &book->uid), 0) ||
-      ErrorHandle(Create(book, BOOK), 0)) {
+  if (ErrorHandle(GetById(book, old_uid, BOOK), 0) ||
+      ErrorHandle(GetNextPK(BOOK, &book->uid), 0)) {
     book->uid = old_uid;
-    char *msg = malloc(sizeof(char) *  (34 + username_len));
+    char *msg = malloc(sizeof(char) * (34 + username_len));
     sprintf(msg, "[Error] [%s] Fail to copy and paste", user.username);
-    DrawUI(kBookModify, &user, TopHistory()->state.book_display, msg);
+    ReturnHistory(history_list->dummy_tail->pre, msg);
   }
-  char *msg = malloc(sizeof(char) * (33 + username_len + strlen(book->title)));
-  sprintf(msg, "[Info] [%s] Copy and paste book [%s]", user.username, book->title);
-  DrawUI(kBookModify, &user, TopHistory()->state.book_display, msg);
+
+  book->number_on_the_shelf = 0;
+  if (ErrorHandle(Create(book, BOOK), 0)) {
+    book->uid = old_uid;
+    char *msg = malloc(sizeof(char) * (34 + username_len));
+    sprintf(msg, "[Error] [%s] Fail to copy and paste", user.username);
+    ReturnHistory(history_list->dummy_tail->pre, msg);  
+  }
+
+  const size_t image_path_len = 7 + lib_path_len;
+  char *image_path = malloc(sizeof(char) * (image_path_len + 1));
+  sprintf(image_path, "%s\\image\\", lib_path);
+  char *command = malloc(sizeof(char) * (24 + image_path_len * 2 + 20));
+  sprintf(command, "copy /Y \"%s%d.jpg\" \"%s%d.jpg\"", image_path, old_uid,
+          image_path, book->uid);
+  system(command);
+
+  char *msg = malloc(sizeof(char) * (63 + username_len + strlen(book->title)));
+  sprintf(msg,
+          "[Info] [%s] Copy and paste book [%s], set number on the shelf to 0",
+          user.username, book->title);
+  Navigation_BookDisplayOrInit(book, 0, msg);
 }
 
 static void BorrowDisplay_TurnPage(bool direction) {

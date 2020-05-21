@@ -339,9 +339,9 @@ static void FreeHistory(void *const history_) {
 static void BookSearch_BorrowCallback(Book *book) {
   if (!book->number_on_the_shelf) {
     char *msg =
-        malloc(sizeof(char) * (38 + id_len + strlen(book->title)));
+        malloc(sizeof(char) * (38 + id_len + strlen(book->id)));
     sprintf(msg, "[Error] [%s] There's no [%s] on the shelf", user.id,
-            book->title);
+            book->id);
     ReturnHistory(history_list->dummy_tail->pre, msg);
     return;
   }
@@ -374,8 +374,8 @@ static void BookSearch_BorrowCallback(Book *book) {
     return;
   }
 
-  char *msg = malloc(sizeof(char) * (25 + id_len + strlen(book->title)));
-  sprintf(msg, "[Info] [%s] Borrow book [%s]", user.id, book->title);
+  char *msg = malloc(sizeof(char) * (25 + id_len + strlen(book->id)));
+  sprintf(msg, "[Info] [%s] Borrow book [%s]", user.id, book->id);
   ReturnHistory(history_list->dummy_tail->pre, msg);
 }
 
@@ -434,9 +434,9 @@ static void LendAndBorrow_ReturnCallback(ListNode *book,
   returned_book->number_on_the_shelf++;
   if (ErrorHandle(Update(returned_book, returned_book->uid, BOOK), 0)) return;
 
-  char *msg = malloc(sizeof(char) * (49 + strlen(returned_book->title) + 16));
+  char *msg = malloc(sizeof(char) * (49 + strlen(returned_book->id) + 16));
   sprintf(msg, "[Info] [%s] Return book [%s], expected return date[%s]",
-          user.id, returned_book->title,
+          user.id, returned_book->id,
           returned_borrow_record->returned_date);
 
   returned_borrow_record->book_status = RETURNED;
@@ -696,8 +696,10 @@ static void LoginOrRegister_LoginCallback() {
       free(msg);
       return;
     }
-    if (new_user->verified == TRUE)
+    if (new_user->verified == TRUE) {
       memcpy(&user, new_user, sizeof(User));
+      id_len = strlen(user.id);
+    }
 
     History *const new_history = malloc(sizeof(History));
     new_history->page = kWelcome;
@@ -937,9 +939,9 @@ static void BookDisplay_ConfirmCallback() {
   }
   DeleteList(books, free);
 
-  if (new_book->title[0] == '\0') {
-    char *msg = malloc(sizeof(char) * (39 + id_len));
-    sprintf(msg, "[Error] [%s] Book's title can't be blank", user.id);
+  if (new_book->id[0] == '\0') {
+    char *msg = malloc(sizeof(char) * (36 + id_len));
+    sprintf(msg, "[Error] [%s] Book's id can't be blank", user.id);
     ReturnHistory(history_list->dummy_tail->pre, msg);
     return;
   }
@@ -947,16 +949,16 @@ static void BookDisplay_ConfirmCallback() {
     if (ErrorHandle(Create(new_book, BOOK), 0)) return;
 
     char *msg =
-        malloc(sizeof(char) * (25 + id_len + strlen(new_book->title)));
-    sprintf(msg, "[Info] [%s] Init book [%s]", user.id, new_book->title);
+        malloc(sizeof(char) * (25 + id_len + strlen(new_book->id)));
+    sprintf(msg, "[Info] [%s] Init book [%s]", user.id, new_book->id);
     ReturnHistory(history_list->dummy_tail->pre, msg);
   } else {
     if (ErrorHandle(Update(new_book, new_book->uid, BOOK), 0)) return;
 
     char *msg =
-        malloc(sizeof(char) * (25 + id_len + strlen(new_book->title)));
+        malloc(sizeof(char) * (25 + id_len + strlen(new_book->id)));
     sprintf(msg, "[Info] [%s] Modify book [%s]", user.id,
-            new_book->title);
+            new_book->id);
     ReturnHistory(history_list->dummy_tail->pre, msg);
   }
 }
@@ -975,8 +977,8 @@ static void BookDisplay_DeleteCallback() {
   }
 
   char *msg =
-      malloc(sizeof(char) * (25 + id_len + strlen(new_book->title)));
-  sprintf(msg, "[Info] [%s] Delete book [%s]", user.id, new_book->title);
+      malloc(sizeof(char) * (25 + id_len + strlen(new_book->id)));
+  sprintf(msg, "[Info] [%s] Delete book [%s]", user.id, new_book->id);
   ReturnHistory(history_list->dummy_tail->pre->pre, msg);
 }
 
@@ -1011,10 +1013,10 @@ static void BookDisplay_CopyPasteCallback() {
           image_path, book->uid);
   system(command);
 
-  char *msg = malloc(sizeof(char) * (63 + id_len + strlen(book->title)));
+  char *msg = malloc(sizeof(char) * (63 + id_len + strlen(book->id)));
   sprintf(msg,
           "[Info] [%s] Copy and paste book [%s], set number on the shelf to 0",
-          user.id, book->title);
+          user.id, book->id);
   Navigation_BookDisplayOrInit(book, 0, msg);
 }
 
@@ -1711,11 +1713,11 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
       msg = malloc(sizeof(char) * (30 + id_len));
       sprintf(msg, "[Info] [%s] Open book init page", user.id);
     } else {
-      msg = malloc(sizeof(char) * (36 + id_len + strlen(new_book->title)));
+      msg = malloc(sizeof(char) * (36 + id_len + strlen(new_book->id)));
       if (user.whoami == ADMINISTRATOR)
-        sprintf(msg, "[Info] [%s] Open book modify page [%s]", user.id, new_book->title);
+        sprintf(msg, "[Info] [%s] Open book modify page [%s]", user.id, new_book->id);
       else
-        sprintf(msg, "[Info] [%s] Open book display page [%s]", user.id, new_book->title);
+        sprintf(msg, "[Info] [%s] Open book display page [%s]", user.id, new_book->id);
     }
   }
   Log(msg);

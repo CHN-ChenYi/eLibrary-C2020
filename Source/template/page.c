@@ -47,7 +47,8 @@ static Link *HelpButton, *FileButton, *BookButton,
             *LendAndBorrowButton, *UserButton,
             *SearchButton, *Quit, *Statistic;
 static Button *return_button;
-static Label *bottom_output, *bottom_info;
+static Label *bottom_output;
+static InputBox *bottom_info;
 
 /* Background for head bar and foot bar */
 static Frame *hb_frame, *fb_frame;
@@ -424,13 +425,13 @@ void AddFooBar() {
     (Rect) {0, GetWindowWidthPx(), GetWindowHeightPx() - 50, GetWindowHeightPx()},
     "212121", 0.5
   );
-  bottom_info = CreateLabel (
-    (Rect) {TextStringWidth("状态栏输出：") + 5, GetWindowWidthPx(), GetWindowHeightPx() - 50, GetWindowHeightPx() - 15},
-    cur_terminal, kWhite, NULL_ID
+  bottom_info = CreateInputBox (
+    (Rect) {TextStringWidth("状态栏输出：") + 5, GetWindowWidthPx() - 30, 0, GetWindowHeightPx() - 15},
+    cur_terminal, NULL_ID, 1
   );
   InsertFrame(fb_frame);
   InsertComp(bottom_output, kLabel);
-  InsertComp(bottom_info, kLabel);
+  InsertComp(bottom_info, kInputBox);
 }
 
 void AddLendAndBorrow() {
@@ -452,7 +453,7 @@ void AddLendAndBorrow() {
     (Rect){left_border + TextStringWidth("借书："),
            length_input_box + left_border + TextStringWidth("借书："),
            search_button_top, search_button_bottom},
-    "", NULL_ID
+    "", NULL_ID, 0
   );
   keyword_on_page = input_box->context;
   Button *search_button = CreateButton(
@@ -546,7 +547,7 @@ void AddBookSearch() {
     book_search->keyword, kBlack, NULL_ID
   );
   InputBox *input_box = CreateInputBox(
-    (Rect){50, 350, 0, 150}, "", NULL_ID
+    (Rect){50, 350, 0, 150}, "", NULL_ID, 0
   );
   keyword_on_page = input_box->context;
   Button *button = CreateButton(
@@ -652,7 +653,7 @@ void AddUserSearch() {
     user_search->keyword, kBlack, NULL_ID
   );
   InputBox *input_box = CreateInputBox(
-    (Rect){50, 350, 0, 150}, "", NULL_ID
+    (Rect){50, 350, 0, 150}, "", NULL_ID, 0
   );
   keyword_on_page = input_box->context;
   Button *button = CreateButton(
@@ -752,42 +753,42 @@ void AddUserRegister() {
     (Rect){pos_x + 15, 0, 0, pos_y + 70}, "用户号：", kBlack, NULL_ID
   );
   InputBox* id_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 70}, "", NULL_ID
+    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 70}, "", NULL_ID, 0
   );
   id_on_page = id_input->context;
   Label *first_pw_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 130}, "密码：", kBlack, NULL_ID
   );
   InputBox* first_pw_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 130}, "", NULL_ID
+    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 130}, "", NULL_ID, 0
   );
   pwd_on_page = first_pw_input->context;
   Label *second_pw_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 190}, "重复密码：", kBlack, NULL_ID
   );
   InputBox* second_pw_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 190}, "", NULL_ID
+    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 190}, "", NULL_ID, 0
   );
   rep_pwd_on_page = second_pw_input->context;
   Label *dpt_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 250}, "部门：", kBlack, NULL_ID
   );
   InputBox* dpt_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 250}, "", NULL_ID
+    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 250}, "", NULL_ID, 0
   );
   dpt_on_page = dpt_input->context;
   Label *sex_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 310}, "性别（M/F）", kBlack, NULL_ID
   );
   InputBox* sex_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 310}, "", NULL_ID
+    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 310}, "", NULL_ID, 0
   );
   gender_on_page = sex_input->context;
   Label *admin_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 370}, "是否申请管理员账号？(Y/N)", kBlack, NULL_ID
   );
   InputBox* admin_input = CreateInputBox(
-    (Rect){pos_x + 250, pos_x + 350, 0, pos_y + 370}, "", NULL_ID
+    (Rect){pos_x + 250, pos_x + 350, 0, pos_y + 370}, "", NULL_ID, 0
   );
   whoami_on_page = admin_input->context;
   Button* confirm_button = CreateButton(
@@ -851,14 +852,14 @@ void AddUserLogIn() {
     (Rect){pos_x + 15, 0, 0, pos_y + 70}, "用户号：", kBlack, NULL_ID
   );
   InputBox* id_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 70}, "", NULL_ID
+    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 70}, "", NULL_ID, 0
   );
   id_on_page = id_input->context;
   Label *first_pw_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 130}, "密码：", kBlack, NULL_ID
   );
   InputBox* first_pw_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 130}, "", NULL_ID
+    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 130}, "", NULL_ID, 0
   );
   pwd_on_page = first_pw_input->context;
   Button* confirm_button = CreateButton(
@@ -917,7 +918,7 @@ void AddUserModify() {
   );
   InputBox* id_input = CreateInputBox(
     (Rect){left_x + TextStringWidth("用户号："), middle - 20, 0, cur_y},
-    user->id, NULL_ID
+    user->id, NULL_ID, 0
   );
   id_on_page = id_input->context;
   Label *first_pw_label = CreateLabel(
@@ -925,7 +926,7 @@ void AddUserModify() {
   );
   InputBox* first_pw_input = CreateInputBox(
     (Rect){left_x + TextStringWidth("原密码："), middle - 20, 0, cur_y},
-    "", NULL_ID
+    "", NULL_ID, 0
   );
   old_pwd_on_page = first_pw_input->context;
   Label *second_pw_label = CreateLabel(
@@ -933,7 +934,7 @@ void AddUserModify() {
   );
   InputBox* second_pw_input = CreateInputBox(
     (Rect){left_x + TextStringWidth("新密码："), middle - 20, 0, cur_y},
-    "", NULL_ID
+    "", NULL_ID, 0
   );
   pwd_on_page = second_pw_input->context;
   Label *dpt_label = CreateLabel(
@@ -941,7 +942,7 @@ void AddUserModify() {
   );
   InputBox* dpt_input = CreateInputBox(
     (Rect){left_x + TextStringWidth("重复新密码："), middle - 20, 0, cur_y},
-    "", NULL_ID
+    "", NULL_ID, 0
   );
   rep_pwd_on_page = dpt_input->context;
   Label *sex_label = CreateLabel(
@@ -949,7 +950,7 @@ void AddUserModify() {
   );
   InputBox* sex_input = CreateInputBox(
     (Rect){left_x + TextStringWidth("性别（M/F）：（真的要改吗）"), middle - 20, 0, cur_y},
-    user->gender == MALE ? "M" : "F", NULL_ID
+    user->gender == MALE ? "M" : "F", NULL_ID, 0
   );
   gender_on_page = sex_input->context;
   Label *admin_label = CreateLabel(
@@ -957,7 +958,7 @@ void AddUserModify() {
   );
   InputBox* admin_input = CreateInputBox(
     (Rect){left_x + TextStringWidth("部门："), middle - 20, 0, cur_y},
-    user->department, NULL_ID
+    user->department, NULL_ID, 0
   );
   dpt_on_page = admin_input->context;
   Button* confirm_button = CreateButton(
@@ -1513,7 +1514,7 @@ void AddBookModify() {
   );
   InputBox* book_id_context = CreateInputBox(
     (Rect){info_x + TextStringWidth("书号："), right_border - 10, 0, cur_y},
-    book->id, NULL_ID
+    book->id, NULL_ID, 0
   );
   book_id_on_page = book_id_context->context;
   
@@ -1523,7 +1524,7 @@ void AddBookModify() {
   );
   InputBox* book_name_context = CreateInputBox(
     (Rect){info_x + TextStringWidth("书名："), right_border - 10, 0, cur_y},
-    book->title, NULL_ID
+    book->title, NULL_ID, 0
   );
   book_name_on_page = book_name_context->context;
   
@@ -1535,7 +1536,7 @@ void AddBookModify() {
   for (int i = 0; i < 3; i++) {
     author_context[i] = CreateInputBox(
       (Rect){info_x + TextStringWidth("作者："), right_border - 10, 0, cur_y += delta_y},
-      book->authors[i], NULL_ID
+      book->authors[i], NULL_ID, 0
     );
     book_authors_on_page[i] = author_context[i]->context;
     InsertComp(author_context[i], kInputBox);
@@ -1547,7 +1548,7 @@ void AddBookModify() {
   );
   InputBox* press_context = CreateInputBox(
     (Rect){info_x + TextStringWidth("出版社："), right_border - 10, 0, cur_y},
-    book->press, NULL_ID
+    book->press, NULL_ID, 0
   );
   book_press_on_page = press_context->context;
   
@@ -1559,7 +1560,7 @@ void AddBookModify() {
   for (int i = 0; i < 5; i++) {
     keyword_context[i] = CreateInputBox(
       (Rect){info_x + TextStringWidth("关键词："), right_border - 10, 100, cur_y += delta_y},
-      book->keywords[i], NULL_ID
+      book->keywords[i], NULL_ID, 0
     );
     book_keywords_on_page[i] = keyword_context[i]->context;
     InsertComp(keyword_context[i], kInputBox);
@@ -1571,7 +1572,7 @@ void AddBookModify() {
   );
   InputBox *catagory_input = CreateInputBox(
     (Rect){info_x + TextStringWidth("分类："), right_border - 10, 0, cur_y},
-    book->category, NULL_ID
+    book->category, NULL_ID, 0
   );
   catagory_on_page = catagory_input->context;
 
@@ -1583,7 +1584,7 @@ void AddBookModify() {
   sprintf(borrowed_days, "%d", book->available_borrowed_days);
   InputBox *days_to_borrow_input = CreateInputBox(
     (Rect){info_x + TextStringWidth("可借阅天数："), right_border - 10, 0, cur_y},
-    borrowed_days, NULL_ID
+    borrowed_days, NULL_ID, 0
   );
   days_to_borrow_on_page = days_to_borrow_input->context;
 
@@ -1595,7 +1596,7 @@ void AddBookModify() {
   sprintf(number_on_the_shelf, "%d", book->number_on_the_shelf);
   InputBox *books_on_shelf_input = CreateInputBox(
     (Rect){info_x + TextStringWidth("在架数："), right_border - 10, 0, cur_y},
-    number_on_the_shelf, NULL_ID
+    number_on_the_shelf, NULL_ID, 0
   );
   number_of_books_on_page = books_on_shelf_input->context;
 

@@ -181,12 +181,11 @@ List* GenBorrowRecord() {
   List* list = NewList();
   for (int i = 0; i < 10; i++) {
     BorrowRecord* record = malloc(sizeof(BorrowRecord));
-    sprintf(record->book_name, "title%d", i);
+    sprintf(record->book_id, "book%d", i);
     record->book_status = i % 2 ? BORROWED : RETURNED;
     sprintf(record->borrowed_date, "202001%02d", i);
     sprintf(record->returned_date, "202010%02d", i);
-    sprintf(record->user_name, "user%d", i);
-    sprintf(record->book_name, "book%d", i);
+    sprintf(record->user_id, "user%d", i);
     InsertList(list, list->dummy_tail, record);
   }
   return list;
@@ -368,18 +367,18 @@ void AddHeadBar() {
     user_icon_image, USER_ID
   );
   InsertComp(user_icon, kImage);
-  Label *user_name = NULL;
+  Label *user_id = NULL;
   if (cur_user == NULL || cur_user->id[0] == '\0') {
-    user_name = CreateLabel(
+    user_id = CreateLabel(
       (Rect){user_icon->position.right + 10, 0, 0, 45}, "未登录", kBlack, NULL_ID
     );
   } else {
-    user_name = CreateLabel(
+    user_id = CreateLabel(
       (Rect){user_icon->position.right + 10, 0, 0, 45}, cur_user->id, kBlack, NULL_ID
     );
   }
   SearchButton = CreateLink(
-    (Rect) {user_name->position.right + 10, 0, 0, 45},
+    (Rect) {user_id->position.right + 10, 0, 0, 45},
     "搜索", kWhite, SEARCH_ID
   );
   LibImage search_icon_image;
@@ -413,7 +412,7 @@ void AddHeadBar() {
     "2979FF", 0.5
   );
   InsertFrame(hb_frame);
-  InsertComp(user_name, kLabel);
+  InsertComp(user_id, kLabel);
   InsertComp(HelpButton, kLink);
   InsertComp(return_button, kButton);
   InsertComp(Statistic, kLink);
@@ -988,12 +987,12 @@ void AddUserModify() {
   for (ListNode* p = user_modify->borrowrecords_start;
        p != user_modify->borrowrecords->dummy_tail && count <= kUserModifyMax; p = p->nxt, count++) {
     BorrowRecord *borrow_record = p->value;
-    Label* user_name = CreateLabel(
+    Label* user_id = CreateLabel(
       (Rect){right_x, 0, 0, cur_y += delta_y},
-      borrow_record->user_name, kBlack, NULL_ID
+      borrow_record->user_id, kBlack, NULL_ID
     );
     Label* info_1 = CreateLabel(
-      (Rect){user_name->position.right + 10, 0, 0, cur_y},
+      (Rect){user_id->position.right + 10, 0, 0, cur_y},
       "在", kBlack, NULL_ID
     );
     Label* borrow_time = CreateLabel(
@@ -1013,7 +1012,7 @@ void AddUserModify() {
       (Rect){return_time->position.right + 10, 0, 0, cur_y},
       "归还", kBlack, NULL_ID
     );
-    InsertComp(user_name, kLabel);
+    InsertComp(user_id, kLabel);
     InsertComp(info_1, kLabel);
     InsertComp(borrow_time, kLabel);
     InsertComp(info_2, kLabel);
@@ -1706,9 +1705,9 @@ void AddBorrowDisplay() {
   BorrowDisplay *borrow_display = cur_info;
   /*
   BorrowDisplay *borrow_display = malloc(sizeof(borrow_display));
-  borrow_display->book_name = malloc(sizeof(char) * 10);
-  memset(borrow_display->book_name, 0, sizeof(borrow_display->book_name));
-  strcpy(borrow_display->book_name, "他改变了中国");
+  borrow_display->book_id = malloc(sizeof(char) * 10);
+  memset(borrow_display->book_id, 0, sizeof(borrow_display->book_id));
+  strcpy(borrow_display->book_id, "他改变了中国");
   borrow_display->borrow_record = GenBorrowRecord();
   borrow_display->borrow_record_start = borrow_display->borrow_record->dummy_head->nxt;
   */
@@ -1730,7 +1729,7 @@ void AddBorrowDisplay() {
     (Rect) {left_border, 0, 0, cur_y += delta_y}, "借还书记录：", kBlack, NULL_ID
   );
   Label *book_title = CreateLabel(
-    (Rect){title->position.right + 10, 0, 0, cur_y}, borrow_display->book_name, kBlack, NULL_ID
+    (Rect){title->position.right + 10, 0, 0, cur_y}, borrow_display->book_id, kBlack, NULL_ID
   );
   int count = 1;
   for (ListNode* p = borrow_display->borrow_record_start;
@@ -1738,12 +1737,12 @@ void AddBorrowDisplay() {
        count <= kBorrowDisplayMax;
        p = p->nxt, count++) {
     BorrowRecord *borrow_record = p->value;
-    Label* user_name = CreateLabel(
+    Label* user_id = CreateLabel(
       (Rect){left_border + 10, 0, 0, cur_y += delta_y},
-      borrow_record->user_name, kBlack, NULL_ID
+      borrow_record->user_id, kBlack, NULL_ID
     );
     Label* info_1 = CreateLabel(
-      (Rect){user_name->position.right + 10, 0, 0, cur_y},
+      (Rect){user_id->position.right + 10, 0, 0, cur_y},
       "在", kBlack, NULL_ID
     );
     Label* borrow_time = CreateLabel(
@@ -1763,7 +1762,7 @@ void AddBorrowDisplay() {
       (Rect){return_time->position.right + 10, 0, 0, cur_y},
       "归还", kBlack, NULL_ID
     );
-    InsertComp(user_name, kLabel);
+    InsertComp(user_id, kLabel);
     InsertComp(info_1, kLabel);
     InsertComp(borrow_time, kLabel);
     InsertComp(info_2, kLabel);
@@ -1860,12 +1859,12 @@ void AddStatistics() {
        count <= kStatisticsCatalogsMax;
        p = p->nxt, count++) {
     BorrowRecord *borrow_record = p->value;
-    Label* user_name = CreateLabel(
+    Label* user_id = CreateLabel(
       (Rect){right_x, 0, 0, cur_y += delta_y},
-      borrow_record->user_name, kBlack, NULL_ID
+      borrow_record->user_id, kBlack, NULL_ID
     );
     Label* info_1 = CreateLabel(
-      (Rect){user_name->position.right + 10, 0, 0, cur_y},
+      (Rect){user_id->position.right + 10, 0, 0, cur_y},
       "在", kBlack, NULL_ID
     );
     Label* borrow_time = CreateLabel(
@@ -1885,17 +1884,17 @@ void AddStatistics() {
       (Rect){return_time->position.right + 10, 0, 0, cur_y},
       "归还", kBlack, NULL_ID
     );
-    Label *book_name = CreateLabel(
+    Label *book_id = CreateLabel(
       (Rect){info_3->position.right + 10, 0, 0, cur_y},
-      borrow_record->book_name, kBlack, NULL_ID
+      borrow_record->book_id, kBlack, NULL_ID
     );
-    InsertComp(user_name, kLabel);
+    InsertComp(user_id, kLabel);
     InsertComp(info_1, kLabel);
     InsertComp(borrow_time, kLabel);
     InsertComp(info_2, kLabel);
     InsertComp(return_time, kLabel);
     InsertComp(info_3, kLabel);
-    InsertComp(book_name, kLabel);
+    InsertComp(book_id, kLabel);
   }
 
 

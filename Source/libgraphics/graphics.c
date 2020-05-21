@@ -1898,6 +1898,10 @@ void loadImage(const char *image, LibImage *mapbuf) {
 
   file = CreateFileA(image, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
                      FILE_ATTRIBUTE_NORMAL, NULL);
+  if (file == INVALID_HANDLE_VALUE) {
+    Error("Can't open the image");
+    return;
+  }
 
   filesize = GetFileSize(file, NULL);
 

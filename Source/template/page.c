@@ -62,7 +62,7 @@ static ListNode* tbv_user_on_page[MAX_ON_PAGE];
 static ListNode* v_user_on_page[MAX_ON_PAGE];
 static ListNode* catalog_on_page[MAX_ON_PAGE];
 static char *keyword_on_page;
-static char *username_on_page;
+static char *id_on_page;
 static char *old_pwd_on_page;
 static char *pwd_on_page;
 static char *rep_pwd_on_page;
@@ -172,7 +172,7 @@ List* GenUser() {
     user->gender = i % 2 ? MALE : FEMALE;
     user->whoami = i % 2 ? ADMINISTRATOR : NORMAL_USER;
     user->verified = i % 2 ? TRUE : FALSE;
-    sprintf(user->username, "username%d", i);
+    sprintf(user->id, "id%d", i);
     InsertList(list, list->dummy_tail, user);
   }
   return list;
@@ -181,12 +181,11 @@ List* GenBorrowRecord() {
   List* list = NewList();
   for (int i = 0; i < 10; i++) {
     BorrowRecord* record = malloc(sizeof(BorrowRecord));
-    sprintf(record->book_name, "title%d", i);
+    sprintf(record->book_id, "book%d", i);
     record->book_status = i % 2 ? BORROWED : RETURNED;
     sprintf(record->borrowed_date, "202001%02d", i);
     sprintf(record->returned_date, "202010%02d", i);
-    sprintf(record->user_name, "user%d", i);
-    sprintf(record->book_name, "book%d", i);
+    sprintf(record->user_id, "user%d", i);
     InsertList(list, list->dummy_tail, record);
   }
   return list;
@@ -322,14 +321,15 @@ void AddSubmenu(int status) {
   }
 }
 
+LibImage folder_icon_image, book_icon_image, lend_icon_image, user_icon_image,
+    search_icon_image, statistics_icon_image;
+
 void AddHeadBar() {
   // Head bar
   FileButton = CreateLink(
     (Rect) {15, 0, 0, 45},
     "文件", kWhite, FILE_ID
   );
-  LibImage folder_icon_image;
-  loadImage(".\\Resource\\folder.jpg", &folder_icon_image);
   Image* folder_icon = CreateImage(
     (Rect) {FileButton->position.right, FileButton->position.right + 25, 25, 50},
     folder_icon_image, FILE_ID
@@ -339,8 +339,6 @@ void AddHeadBar() {
     (Rect) {folder_icon->position.right + 10, 0, 0, 45},
     "图书", kWhite, BOOK_ID
   );
-  LibImage book_icon_image;
-  loadImage(".\\Resource\\book.jpg", &book_icon_image);
   Image* book_icon = CreateImage(
     (Rect) {BookButton->position.right, BookButton->position.right + 25, 25, 50},
     book_icon_image, BOOK_ID
@@ -350,8 +348,6 @@ void AddHeadBar() {
     (Rect) {book_icon->position.right + 10, 0, 0, 45},
     "借还", kWhite, LEND_ID
   );
-  LibImage lend_icon_image;
-  loadImage(".\\Resource\\sync_alt.jpg", &lend_icon_image);
   Image* lend_icon = CreateImage(
     (Rect) {LendAndBorrowButton->position.right, LendAndBorrowButton->position.right + 25, 25, 50},
     lend_icon_image, LEND_ID
@@ -361,29 +357,25 @@ void AddHeadBar() {
     (Rect) {lend_icon->position.right + 10, 0, 0, 45},
     "用户", kWhite, USER_ID
   );
-  LibImage user_icon_image;
-  loadImage(".\\Resource\\person.jpg", &user_icon_image);
   Image* user_icon = CreateImage(
     (Rect) {UserButton->position.right, UserButton->position.right + 25, 25, 50},
     user_icon_image, USER_ID
   );
   InsertComp(user_icon, kImage);
-  Label *user_name = NULL;
-  if (cur_user == NULL || cur_user->username[0] == '\0') {
-    user_name = CreateLabel(
+  Label *user_id = NULL;
+  if (cur_user == NULL || cur_user->id[0] == '\0') {
+    user_id = CreateLabel(
       (Rect){user_icon->position.right + 10, 0, 0, 45}, "未登录", kBlack, NULL_ID
     );
   } else {
-    user_name = CreateLabel(
-      (Rect){user_icon->position.right + 10, 0, 0, 45}, cur_user->username, kBlack, NULL_ID
+    user_id = CreateLabel(
+      (Rect){user_icon->position.right + 10, 0, 0, 45}, cur_user->id, kBlack, NULL_ID
     );
   }
   SearchButton = CreateLink(
-    (Rect) {user_name->position.right + 10, 0, 0, 45},
+    (Rect) {user_id->position.right + 10, 0, 0, 45},
     "搜索", kWhite, SEARCH_ID
   );
-  LibImage search_icon_image;
-  loadImage(".\\Resource\\search.jpg", &search_icon_image);
   Image* search_icon = CreateImage(
     (Rect) {SearchButton->position.right, SearchButton->position.right + 25, 25, 50},
     search_icon_image, SEARCH_ID
@@ -393,8 +385,6 @@ void AddHeadBar() {
     (Rect) {search_icon->position.right + 10, 0, 0, 45},
     "统计", kWhite, ST_ID
   );
-  LibImage statistics_icon_image;
-  loadImage(".\\Resource\\show_chart.jpg", &statistics_icon_image);
   Image* statistics_icon = CreateImage(
     (Rect) {Statistic->position.right, Statistic->position.right + 25, 25, 50},
     statistics_icon_image, ST_ID
@@ -413,7 +403,7 @@ void AddHeadBar() {
     "2979FF", 0.5
   );
   InsertFrame(hb_frame);
-  InsertComp(user_name, kLabel);
+  InsertComp(user_id, kLabel);
   InsertComp(HelpButton, kLink);
   InsertComp(return_button, kButton);
   InsertComp(Statistic, kLink);
@@ -689,7 +679,7 @@ void AddUserSearch() {
     User* user = p->value;
     user_on_page[count] = user;
     Label* name = CreateLabel(
-      (Rect){left_border + 10, 0, 0, cur_y += delta_y}, user->username, kBlack, NULL_ID
+      (Rect){left_border + 10, 0, 0, cur_y += delta_y}, user->id, kBlack, NULL_ID
     );
     Label* department = CreateLabel(
       (Rect){name->position.right + 10, 0, 0, cur_y}, user->department, kBlack, NULL_ID
@@ -758,13 +748,13 @@ void AddUserRegister() {
   Label *register_title = CreateLabel(
     (Rect){pos_x + 5, 0, 0, pos_y + 25}, "用户注册：", kBlack, NULL_ID
   );
-  Label *username_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 70}, "用户名：", kBlack, NULL_ID
+  Label *id_label = CreateLabel(
+    (Rect){pos_x + 15, 0, 0, pos_y + 70}, "用户号：", kBlack, NULL_ID
   );
-  InputBox* username_input = CreateInputBox(
+  InputBox* id_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 70}, "", NULL_ID
   );
-  username_on_page = username_input->context;
+  id_on_page = id_input->context;
   Label *first_pw_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 130}, "密码：", kBlack, NULL_ID
   );
@@ -810,13 +800,13 @@ void AddUserRegister() {
   InsertComp(dpt_input, kInputBox);
   InsertComp(second_pw_input, kInputBox);
   InsertComp(first_pw_input, kInputBox);
-  InsertComp(username_input, kInputBox);
+  InsertComp(id_input, kInputBox);
   InsertComp(admin_label, kLabel);
   InsertComp(sex_label, kLabel);
   InsertComp(dpt_label, kLabel);
   InsertComp(second_pw_label, kLabel);
   InsertComp(first_pw_label, kLabel);
-  InsertComp(username_label, kLabel);
+  InsertComp(id_label, kLabel);
   InsertComp(register_title, kLabel);
 }
 
@@ -827,7 +817,7 @@ void HandleUserRegisterCallback(int id) {
   case 1:
     strcpy(cur_state.login_or_register->password, pwd_on_page);
     strcpy(cur_state.login_or_register->repeat_password, rep_pwd_on_page);
-    strcpy(cur_state.login_or_register->user->username, username_on_page);
+    strcpy(cur_state.login_or_register->user->id, id_on_page);
     strcpy(cur_state.login_or_register->user->department, dpt_on_page);
     if (strcmp(gender_on_page, "F") == 0) {
       cur_state.login_or_register->user->gender = FEMALE;
@@ -857,13 +847,13 @@ void AddUserLogIn() {
   Label *register_title = CreateLabel(
     (Rect){pos_x + 5, 0, 0, pos_y + 25}, "用户登陆：", kBlack, NULL_ID
   );
-  Label *username_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 70}, "用户名：", kBlack, NULL_ID
+  Label *id_label = CreateLabel(
+    (Rect){pos_x + 15, 0, 0, pos_y + 70}, "用户号：", kBlack, NULL_ID
   );
-  InputBox* username_input = CreateInputBox(
+  InputBox* id_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 70}, "", NULL_ID
   );
-  username_on_page = username_input->context;
+  id_on_page = id_input->context;
   Label *first_pw_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 130}, "密码：", kBlack, NULL_ID
   );
@@ -877,9 +867,9 @@ void AddUserLogIn() {
   );
   InsertComp(confirm_button, kButton);
   InsertComp(first_pw_input, kInputBox);
-  InsertComp(username_input, kInputBox);
+  InsertComp(id_input, kInputBox);
   InsertComp(first_pw_label, kLabel);
-  InsertComp(username_label, kLabel);
+  InsertComp(id_label, kLabel);
   InsertComp(register_title, kLabel);
 }
 
@@ -889,7 +879,7 @@ void HandleUserLoginCallback(int id) {
   switch (id) {
   case 1:
     strcpy(cur_state.login_or_register->password, pwd_on_page);
-    strcpy(cur_state.login_or_register->user->username, username_on_page);
+    strcpy(cur_state.login_or_register->user->id, id_on_page);
     cur_state.login_or_register->login_callback();
     break;
   }
@@ -921,15 +911,15 @@ void AddUserModify() {
   Label *register_title = CreateLabel(
     (Rect){left_x, 0, 0, cur_y += delta_y}, "用户修改：", kBlack, NULL_ID
   );
-  Label *username_label = CreateLabel(
+  Label *id_label = CreateLabel(
     (Rect){left_x , 0, 0, cur_y += delta_y},
-    "用户名：", kBlack, NULL_ID
+    "用户号：", kBlack, NULL_ID
   );
-  InputBox* username_input = CreateInputBox(
-    (Rect){left_x + TextStringWidth("用户名："), middle - 20, 0, cur_y},
-    user->username, NULL_ID
+  InputBox* id_input = CreateInputBox(
+    (Rect){left_x + TextStringWidth("用户号："), middle - 20, 0, cur_y},
+    user->id, NULL_ID
   );
-  username_on_page = username_input->context;
+  id_on_page = id_input->context;
   Label *first_pw_label = CreateLabel(
     (Rect){left_x, 0, 0, cur_y += delta_y}, "原密码：", kBlack, NULL_ID
   );
@@ -988,12 +978,12 @@ void AddUserModify() {
   for (ListNode* p = user_modify->borrowrecords_start;
        p != user_modify->borrowrecords->dummy_tail && count <= kUserModifyMax; p = p->nxt, count++) {
     BorrowRecord *borrow_record = p->value;
-    Label* user_name = CreateLabel(
+    Label* user_id = CreateLabel(
       (Rect){right_x, 0, 0, cur_y += delta_y},
-      borrow_record->user_name, kBlack, NULL_ID
+      borrow_record->user_id, kBlack, NULL_ID
     );
     Label* info_1 = CreateLabel(
-      (Rect){user_name->position.right + 10, 0, 0, cur_y},
+      (Rect){user_id->position.right + 10, 0, 0, cur_y},
       "在", kBlack, NULL_ID
     );
     Label* borrow_time = CreateLabel(
@@ -1013,7 +1003,7 @@ void AddUserModify() {
       (Rect){return_time->position.right + 10, 0, 0, cur_y},
       "归还", kBlack, NULL_ID
     );
-    InsertComp(user_name, kLabel);
+    InsertComp(user_id, kLabel);
     InsertComp(info_1, kLabel);
     InsertComp(borrow_time, kLabel);
     InsertComp(info_2, kLabel);
@@ -1037,13 +1027,13 @@ void AddUserModify() {
   InsertComp(dpt_input, kInputBox);
   InsertComp(second_pw_input, kInputBox);
   InsertComp(first_pw_input, kInputBox);
-  InsertComp(username_input, kInputBox);
+  InsertComp(id_input, kInputBox);
   InsertComp(admin_label, kLabel);
   InsertComp(sex_label, kLabel);
   InsertComp(dpt_label, kLabel);
   InsertComp(second_pw_label, kLabel);
   InsertComp(first_pw_label, kLabel);
-  InsertComp(username_label, kLabel);
+  InsertComp(id_label, kLabel);
   InsertComp(register_title, kLabel);
 }
 
@@ -1061,7 +1051,7 @@ void HandleUserModifyCallback(int id) {
     strcpy(cur_state.user_modify->new_password, pwd_on_page);
     strcpy(cur_state.user_modify->repeat_password, rep_pwd_on_page);
     strcpy(cur_state.user_modify->user->department, dpt_on_page);
-    strcpy(cur_state.user_modify->user->username, username_on_page);
+    strcpy(cur_state.user_modify->user->id, id_on_page);
     if (strcmp(gender_on_page, "F") == 0) {
       cur_state.user_modify->user->gender = FEMALE;
     }
@@ -1117,7 +1107,7 @@ void AddUserManagement() {
     User *user = p->value;
     tbv_user_on_page[count] = p;
     Label* name = CreateLabel(
-      (Rect){left_x, 0, 0, left_cur_y += delta_y}, user->username, kBlack, NULL_ID
+      (Rect){left_x, 0, 0, left_cur_y += delta_y}, user->id, kBlack, NULL_ID
     );
     InsertComp(name, kLabel);
     Label* dpt = CreateLabel(
@@ -1149,7 +1139,7 @@ void AddUserManagement() {
     User *user = p->value;
     v_user_on_page[count] = p;
     Label* label = CreateLabel(
-      (Rect){right_x, 0, 0, right_cur_y += delta_y}, user->username, kBlack, NULL_ID
+      (Rect){right_x, 0, 0, right_cur_y += delta_y}, user->id, kBlack, NULL_ID
     );
     InsertComp(label, kLabel);
     Link *delete_button = CreateLink(
@@ -1706,9 +1696,9 @@ void AddBorrowDisplay() {
   BorrowDisplay *borrow_display = cur_info;
   /*
   BorrowDisplay *borrow_display = malloc(sizeof(borrow_display));
-  borrow_display->book_name = malloc(sizeof(char) * 10);
-  memset(borrow_display->book_name, 0, sizeof(borrow_display->book_name));
-  strcpy(borrow_display->book_name, "他改变了中国");
+  borrow_display->book_id = malloc(sizeof(char) * 10);
+  memset(borrow_display->book_id, 0, sizeof(borrow_display->book_id));
+  strcpy(borrow_display->book_id, "他改变了中国");
   borrow_display->borrow_record = GenBorrowRecord();
   borrow_display->borrow_record_start = borrow_display->borrow_record->dummy_head->nxt;
   */
@@ -1730,7 +1720,7 @@ void AddBorrowDisplay() {
     (Rect) {left_border, 0, 0, cur_y += delta_y}, "借还书记录：", kBlack, NULL_ID
   );
   Label *book_title = CreateLabel(
-    (Rect){title->position.right + 10, 0, 0, cur_y}, borrow_display->book_name, kBlack, NULL_ID
+    (Rect){title->position.right + 10, 0, 0, cur_y}, borrow_display->book_id, kBlack, NULL_ID
   );
   int count = 1;
   for (ListNode* p = borrow_display->borrow_record_start;
@@ -1738,12 +1728,12 @@ void AddBorrowDisplay() {
        count <= kBorrowDisplayMax;
        p = p->nxt, count++) {
     BorrowRecord *borrow_record = p->value;
-    Label* user_name = CreateLabel(
+    Label* user_id = CreateLabel(
       (Rect){left_border + 10, 0, 0, cur_y += delta_y},
-      borrow_record->user_name, kBlack, NULL_ID
+      borrow_record->user_id, kBlack, NULL_ID
     );
     Label* info_1 = CreateLabel(
-      (Rect){user_name->position.right + 10, 0, 0, cur_y},
+      (Rect){user_id->position.right + 10, 0, 0, cur_y},
       "在", kBlack, NULL_ID
     );
     Label* borrow_time = CreateLabel(
@@ -1763,7 +1753,7 @@ void AddBorrowDisplay() {
       (Rect){return_time->position.right + 10, 0, 0, cur_y},
       "归还", kBlack, NULL_ID
     );
-    InsertComp(user_name, kLabel);
+    InsertComp(user_id, kLabel);
     InsertComp(info_1, kLabel);
     InsertComp(borrow_time, kLabel);
     InsertComp(info_2, kLabel);
@@ -1860,12 +1850,12 @@ void AddStatistics() {
        count <= kStatisticsCatalogsMax;
        p = p->nxt, count++) {
     BorrowRecord *borrow_record = p->value;
-    Label* user_name = CreateLabel(
+    Label* user_id = CreateLabel(
       (Rect){right_x, 0, 0, cur_y += delta_y},
-      borrow_record->user_name, kBlack, NULL_ID
+      borrow_record->user_id, kBlack, NULL_ID
     );
     Label* info_1 = CreateLabel(
-      (Rect){user_name->position.right + 10, 0, 0, cur_y},
+      (Rect){user_id->position.right + 10, 0, 0, cur_y},
       "在", kBlack, NULL_ID
     );
     Label* borrow_time = CreateLabel(
@@ -1885,17 +1875,17 @@ void AddStatistics() {
       (Rect){return_time->position.right + 10, 0, 0, cur_y},
       "归还", kBlack, NULL_ID
     );
-    Label *book_name = CreateLabel(
+    Label *book_id = CreateLabel(
       (Rect){info_3->position.right + 10, 0, 0, cur_y},
-      borrow_record->book_name, kBlack, NULL_ID
+      borrow_record->book_id, kBlack, NULL_ID
     );
-    InsertComp(user_name, kLabel);
+    InsertComp(user_id, kLabel);
     InsertComp(info_1, kLabel);
     InsertComp(borrow_time, kLabel);
     InsertComp(info_2, kLabel);
     InsertComp(return_time, kLabel);
     InsertComp(info_3, kLabel);
-    InsertComp(book_name, kLabel);
+    InsertComp(book_id, kLabel);
   }
 
 
@@ -2025,6 +2015,12 @@ void InitGUI() {
   cur_page = kWelcome;
   cur_user = NULL;
   hb_status = kUnclicked;
+  loadImage(".\\Resource\\folder.jpg", &folder_icon_image);
+  loadImage(".\\Resource\\book.jpg", &book_icon_image);
+  loadImage(".\\Resource\\sync_alt.jpg", &lend_icon_image);
+  loadImage(".\\Resource\\person.jpg", &user_icon_image);
+  loadImage(".\\Resource\\search.jpg", &search_icon_image);
+  loadImage(".\\Resource\\show_chart.jpg", &statistics_icon_image);
   InitPage();
 }
 

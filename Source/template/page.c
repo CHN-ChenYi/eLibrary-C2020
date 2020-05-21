@@ -462,7 +462,7 @@ void AddLendAndBorrow() {
     "搜索", SEARCH_COLOR, 1, kWhite, 1103
   );
   Label *return_title = CreateLabel(
-    (Rect){left_border, 0, 0, 150}, "还书：：（右侧为到期时间）", kBlack, NULL_ID
+    (Rect){left_border, 0, 0, 150}, "还书：（右侧为到期时间）", kBlack, NULL_ID
   );
   LendAndBorrow *cur_state = cur_info;
   int count = 1;
@@ -2004,7 +2004,7 @@ void InitPage() {
   AddHeadBar();
   AddFooBar();
   AddContents();
-  FlushScreen(GetMouseX(), GetMouseY(), 1);
+  FlushScreen(GetMouseX(), GetMouseY());
 }
 
 void InitGUI() {

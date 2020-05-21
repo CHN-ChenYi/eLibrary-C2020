@@ -100,7 +100,7 @@ void InsertSurface(void* component, TypeOfComp type);
 void InitComponents();
 void InitFrame();
 void InitSurface();
-void FlushScreen(int x, int y, int force);
+void FlushScreen(int x, int y);
 
 // Initialization
 void InitializeUI();

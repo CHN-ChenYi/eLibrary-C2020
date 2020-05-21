@@ -158,7 +158,7 @@ typedef struct BookDisplay {
 /* 图书借还界面显示 */
 #define kBorrowDisplayMax 10  // 单页最大显示数目
 typedef struct BorrowDisplay {
-  char *book_name;                // 当前书籍
+  char *book_id;                // 当前书籍
   List *borrow_record;            // 当前书籍的借还记录
   ListNode *borrow_record_start;  // 要显示的第一条借还记录
   // direction = 0 上一页, direction = 1 下一页

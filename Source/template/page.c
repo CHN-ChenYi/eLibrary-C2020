@@ -2014,7 +2014,7 @@ void InitPage() {
   AddHeadBar();
   AddFooBar();
   AddContents();
-  FlushScreen(GetMouseX(), GetMouseY());
+  FlushScreen(GetMouseX(), GetMouseY(), 1);
 }
 
 void InitGUI() {

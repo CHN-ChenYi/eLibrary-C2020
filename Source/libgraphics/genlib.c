@@ -133,7 +133,7 @@ void Error(string msg, ...) {
     strcpy(errmsg, errbuf);
   }
   if (HandlerExists(&ErrorException)) {
-    RaiseException(&ErrorException, "ErrorException", errmsg);
+    RaiseExceptionA(&ErrorException, "ErrorException", errmsg);
   } else {
     fprintf(stderr, "Error: %s\n", errmsg);
     exit(ErrorExitStatus);

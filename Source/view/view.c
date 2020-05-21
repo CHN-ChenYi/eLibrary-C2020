@@ -28,6 +28,7 @@ static size_t lib_path_len, id_len, program_path_len;
 static char book_db_dir[MAX_PATH + 1], user_db_dir[MAX_PATH + 1],
     borrowrecord_db_dir[MAX_PATH + 1];
 static FILE *log_file;
+static LibImage edit_cover, unknown_cover;
 static inline void Log(char *const msg);
 static inline char *MoveInList(ListNode **const node, List *list, int max_size,
                                bool direction, const char *const list_name,
@@ -113,6 +114,16 @@ void InitView() {
 
   // init log
   fopen_s(&log_file, ".\\eLibrary.log", "a+");
+
+  // load resource
+  try {
+    loadImage(".\\Resource\\edit_cover.jpg", &edit_cover);
+    loadImage(".\\Resource\\unknown_cover.jpg", &unknown_cover);
+    except(ErrorException) {
+      Log("[Debug] Fail to load resources");
+      exit(1);
+    }
+  } endtry;
 
   // set up welcome page
   char *msg = malloc(sizeof(char) * 13);
@@ -939,12 +950,6 @@ static void BookDisplay_ConfirmCallback() {
   }
   DeleteList(books, free);
 
-  if (new_book->id[0] == '\0') {
-    char *msg = malloc(sizeof(char) * (36 + id_len));
-    sprintf(msg, "[Error] [%s] Book's id can't be blank", user.id);
-    ReturnHistory(history_list->dummy_tail->pre, msg);
-    return;
-  }
   if (TopHistory()->page == kBookInit) {
     if (ErrorHandle(Create(new_book, BOOK), 0)) return;
 
@@ -975,6 +980,11 @@ static void BookDisplay_DeleteCallback() {
   if (TopHistory()->page == kBookModify) {
     if (ErrorHandle(Delete(new_book->uid, BOOK), 0)) return;
   }
+
+  char *command = malloc(sizeof(char) * (lib_path_len + 19 + 10));
+  sprintf(command, "del /F %s\\image\\%d.jpg", lib_path, new_book->uid);
+  system(command);
+  free(command);
 
   char *msg =
       malloc(sizeof(char) * (25 + id_len + strlen(new_book->id)));
@@ -1385,7 +1395,7 @@ static inline void Navigation_Library(char *msg) {
     if (!_access(image_path, 4))
       loadImage(image_path, image);    
     else
-      loadImage(".\\Resource\\unknown_cover.jpg", image);
+      *image = unknown_cover;
     InsertList(book_covers, book_covers->dummy_tail, image);
   }
 
@@ -1700,11 +1710,9 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
     if (!_access(image_path, 4))
       loadImage(image_path, &new_history->state.book_display->book_cover);
     else
-      loadImage(".\\Resource\\unknown_cover.jpg",
-                &new_history->state.book_display->book_cover);
+      new_history->state.book_display->book_cover = unknown_cover;
   } else {
-    loadImage(".\\Resource\\edit_cover.jpg",
-              &new_history->state.book_display->book_cover);
+    new_history->state.book_display->book_cover = edit_cover;
   }
   PushBackHistory(new_history);
 

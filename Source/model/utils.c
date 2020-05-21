@@ -22,6 +22,7 @@ int BookCopy(Book* destination, Book* source) {
 	}
 	err = SaveStrCpy(t->category, s->category); if(err != DB_SUCCESS) return err;
 	err = SaveStrCpy(t->press, s->press); if(err != DB_SUCCESS) return err;
+	err = SaveStrCpy(t->publication_date, s->publication_date); if(err != DB_SUCCESS) return err;
 	for (i = 0; i < 5; i++) {
 		err = SaveStrCpy(t->keywords[i], s->keywords[i]); if(err != DB_SUCCESS) return err;
 	}
@@ -36,6 +37,7 @@ int UserCopy(User* destination, User* source) {
 	t->uid = s->uid;
 	err = SaveStrCpy(t->id, s->id); if(err != DB_SUCCESS) return err;
 	err = SaveStrCpy(t->salt, s->salt); if(err != DB_SUCCESS) return err;
+	err = SaveStrCpy(t->name, s->name); if(err != DB_SUCCESS) return err;
 	int i;
 	for (i = 0; i < 8; i++) t->password[i] = s->password[i];
 	t->gender = s->gender;
@@ -102,6 +104,9 @@ int BookFilter(Book* p_b, String queries) {
 		else if (*(property) == 'p' && *(property + 1) == 'r') {
 			flag = Cmp(p_b->press, para, insensitive, equal);
 		}
+		else if (*(property) == 'p' && *(property + 1) == 'u') {
+			flag = Cmp(p_b->publication_date, para, insensitive, equal);
+		}
 		else if (*(property) == 'k' && *(property + 1) == 'e') {
 			int i;
 			for (i = 0; i < 5; i++) {
@@ -146,6 +151,9 @@ int UserFilter(User* p_u, String queries) {
 		}
 		else if (*(property) == 's' && *(property + 1) == 'a') {
 			flag = Cmp(p_u->salt, para, insensitive, equal);
+		}
+		else if (*(property) == 'n' && *(property + 1) == 'a') {
+			flag = Cmp(p_u->name, para, insensitive, equal);
 		}
 		else if (*(property) == 'p' && *(property + 1) == 'a') {
 			int i; char str[50];
@@ -262,6 +270,9 @@ int StringToBook(Book* p_b, String str) {
 	ok = Slice(str, slice, &pos); // press
 	if(ok != DB_SUCCESS) return ok;
 	SaveStrCpy(p_b->press, slice);
+	ok = Slice(str, slice, &pos); // publication_date
+	if(ok != DB_SUCCESS) return ok;
+	SaveStrCpy(p_b->publication_date, slice);
 	for (i = 0; i < 5; i++) { // keywords
 		ok = Slice(str, slice, &pos);
 		if(ok != DB_SUCCESS) return ok;
@@ -284,6 +295,9 @@ int StringToUser(User* p_u, String str) {
 	ok = Slice(str, slice, &pos); // id
 	if(ok != DB_SUCCESS) return ok;
 	SaveStrCpy(p_u->id, slice);
+	ok = Slice(str, slice, &pos); // name
+	if(ok != DB_SUCCESS) return ok;
+	SaveStrCpy(p_u->name, slice);
 	ok = Slice(str, slice, &pos); // salt
 	if(ok != DB_SUCCESS) return ok;
 	SaveStrCpy(p_u->salt, slice);
@@ -373,6 +387,7 @@ int ModelToString(void* handle, Model model, char* p_str) {
 		for (i = 0; i < 3; i++) { process(p_b, "%s", authors[i]); }
 		process(p_b, "%s", category);
 		process(p_b, "%s", press);
+		process(p_b, "%s", publicatoin_date);
 		for (i = 0; i < 5; i++) { process(p_b, "%s", keywords[i]); }
 		process(p_b, "%u", number_on_the_shelf);
 		process(p_b, "%u", available_borrowed_days);
@@ -382,6 +397,7 @@ int ModelToString(void* handle, Model model, char* p_str) {
 		User* p_u = (User*)handle;
 		process(p_u, "%u", uid);
 		process(p_u, "%s", id);
+		process(p_u, "%s", name);
 		process(p_u, "%s", salt);
 		for (int i = 0; i < 8; i++) {
 			process(p_u, "%u", password[i]);

@@ -62,7 +62,7 @@ static ListNode* tbv_user_on_page[MAX_ON_PAGE];
 static ListNode* v_user_on_page[MAX_ON_PAGE];
 static ListNode* catalog_on_page[MAX_ON_PAGE];
 static char *keyword_on_page;
-static char *username_on_page;
+static char *id_on_page;
 static char *old_pwd_on_page;
 static char *pwd_on_page;
 static char *rep_pwd_on_page;
@@ -172,7 +172,7 @@ List* GenUser() {
     user->gender = i % 2 ? MALE : FEMALE;
     user->whoami = i % 2 ? ADMINISTRATOR : NORMAL_USER;
     user->verified = i % 2 ? TRUE : FALSE;
-    sprintf(user->username, "username%d", i);
+    sprintf(user->id, "id%d", i);
     InsertList(list, list->dummy_tail, user);
   }
   return list;
@@ -369,13 +369,13 @@ void AddHeadBar() {
   );
   InsertComp(user_icon, kImage);
   Label *user_name = NULL;
-  if (cur_user == NULL || cur_user->username[0] == '\0') {
+  if (cur_user == NULL || cur_user->id[0] == '\0') {
     user_name = CreateLabel(
       (Rect){user_icon->position.right + 10, 0, 0, 45}, "未登录", kBlack, NULL_ID
     );
   } else {
     user_name = CreateLabel(
-      (Rect){user_icon->position.right + 10, 0, 0, 45}, cur_user->username, kBlack, NULL_ID
+      (Rect){user_icon->position.right + 10, 0, 0, 45}, cur_user->id, kBlack, NULL_ID
     );
   }
   SearchButton = CreateLink(
@@ -689,7 +689,7 @@ void AddUserSearch() {
     User* user = p->value;
     user_on_page[count] = user;
     Label* name = CreateLabel(
-      (Rect){left_border + 10, 0, 0, cur_y += delta_y}, user->username, kBlack, NULL_ID
+      (Rect){left_border + 10, 0, 0, cur_y += delta_y}, user->id, kBlack, NULL_ID
     );
     Label* department = CreateLabel(
       (Rect){name->position.right + 10, 0, 0, cur_y}, user->department, kBlack, NULL_ID
@@ -758,13 +758,13 @@ void AddUserRegister() {
   Label *register_title = CreateLabel(
     (Rect){pos_x + 5, 0, 0, pos_y + 25}, "用户注册：", kBlack, NULL_ID
   );
-  Label *username_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 70}, "用户名：", kBlack, NULL_ID
+  Label *id_label = CreateLabel(
+    (Rect){pos_x + 15, 0, 0, pos_y + 70}, "用户号：", kBlack, NULL_ID
   );
-  InputBox* username_input = CreateInputBox(
+  InputBox* id_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 70}, "", NULL_ID
   );
-  username_on_page = username_input->context;
+  id_on_page = id_input->context;
   Label *first_pw_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 130}, "密码：", kBlack, NULL_ID
   );
@@ -810,13 +810,13 @@ void AddUserRegister() {
   InsertComp(dpt_input, kInputBox);
   InsertComp(second_pw_input, kInputBox);
   InsertComp(first_pw_input, kInputBox);
-  InsertComp(username_input, kInputBox);
+  InsertComp(id_input, kInputBox);
   InsertComp(admin_label, kLabel);
   InsertComp(sex_label, kLabel);
   InsertComp(dpt_label, kLabel);
   InsertComp(second_pw_label, kLabel);
   InsertComp(first_pw_label, kLabel);
-  InsertComp(username_label, kLabel);
+  InsertComp(id_label, kLabel);
   InsertComp(register_title, kLabel);
 }
 
@@ -827,7 +827,7 @@ void HandleUserRegisterCallback(int id) {
   case 1:
     strcpy(cur_state.login_or_register->password, pwd_on_page);
     strcpy(cur_state.login_or_register->repeat_password, rep_pwd_on_page);
-    strcpy(cur_state.login_or_register->user->username, username_on_page);
+    strcpy(cur_state.login_or_register->user->id, id_on_page);
     strcpy(cur_state.login_or_register->user->department, dpt_on_page);
     if (strcmp(gender_on_page, "F") == 0) {
       cur_state.login_or_register->user->gender = FEMALE;
@@ -857,13 +857,13 @@ void AddUserLogIn() {
   Label *register_title = CreateLabel(
     (Rect){pos_x + 5, 0, 0, pos_y + 25}, "用户登陆：", kBlack, NULL_ID
   );
-  Label *username_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 70}, "用户名：", kBlack, NULL_ID
+  Label *id_label = CreateLabel(
+    (Rect){pos_x + 15, 0, 0, pos_y + 70}, "用户号：", kBlack, NULL_ID
   );
-  InputBox* username_input = CreateInputBox(
+  InputBox* id_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 70}, "", NULL_ID
   );
-  username_on_page = username_input->context;
+  id_on_page = id_input->context;
   Label *first_pw_label = CreateLabel(
     (Rect){pos_x + 15, 0, 0, pos_y + 130}, "密码：", kBlack, NULL_ID
   );
@@ -877,9 +877,9 @@ void AddUserLogIn() {
   );
   InsertComp(confirm_button, kButton);
   InsertComp(first_pw_input, kInputBox);
-  InsertComp(username_input, kInputBox);
+  InsertComp(id_input, kInputBox);
   InsertComp(first_pw_label, kLabel);
-  InsertComp(username_label, kLabel);
+  InsertComp(id_label, kLabel);
   InsertComp(register_title, kLabel);
 }
 
@@ -889,7 +889,7 @@ void HandleUserLoginCallback(int id) {
   switch (id) {
   case 1:
     strcpy(cur_state.login_or_register->password, pwd_on_page);
-    strcpy(cur_state.login_or_register->user->username, username_on_page);
+    strcpy(cur_state.login_or_register->user->id, id_on_page);
     cur_state.login_or_register->login_callback();
     break;
   }
@@ -921,15 +921,15 @@ void AddUserModify() {
   Label *register_title = CreateLabel(
     (Rect){left_x, 0, 0, cur_y += delta_y}, "用户修改：", kBlack, NULL_ID
   );
-  Label *username_label = CreateLabel(
+  Label *id_label = CreateLabel(
     (Rect){left_x , 0, 0, cur_y += delta_y},
-    "用户名：", kBlack, NULL_ID
+    "用户号：", kBlack, NULL_ID
   );
-  InputBox* username_input = CreateInputBox(
-    (Rect){left_x + TextStringWidth("用户名："), middle - 20, 0, cur_y},
-    user->username, NULL_ID
+  InputBox* id_input = CreateInputBox(
+    (Rect){left_x + TextStringWidth("用户号："), middle - 20, 0, cur_y},
+    user->id, NULL_ID
   );
-  username_on_page = username_input->context;
+  id_on_page = id_input->context;
   Label *first_pw_label = CreateLabel(
     (Rect){left_x, 0, 0, cur_y += delta_y}, "原密码：", kBlack, NULL_ID
   );
@@ -1037,13 +1037,13 @@ void AddUserModify() {
   InsertComp(dpt_input, kInputBox);
   InsertComp(second_pw_input, kInputBox);
   InsertComp(first_pw_input, kInputBox);
-  InsertComp(username_input, kInputBox);
+  InsertComp(id_input, kInputBox);
   InsertComp(admin_label, kLabel);
   InsertComp(sex_label, kLabel);
   InsertComp(dpt_label, kLabel);
   InsertComp(second_pw_label, kLabel);
   InsertComp(first_pw_label, kLabel);
-  InsertComp(username_label, kLabel);
+  InsertComp(id_label, kLabel);
   InsertComp(register_title, kLabel);
 }
 
@@ -1061,7 +1061,7 @@ void HandleUserModifyCallback(int id) {
     strcpy(cur_state.user_modify->new_password, pwd_on_page);
     strcpy(cur_state.user_modify->repeat_password, rep_pwd_on_page);
     strcpy(cur_state.user_modify->user->department, dpt_on_page);
-    strcpy(cur_state.user_modify->user->username, username_on_page);
+    strcpy(cur_state.user_modify->user->id, id_on_page);
     if (strcmp(gender_on_page, "F") == 0) {
       cur_state.user_modify->user->gender = FEMALE;
     }
@@ -1117,7 +1117,7 @@ void AddUserManagement() {
     User *user = p->value;
     tbv_user_on_page[count] = p;
     Label* name = CreateLabel(
-      (Rect){left_x, 0, 0, left_cur_y += delta_y}, user->username, kBlack, NULL_ID
+      (Rect){left_x, 0, 0, left_cur_y += delta_y}, user->id, kBlack, NULL_ID
     );
     InsertComp(name, kLabel);
     Label* dpt = CreateLabel(
@@ -1149,7 +1149,7 @@ void AddUserManagement() {
     User *user = p->value;
     v_user_on_page[count] = p;
     Label* label = CreateLabel(
-      (Rect){right_x, 0, 0, right_cur_y += delta_y}, user->username, kBlack, NULL_ID
+      (Rect){right_x, 0, 0, right_cur_y += delta_y}, user->id, kBlack, NULL_ID
     );
     InsertComp(label, kLabel);
     Link *delete_button = CreateLink(

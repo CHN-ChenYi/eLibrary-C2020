@@ -34,7 +34,7 @@ int UserCopy(User* destination, User* source) {
 	User* t = destination, *s = source;
 	if( t == NULL || s == NULL) return err; // avoid null ptr.
 	t->uid = s->uid;
-	err = SaveStrCpy(t->username, s->username); if(err != DB_SUCCESS) return err;
+	err = SaveStrCpy(t->id, s->id); if(err != DB_SUCCESS) return err;
 	err = SaveStrCpy(t->salt, s->salt); if(err != DB_SUCCESS) return err;
 	int i;
 	for (i = 0; i < 8; i++) t->password[i] = s->password[i];
@@ -141,8 +141,8 @@ int UserFilter(User* p_u, String queries) {
 			sprintf(uid_str, "%u", p_u->uid);
 			flag = Cmp(uid_str, para, insensitive, equal);
 		}
-		else if (*(property) == 'u' && *(property + 1) == 's') {
-			flag = Cmp(p_u->username, para, insensitive, equal);
+		else if (*(property) == 'i') {
+			flag = Cmp(p_u->id, para, insensitive, equal);
 		}
 		else if (*(property) == 's' && *(property + 1) == 'a') {
 			flag = Cmp(p_u->salt, para, insensitive, equal);
@@ -281,9 +281,9 @@ int StringToUser(User* p_u, String str) {
 	ok = Slice(str, slice, &pos); // uid
 	if(ok != DB_SUCCESS) return ok;
 	p_u->uid = (unsigned) strtoll(slice, NULL, 10);
-	ok = Slice(str, slice, &pos); // username
+	ok = Slice(str, slice, &pos); // id
 	if(ok != DB_SUCCESS) return ok;
-	SaveStrCpy(p_u->username, slice);
+	SaveStrCpy(p_u->id, slice);
 	ok = Slice(str, slice, &pos); // salt
 	if(ok != DB_SUCCESS) return ok;
 	SaveStrCpy(p_u->salt, slice);
@@ -381,7 +381,7 @@ int ModelToString(void* handle, Model model, char* p_str) {
 	else if (model == USER) {
 		User* p_u = (User*)handle;
 		process(p_u, "%u", uid);
-		process(p_u, "%s", username);
+		process(p_u, "%s", id);
 		process(p_u, "%s", salt);
 		for (int i = 0; i < 8; i++) {
 			process(p_u, "%u", password[i]);

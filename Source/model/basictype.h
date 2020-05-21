@@ -13,6 +13,7 @@ typedef struct Book {
   char authors[3][200];
   char category[50];
   char press[200];
+  char publication_date[10];
   char keywords[5][50];
   unsigned int number_on_the_shelf;
   unsigned int available_borrowed_days;
@@ -23,7 +24,8 @@ typedef enum Gender { MALE = 0, FEMALE } Gender;
 
 typedef struct User {
   unsigned uid;
-  char username[20];
+  char id[20];
+  char name[20];
   char salt[10];
   uint32_t password[8];
   Gender gender;

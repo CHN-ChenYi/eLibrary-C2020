@@ -321,14 +321,15 @@ void AddSubmenu(int status) {
   }
 }
 
+LibImage folder_icon_image, book_icon_image, lend_icon_image, user_icon_image,
+    search_icon_image, statistics_icon_image;
+
 void AddHeadBar() {
   // Head bar
   FileButton = CreateLink(
     (Rect) {15, 0, 0, 45},
     "文件", kWhite, FILE_ID
   );
-  LibImage folder_icon_image;
-  loadImage(".\\Resource\\folder.jpg", &folder_icon_image);
   Image* folder_icon = CreateImage(
     (Rect) {FileButton->position.right, FileButton->position.right + 25, 25, 50},
     folder_icon_image, FILE_ID
@@ -338,8 +339,6 @@ void AddHeadBar() {
     (Rect) {folder_icon->position.right + 10, 0, 0, 45},
     "图书", kWhite, BOOK_ID
   );
-  LibImage book_icon_image;
-  loadImage(".\\Resource\\book.jpg", &book_icon_image);
   Image* book_icon = CreateImage(
     (Rect) {BookButton->position.right, BookButton->position.right + 25, 25, 50},
     book_icon_image, BOOK_ID
@@ -349,8 +348,6 @@ void AddHeadBar() {
     (Rect) {book_icon->position.right + 10, 0, 0, 45},
     "借还", kWhite, LEND_ID
   );
-  LibImage lend_icon_image;
-  loadImage(".\\Resource\\sync_alt.jpg", &lend_icon_image);
   Image* lend_icon = CreateImage(
     (Rect) {LendAndBorrowButton->position.right, LendAndBorrowButton->position.right + 25, 25, 50},
     lend_icon_image, LEND_ID
@@ -360,8 +357,6 @@ void AddHeadBar() {
     (Rect) {lend_icon->position.right + 10, 0, 0, 45},
     "用户", kWhite, USER_ID
   );
-  LibImage user_icon_image;
-  loadImage(".\\Resource\\person.jpg", &user_icon_image);
   Image* user_icon = CreateImage(
     (Rect) {UserButton->position.right, UserButton->position.right + 25, 25, 50},
     user_icon_image, USER_ID
@@ -381,8 +376,6 @@ void AddHeadBar() {
     (Rect) {user_id->position.right + 10, 0, 0, 45},
     "搜索", kWhite, SEARCH_ID
   );
-  LibImage search_icon_image;
-  loadImage(".\\Resource\\search.jpg", &search_icon_image);
   Image* search_icon = CreateImage(
     (Rect) {SearchButton->position.right, SearchButton->position.right + 25, 25, 50},
     search_icon_image, SEARCH_ID
@@ -392,8 +385,6 @@ void AddHeadBar() {
     (Rect) {search_icon->position.right + 10, 0, 0, 45},
     "统计", kWhite, ST_ID
   );
-  LibImage statistics_icon_image;
-  loadImage(".\\Resource\\show_chart.jpg", &statistics_icon_image);
   Image* statistics_icon = CreateImage(
     (Rect) {Statistic->position.right, Statistic->position.right + 25, 25, 50},
     statistics_icon_image, ST_ID
@@ -2024,6 +2015,12 @@ void InitGUI() {
   cur_page = kWelcome;
   cur_user = NULL;
   hb_status = kUnclicked;
+  loadImage(".\\Resource\\folder.jpg", &folder_icon_image);
+  loadImage(".\\Resource\\book.jpg", &book_icon_image);
+  loadImage(".\\Resource\\sync_alt.jpg", &lend_icon_image);
+  loadImage(".\\Resource\\person.jpg", &user_icon_image);
+  loadImage(".\\Resource\\search.jpg", &search_icon_image);
+  loadImage(".\\Resource\\show_chart.jpg", &statistics_icon_image);
   InitPage();
 }
 

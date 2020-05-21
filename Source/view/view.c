@@ -312,14 +312,13 @@ static void FreeHistory(void *const history_) {
     // case kSaveLibrary:  // 图书库保存
     // break;
     case kBookDisplay:  // 图书显示
-      free(history->state.borrow_display->book_name);
       break;
     case kBookInit:    // 图书新增
     case kBookModify:  // 图书修改/删除
       free(history->state.book_display->book);
       break;
     case kBorrowDisplay:  // 借还书统计（管理员）
-      free(history->state.borrow_display->book_name);
+      free(history->state.borrow_display->book_id);
       DeleteList(history->state.borrow_display->borrow_record, free);
       break;
     case kStatistics:  // 统计
@@ -350,7 +349,7 @@ static void BookSearch_BorrowCallback(Book *book) {
   if (ErrorHandle(Update(book, book->uid, BOOK), 0)) return;
 
   BorrowRecord new_record;
-  strcpy(new_record.book_name, book->title);
+  strcpy(new_record.book_id, book->id);
   new_record.book_status = BORROWED;
   new_record.book_uid = book->uid;
   time_t now_time_t = time(0);
@@ -367,7 +366,7 @@ static void BookSearch_BorrowCallback(Book *book) {
     if (ErrorHandle(Update(book, book->uid, BOOK), 0)) return;
     return;
   }
-  strcpy(new_record.user_name, user.id);
+  strcpy(new_record.user_id, user.id);
   new_record.user_uid = user.uid;
   if (ErrorHandle(Create(&new_record, BORROWRECORD), 0)) {
     book->number_on_the_shelf++;
@@ -712,7 +711,7 @@ static void LoginOrRegister_LoginCallback() {
     User *new_user = TopHistory()->state.login_or_register->user;
 
     List *users = NewList();
-    char *query = malloc(sizeof(char) * (10 + strlen(new_user->id)));
+    char *query = malloc(sizeof(char) * (4 + strlen(new_user->id)));
     sprintf(query, "id=%s", new_user->id);
     if (ErrorHandle(Filter(users, query, USER), 1, DB_ENTRY_EMPTY)) {
       free(query);
@@ -845,10 +844,10 @@ static void BookDisplayAdminDisplay(char *msg) {
   History *const new_history = malloc(sizeof(History));
   new_history->page = kBorrowDisplay;
   new_history->state.borrow_display = malloc(sizeof(BorrowDisplay));
-  new_history->state.borrow_display->book_name =
-      malloc(sizeof(TopHistory()->state.book_display->book->title));
-  strcpy(new_history->state.borrow_display->book_name,
-         TopHistory()->state.book_display->book->title);
+  new_history->state.borrow_display->book_id =
+      malloc(sizeof(TopHistory()->state.book_display->book->id));
+  strcpy(new_history->state.borrow_display->book_id,
+         TopHistory()->state.book_display->book->id);
   new_history->state.borrow_display->turn_page = BorrowDisplay_TurnPage;
   new_history->state.borrow_display->borrow_record = borrow_record;
   new_history->state.borrow_display->borrow_record_start =
@@ -858,9 +857,9 @@ static void BookDisplayAdminDisplay(char *msg) {
   if (!msg) {
     msg = malloc(sizeof(char) *
                  (46 + id_len +
-                  strlen(new_history->state.borrow_display->book_name)));
+                  strlen(new_history->state.borrow_display->book_id)));
     sprintf(msg, "[Info] [%s] Open Page BorrowDisplay for book [%s]",
-            user.id, new_history->state.borrow_display->book_name);
+            user.id, new_history->state.borrow_display->book_id);
   }
   Log(msg);
   DrawUI(kBorrowDisplay, &user, new_history->state.borrow_display, msg);

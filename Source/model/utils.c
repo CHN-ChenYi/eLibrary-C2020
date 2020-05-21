@@ -22,6 +22,7 @@ int BookCopy(Book* destination, Book* source) {
 	}
 	err = SaveStrCpy(t->category, s->category); if(err != DB_SUCCESS) return err;
 	err = SaveStrCpy(t->press, s->press); if(err != DB_SUCCESS) return err;
+	err = SaveStrCpy(t->publication_date, s->publication_date); if(err != DB_SUCCESS) return err;
 	for (i = 0; i < 5; i++) {
 		err = SaveStrCpy(t->keywords[i], s->keywords[i]); if(err != DB_SUCCESS) return err;
 	}
@@ -36,6 +37,7 @@ int UserCopy(User* destination, User* source) {
 	t->uid = s->uid;
 	err = SaveStrCpy(t->id, s->id); if(err != DB_SUCCESS) return err;
 	err = SaveStrCpy(t->salt, s->salt); if(err != DB_SUCCESS) return err;
+	err = SaveStrCpy(t->name, s->name); if(err != DB_SUCCESS) return err;
 	int i;
 	for (i = 0; i < 8; i++) t->password[i] = s->password[i];
 	t->gender = s->gender;
@@ -51,8 +53,8 @@ int RecordCopy(BorrowRecord* destination, BorrowRecord* source) {
 	t->uid = s->uid;
 	t->book_uid = s->book_uid;
 	t->user_uid = s->user_uid;
-	err = SaveStrCpy(t->book_name, s->book_name); if(err != DB_SUCCESS) return err;
-	err = SaveStrCpy(t->user_name, s->user_name); if(err != DB_SUCCESS) return err;
+	err = SaveStrCpy(t->book_id, s->book_id); if(err != DB_SUCCESS) return err;
+	err = SaveStrCpy(t->user_id, s->user_id); if(err != DB_SUCCESS) return err;
 	err = SaveStrCpy(t->borrowed_date, s->borrowed_date); if(err != DB_SUCCESS) return err;
 	t->book_status = s->book_status;
 	err = SaveStrCpy(t->returned_date, s->returned_date); if(err != DB_SUCCESS) return err;
@@ -102,6 +104,9 @@ int BookFilter(Book* p_b, String queries) {
 		else if (*(property) == 'p' && *(property + 1) == 'r') {
 			flag = Cmp(p_b->press, para, insensitive, equal);
 		}
+		else if (*(property) == 'p' && *(property + 1) == 'u') {
+			flag = Cmp(p_b->publication_date, para, insensitive, equal);
+		}
 		else if (*(property) == 'k' && *(property + 1) == 'e') {
 			int i;
 			for (i = 0; i < 5; i++) {
@@ -146,6 +151,9 @@ int UserFilter(User* p_u, String queries) {
 		}
 		else if (*(property) == 's' && *(property + 1) == 'a') {
 			flag = Cmp(p_u->salt, para, insensitive, equal);
+		}
+		else if (*(property) == 'n' && *(property + 1) == 'a') {
+			flag = Cmp(p_u->name, para, insensitive, equal);
 		}
 		else if (*(property) == 'p' && *(property + 1) == 'a') {
 			int i; char str[50];
@@ -200,11 +208,11 @@ int RecordFilter(BorrowRecord* p_r, String queries) {
 			sprintf(str, "%u", p_r->user_uid);
 			flag = Cmp(str, para, insensitive, equal);
 		}
-		else if (*(property) == 'b' && *(property + 1) == 'n') {
-			flag = Cmp(p_r->book_name, para, insensitive, equal);
+		else if (*(property) == 'b' && *(property + 5) == 'i') {
+			flag = Cmp(p_r->book_id, para, insensitive, equal);
 		}
-		else if (*(property) == 'u' && *(property + 5) == 'n') {
-			flag = Cmp(p_r->user_name, para, insensitive, equal);
+		else if (*(property) == 'u' && *(property + 5) == 'i') {
+			flag = Cmp(p_r->user_id, para, insensitive, equal);
 		}
 		else if (*(property) == 'b' && *(property + 9) == 'd') {
 			flag = Cmp(p_r->borrowed_date, para, insensitive, equal);
@@ -262,6 +270,9 @@ int StringToBook(Book* p_b, String str) {
 	ok = Slice(str, slice, &pos); // press
 	if(ok != DB_SUCCESS) return ok;
 	SaveStrCpy(p_b->press, slice);
+	ok = Slice(str, slice, &pos); // publication_date
+	if(ok != DB_SUCCESS) return ok;
+	SaveStrCpy(p_b->publication_date, slice);
 	for (i = 0; i < 5; i++) { // keywords
 		ok = Slice(str, slice, &pos);
 		if(ok != DB_SUCCESS) return ok;
@@ -284,6 +295,9 @@ int StringToUser(User* p_u, String str) {
 	ok = Slice(str, slice, &pos); // id
 	if(ok != DB_SUCCESS) return ok;
 	SaveStrCpy(p_u->id, slice);
+	ok = Slice(str, slice, &pos); // name
+	if(ok != DB_SUCCESS) return ok;
+	SaveStrCpy(p_u->name, slice);
 	ok = Slice(str, slice, &pos); // salt
 	if(ok != DB_SUCCESS) return ok;
 	SaveStrCpy(p_u->salt, slice);
@@ -319,12 +333,12 @@ int StringToRecord(BorrowRecord* p_r, String str) {
 	ok = Slice(str, slice, &pos); // user_uid
 	if(ok != DB_SUCCESS) return ok;
 	p_r->user_uid = (unsigned) strtoll(slice, NULL, 10);
-	ok = Slice(str, slice, &pos); // book_name
+	ok = Slice(str, slice, &pos); // book_id
 	if(ok != DB_SUCCESS) return ok;
-	SaveStrCpy(p_r->book_name, slice);
-	ok = Slice(str, slice, &pos); // user_name
+	SaveStrCpy(p_r->book_id, slice);
+	ok = Slice(str, slice, &pos); // user_id
 	if(ok != DB_SUCCESS) return ok;
-	SaveStrCpy(p_r->user_name, slice);
+	SaveStrCpy(p_r->user_id, slice);
 	ok = Slice(str, slice, &pos); // borrowed_date
 	if(ok != DB_SUCCESS) return ok;
 	SaveStrCpy(p_r->borrowed_date, slice);
@@ -363,7 +377,7 @@ int StringToModel(void** handle, Model model, String str) {
 #define process(ptr, format, variable)\
   sprintf(p_str_2, format";", ptr->variable); strcat(p_str, (const) p_str_2); 
 int ModelToString(void* handle, Model model, char* p_str) {
-	char p_str_2[100] = "";
+	char p_str_2[300] = "";
 	if (model == BOOK){
 		Book* p_b = (Book*)handle;
 		process(p_b, "%u", uid);
@@ -373,6 +387,7 @@ int ModelToString(void* handle, Model model, char* p_str) {
 		for (i = 0; i < 3; i++) { process(p_b, "%s", authors[i]); }
 		process(p_b, "%s", category);
 		process(p_b, "%s", press);
+		process(p_b, "%s", publication_date);
 		for (i = 0; i < 5; i++) { process(p_b, "%s", keywords[i]); }
 		process(p_b, "%u", number_on_the_shelf);
 		process(p_b, "%u", available_borrowed_days);
@@ -382,6 +397,7 @@ int ModelToString(void* handle, Model model, char* p_str) {
 		User* p_u = (User*)handle;
 		process(p_u, "%u", uid);
 		process(p_u, "%s", id);
+		process(p_u, "%s", name);
 		process(p_u, "%s", salt);
 		for (int i = 0; i < 8; i++) {
 			process(p_u, "%u", password[i]);
@@ -397,8 +413,8 @@ int ModelToString(void* handle, Model model, char* p_str) {
 		process(p_r, "%u", uid);
 		process(p_r, "%u", book_uid);
 		process(p_r, "%u", user_uid);
-		process(p_r, "%s", book_name);
-		process(p_r, "%s", user_name);
+		process(p_r, "%s", book_id);
+		process(p_r, "%s", user_id);
 		process(p_r, "%s", borrowed_date);
 		process(p_r, "%u", book_status);
 		process(p_r, "%s", returned_date);

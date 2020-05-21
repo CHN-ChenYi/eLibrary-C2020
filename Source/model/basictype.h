@@ -40,8 +40,8 @@ typedef struct BorrowRecord {
   unsigned uid;
   unsigned book_uid;
   unsigned user_uid;
-  char book_name[200];
-  char user_name[50];
+  char book_id[20];
+  char user_id[20];
   char borrowed_date[10];
   BookStatus book_status;
   // if book_status == BORROWED, returned_date stores the expected returned date

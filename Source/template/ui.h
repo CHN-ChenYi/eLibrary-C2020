@@ -46,7 +46,7 @@ typedef struct Link {
   ComponentStatus status;
   Rect position;      // only the left and the bottom matters
   FontColor font_color;
-  char caption[20];
+  char caption[400];
 }Link;
 
 /* Label */

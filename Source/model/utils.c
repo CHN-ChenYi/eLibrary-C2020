@@ -377,7 +377,7 @@ int StringToModel(void** handle, Model model, String str) {
 #define process(ptr, format, variable)\
   sprintf(p_str_2, format";", ptr->variable); strcat(p_str, (const) p_str_2); 
 int ModelToString(void* handle, Model model, char* p_str) {
-	char p_str_2[100] = "";
+	char p_str_2[300] = "";
 	if (model == BOOK){
 		Book* p_b = (Book*)handle;
 		process(p_b, "%u", uid);

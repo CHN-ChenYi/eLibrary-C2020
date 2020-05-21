@@ -157,8 +157,22 @@ Frame* CreateFrame(Rect rect, char* color, double alpha) {
 
 Image* CreateImage(Rect rect, LibImage ui_image, int id) {
   Image* ret = malloc(sizeof(Image));
-  ret->position = rect;
   ret->ui_image = ui_image;
+  int available_width = rect.right - rect.left;
+  int availabel_height = rect.bottom - rect.top;
+  int height, width;
+  if (availabel_height * ui_image.width < ui_image.height * available_width) {
+    height = availabel_height;
+    width = height * ui_image.width / ui_image.height;
+  }
+  else {
+    width = available_width;
+    height = width * ui_image.height / ui_image.width;
+  }
+  ret->position.left = (rect.left + rect.right - width) / 2;
+  ret->position.right = ret->position.left + width;
+  ret->position.top = (rect.top + rect.bottom - height) / 2;
+  ret->position.bottom = ret->position.top + height;
   ret->id = id;
   return ret;
 }

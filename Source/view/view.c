@@ -103,8 +103,7 @@ static inline void Navigation_Statistics(char *msg);
 static inline void Navigation_Return(char *msg);
 static inline void Navigation_Exit();
 extern void NavigationCallback(Page nav_page);
-// TODO:(TO/GA) 检查权限控制
-// TODO:(TO/GA) 再想想什么时候要更新数据（好像cb的时候都不用？
+
 void InitView() {
   // init history
   history_list = NewList();

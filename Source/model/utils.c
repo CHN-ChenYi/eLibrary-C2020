@@ -247,7 +247,7 @@ int Slice(const char* str, char* slice, int* pos){
 
 // StringToModel
 int StringToBook(Book* p_b, String str) {
-	char slice[300] = "";
+	char slice[1000] = "";
 	int ok; int pos = 0;
 	ok = Slice(str, slice, &pos); // uid
 	if(ok != DB_SUCCESS) return ok;
@@ -287,7 +287,7 @@ int StringToBook(Book* p_b, String str) {
 	return DB_SUCCESS;
 }
 int StringToUser(User* p_u, String str) {
-	char slice[300] = "";
+	char slice[1000] = "";
 	int ok; int pos = 0;
 	ok = Slice(str, slice, &pos); // uid
 	if(ok != DB_SUCCESS) return ok;
@@ -322,7 +322,7 @@ int StringToUser(User* p_u, String str) {
 	return DB_SUCCESS;
 }
 int StringToRecord(BorrowRecord* p_r, String str) {
-	char slice[300] = "";
+	char slice[1000] = "";
 	int ok; int pos = 0;
 	ok = Slice(str, slice, &pos); // uid
 	if(ok != DB_SUCCESS) return ok;
@@ -377,7 +377,7 @@ int StringToModel(void** handle, Model model, String str) {
 #define process(ptr, format, variable)\
   sprintf(p_str_2, format";", ptr->variable); strcat(p_str, (const) p_str_2); 
 int ModelToString(void* handle, Model model, char* p_str) {
-	char p_str_2[300] = "";
+	char p_str_2[1000] = "";
 	if (model == BOOK){
 		Book* p_b = (Book*)handle;
 		process(p_b, "%u", uid);

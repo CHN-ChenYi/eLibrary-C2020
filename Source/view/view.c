@@ -145,7 +145,9 @@ static inline void Log(char *const msg) {
   // As DST is not always one hour, calculating loacl time zone is expensive
   // so we just display "Local" instead of "UTC+x"
   fprintf(log_file, "[%s Local] %s\n", time, msg);
-  printf("[%s Local] %s\n", time, msg);  // TODO:(TO/GA) Delete it
+#ifdef _DEBUG
+  printf("[%s Local] %s\n", time, msg);
+#endif  // _DEBUG
 }
 
 static inline char *MoveInList(ListNode **const node, List *list, int max_size,

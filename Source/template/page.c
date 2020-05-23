@@ -2010,7 +2010,9 @@ void InitPage() {
 
 void InitGUI() {
   InitGraphics();
+#ifdef _DEBUG
   InitConsole();
+#endif  // _DEBUG
   InitializeUI();
   SetWindowTitle("eLibrary");
   cur_page = kWelcome;

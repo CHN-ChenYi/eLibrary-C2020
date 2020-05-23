@@ -2,7 +2,7 @@
 
 #include <Windows.h>
 #include <io.h>
-#include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -13,40 +13,24 @@
 #include "graphics.h"
 #include "gui.h"
 #include "hash.h"
+#include "history.h"
 #include "list.h"
 #include "model.h"
+#include "utility.h"
 
-typedef struct History {
-  Page page;
-  State state;
-} History;
+extern List *history_list;
+extern bool db_open;
 
-static List *history_list;
-static User user;
+User user;
+size_t id_len;
+
 static char lib_dir[MAX_PATH + 1], image_dir[MAX_PATH + 1];
-static bool db_open;
-static size_t lib_dir_len, id_len, image_dir_len;
+static size_t lib_dir_len, image_dir_len;
 static char book_db_dir[MAX_PATH + 1], user_db_dir[MAX_PATH + 1],
     borrowrecord_db_dir[MAX_PATH + 1];
-static FILE *log_file;
 static LibImage edit_cover, unknown_cover;
-static inline void Log(char *const msg);
-static inline char *MoveInList(ListNode **const node, List *list, int max_size,
-                               bool direction, const char *const list_name,
-                               const char *const page_name);
-// FALSE for success，num 是可变参数的个数，可变参数是可以接受的报错
-static inline bool ErrorHandle(int errno_, int num, ...);
-// FALSE for success, no_user 为 true 表示可以接受未登录用户
-static inline bool InitCheck(bool no_user);
-static void FreeHistory(void *const history_);
-static inline History *const TopHistory();
-static inline void PushBackHistory(History *const new_history);
-static inline void PopBackHistory();
-static inline void ClearHistory();
-static inline void ReturnHistory(ListNode *go_back_to, char *msg);
 static void BookSearch_BorrowCallback(Book *book);
 static void BookSearch_BookCallback(Book *book);
-static void inline BookSearchDisplay(char *keyword, char *msg);
 static void BookSearch_SearchCallback(char *keyword);
 static void BookSearch_TurnPage(bool direction);
 static void LendAndBorrow_SearchCallback(char *keyword);
@@ -55,18 +39,13 @@ static void LendAndBorrow_ReturnCallback(ListNode *book,
 static void LendAndBorrow_TurnPage(bool direction);
 static void UserModify_ConfirmCallback();
 static void UserModify_TurnPage(bool direction);
-static bool CmpGreaterBorrowRecordByReturnTime(const void *const lhs,
-                                               const void *const rhs);
-static void inline UserSearchInfoDisplay(User *show_user, char *msg);
 static void UserSearch_InfoCallback(User *user);
-static void inline UserSearchDisplay(char *keyword, char *msg);
 static void UserSearch_SearchCallback(char *keyword);
 static void UserSearch_TurnPage(bool direction);
 static void LoginOrRegister_LoginCallback();
 static void UserManagement_ApproveCallback(ListNode *user_node, bool approve);
 static void UserManagement_DeleteCallback(ListNode *user_node);
 static void UserManagement_TurnPage(bool direction, bool type);
-static void BookDisplayAdminDisplay(char *msg);
 static void BookDisplay_AdminCallback();
 static void BookDisplay_CoverCallback();
 static void BookDisplay_ConfirmCallback();
@@ -75,46 +54,15 @@ static void BookDisplay_BorrowCallback();
 static void BookDisplay_CopyPasteCallback();
 static void BorrowDisplay_TurnPage(bool direction);
 static void Library_BookCallback(ListNode *book);
-static bool CmpById(const void *const lhs, const void *const rhs);
-static bool CmpByTitle(const void *const lhs, const void *const rhs);
-static bool CmpByAuthor(const void *const lhs, const void *const rhs);
 static void Library_SortCallback(SortKeyword sort_keyword);
 static void Library_SwitchCallback();
 static void Library_TurnPage(bool direction);
-static void *const StrCpy(void *const str);
 static void Statistics_SelectCallback(ListNode *catalog);
 static void Statistics_TurnPage(bool direction, bool type);
-static bool CmpLessBorrowRecordByReturnTime(const void *const lhs,
-                                            const void *const rhs);
-static inline void Navigation_LendAndBorrow(char *msg);
-static inline void Navigation_BookSearch(char *msg);
-static inline void Navigation_UserSearch(char *msg);
-static inline void Navigation_ManualOrAbout(bool type, char *msg);
-static inline void Navigation_UserLogInOrRegister(bool type, char *msg);
-static inline void Navigation_UserLogOut(char *msg);
-static inline void Navigation_UserModify(char *msg);
-static inline void Navigation_UserManagement(char *msg);
-static inline void Navigation_Library(char *msg);
-static inline void Navigation_OpenOrInitLibrary(bool type, char *msg);
-static inline void Navigation_SaveLibrary(bool type, char *msg);
-static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg);
-static inline void Navigation_BookInit(char *msg);
-static bool StrLess(const void *const lhs, const void *rhs);
-static bool StrSame(const void *const lhs, const void *rhs);
-static inline void Navigation_Statistics(char *msg);
-static inline void Navigation_Return(char *msg);
-static inline void Navigation_Exit();
-extern void NavigationCallback(Page nav_page);
 
 void InitView() {
-  // init history
-  history_list = NewList();
-  History *const new_history = malloc(sizeof(History));
-  new_history->page = kWelcome;
-  PushBackHistory(new_history);
-
-  // init log
-  fopen_s(&log_file, ".\\eLibrary.log", "a+");
+  InitHistory();
+  InitUtility();
 
   // load resource
   try {
@@ -127,6 +75,10 @@ void InitView() {
   }
   endtry;
 
+  History *const new_history = malloc(sizeof(History));
+  new_history->page = kWelcome;
+  PushBackHistory(new_history);
+
   // set up welcome page
   char *msg = malloc(sizeof(char) * 13);
   sprintf(msg, "[Info] Start");
@@ -134,222 +86,7 @@ void InitView() {
   DrawUI(kWelcome, &user, NULL, msg);
 }
 
-static inline void Log(char *const msg) {
-  // get local time
-  time_t cur_time = time(0);
-  char *time = asctime(localtime(&cur_time));
-  size_t len = strlen(time);
-  while (len && (time[len - 1] == '\r' ||
-                 time[len - 1] == '\n'))  // delete \n in the string
-    time[--len] = '\0';
-  // As DST is not always one hour, calculating loacl time zone is expensive
-  // so we just display "Local" instead of "UTC+x"
-  fprintf(log_file, "[%s Local] %s\n", time, msg);
-#ifdef _DEBUG
-  printf("[%s Local] %s\n", time, msg);
-#endif  // _DEBUG
-}
-
-static inline char *MoveInList(ListNode **const node, List *list, int max_size,
-                               bool direction, const char *const list_name,
-                               const char *const page_name) {
-  char *msg = malloc(sizeof(char) *
-                     (59 + id_len + strlen(list_name) + strlen(page_name)));
-  if (direction) {
-    ListNode *new_node = *node;
-    for (int i = max_size; i && new_node != list->dummy_tail; i--)
-      new_node = new_node->nxt;
-    if (new_node == list->dummy_tail) {
-      sprintf(
-          msg,
-          "[Error] [%s] Fail to turn to the next page in List %s of Page %s",
-          user.id, list_name, page_name);
-    } else {
-      *node = new_node;
-      sprintf(msg, "[Info] [%s] Turn to the next page in List %s of Page %s",
-              user.id, list_name, page_name);
-    }
-  } else {
-    ListNode *new_node = *node;
-    for (int i = max_size; i && new_node != list->dummy_head; i--)
-      new_node = new_node->pre;
-    if (new_node == list->dummy_head) {
-      sprintf(
-          msg,
-          "[Error] [%s] Fail to turn to the prev page in List %s of Page %s",
-          user.id, list_name, page_name);
-    } else {
-      *node = new_node;
-      sprintf(msg, "[Info] [%s] Turn to the prev page in List %s of Page %s",
-              user.id, list_name, page_name);
-    }
-  }
-  return msg;
-}
-
-static inline bool ErrorHandle(int errno_, int num, ...) {
-  if (errno_ == DB_SUCCESS) return FALSE;
-
-  // 处理可变参数
-  va_list valist;
-  va_start(valist, num);
-  while (num--) {
-    if (errno_ == va_arg(valist, int)) return FALSE;
-  }
-
-  char *msg = malloc(sizeof(char) * (41 + id_len));
-  switch (errno_) {
-    case DB_NOT_FOUND:
-      sprintf(msg, "[Error] [%s] DB_NOT_FOUND", user.id);
-      break;
-    case DB_NOT_OPEN:
-      sprintf(msg, "[Error] [%s] DB_NOT_OPEN", user.id);
-      break;
-    case DB_NOT_CLOSE:
-      sprintf(msg, "[Error] [%s] DB_NOT_CLOSE", user.id);
-      break;
-    case DB_NOT_EXISTS:
-      sprintf(msg, "[Error] [%s] DB_NOT_EXISTS", user.id);
-      break;
-    case DB_FAIL_ON_INIT:
-      sprintf(msg, "[Error] [%s] DB_FAIL_ON_INIT", user.id);
-      break;
-    case DB_FAIL_ON_FETCHING:
-      sprintf(msg, "[Error] [%s] DB_FAIL_ON_FETCHING", user.id);
-      break;
-    case DB_FAIL_ON_WRITING:
-      sprintf(msg, "[Error] [%s] DB_FAIL_ON_WRITING", user.id);
-      break;
-    case DB_FAIL_ON_CREATE:
-      sprintf(msg, "[Error] [%s] DB_FAIL_ON_CREATE", user.id);
-      break;
-    case DB_FAIL_ON_UPDATE:
-      sprintf(msg, "[Error] [%s] DB_FAIL_ON_UPDATE", user.id);
-      break;
-    case DB_FAIL_ON_DELETE:
-      sprintf(msg, "[Error] [%s] DB_FAIL_ON_DELETE", user.id);
-      break;
-    case DB_FAIL_ON_GETTING_PROPERTIES:
-      sprintf(msg, "[Error] [%s] DB_FAIL_ON_GETTING_PROPERTIES", user.id);
-      break;
-    case DB_ALREADY_EXISTS:
-      sprintf(msg, "[Error] [%s] DB_ALREADY_EXISTS", user.id);
-      break;
-    case DB_ENTRY_EMPTY:
-      sprintf(msg, "[Error] [%s] DB_ENTRY_EMPTY", user.id);
-      break;
-    case DB_FAIL:
-      sprintf(msg, "[Error] [%s] DB_FAIL", user.id);
-      break;
-    default:
-      Log("[Debug] Unknown errno");
-      Error("Unknown errno");
-  }
-  ReturnHistory(history_list->dummy_tail->pre, msg);
-  return TRUE;
-}
-
-static inline bool InitCheck(bool no_user) {
-  if (!db_open) {
-    char *msg = malloc(sizeof(char) * (39 + id_len));
-    sprintf(msg, "[Error] [%s] Please open a library first", user.id);
-    ReturnHistory(history_list->dummy_tail->pre, msg);
-    return TRUE;
-  }
-  if (!no_user && !user.verified) {
-    char *msg = malloc(sizeof(char) * (28));
-    sprintf(msg, "[Error] Please log in first");
-    ReturnHistory(history_list->dummy_tail->pre, msg);
-    return TRUE;
-  }
-  return FALSE;
-}
-
-static inline History *const TopHistory() {
-  return (History *)history_list->dummy_tail->pre->value;
-}
-
-static inline void PushBackHistory(History *const new_history) {
-  InsertList(history_list, history_list->dummy_tail, new_history);
-  // if the number of history exceed max_size, delete some of the histories
-  while (history_list->size > HISTORY_MAX)
-    EraseList(history_list, history_list->dummy_head->nxt, FreeHistory);
-}
-
-static inline void PopBackHistory() {
-  EraseList(history_list, history_list->dummy_tail->pre, FreeHistory);
-}
-
-static inline void ClearHistory() { ClearList(history_list, FreeHistory); }
-
-static void FreeHistory(void *const history_) {
-  History *const history = history_;
-  switch (history->page) {
-    case kWelcome:  // 欢迎界面
-      break;
-    case kLendAndBorrow:  // 借还书
-      DeleteList(history->state.lend_and_borrow->books, free);
-      DeleteList(history->state.lend_and_borrow->borrow_records, free);
-      break;
-    case kBookSearch:  // 图书搜索
-      free(history->state.book_search->keyword);
-      DeleteList(history->state.book_search->book_result, free);
-      break;
-    case kUserSearch:  // 用户搜索（管理员）
-      free(history->state.user_search->keyword);
-      DeleteList(history->state.user_search->user_result, free);
-      break;
-    case kManual:  // 帮助
-    case kAbout:   // 关于
-      break;
-    case kUserRegister:  // 用户注册
-    case kUserLogIn:     // 用户登陆
-      break;
-    // case kLogout:  // 用户登出
-    // break;
-    case kUserModify:  // 用户信息修改
-      DeleteList(history->state.user_modify->borrowrecords, free);
-      break;
-    case kUserManagement:  // 用户删除/审核（管理员）
-      DeleteList(history->state.user_management->to_be_verified, free);
-      DeleteList(history->state.user_management->users, free);
-      break;
-    case kLibrary:  // 图书库显示
-      DeleteList(history->state.library->books, free);
-      DeleteList(history->state.library->book_covers, free);
-      break;
-    // case kInitLibrary:  // 图书库新建
-    // break;
-    // case kOpenLibrary:  // 图书库打开
-    // break;
-    // case kSaveLibrary:  // 图书库保存
-    // break;
-    case kBookDisplay:  // 图书显示
-      break;
-    case kBookInit:    // 图书新增
-    case kBookModify:  // 图书修改/删除
-      free(history->state.book_display->book);
-      break;
-    case kBorrowDisplay:  // 借还书统计（管理员）
-      free(history->state.borrow_display->book_id);
-      DeleteList(history->state.borrow_display->borrow_record, free);
-      break;
-    case kStatistics:  // 统计
-      DeleteList(history->state.statistics->catalogs, free);
-      DeleteList(history->state.statistics->borrow_record, free);
-      break;
-    // case kReturn:  // 回到上一个界面
-    // break;
-    // case kExit:    // 关闭程序
-    // break;
-    default:
-      Log("[Debug] Unknown page in FreeHistory");
-      Error("Unknown nav_page");
-  }
-  free(history);
-}
-
-static void BookSearch_BorrowCallback(Book *book) {
+void BookSearch_BorrowCallback(Book *book) {
   if (!book->number_on_the_shelf) {
     char *msg = malloc(sizeof(char) * (38 + id_len + strlen(book->id)));
     sprintf(msg, "[Error] [%s] There's no [%s] on the shelf", user.id,
@@ -391,11 +128,11 @@ static void BookSearch_BorrowCallback(Book *book) {
   ReturnHistory(history_list->dummy_tail->pre, msg);
 }
 
-static void BookSearch_BookCallback(Book *book) {
+void BookSearch_BookCallback(Book *book) {
   Navigation_BookDisplayOrInit(book, 0, NULL);
 }
 
-static void inline BookSearchDisplay(char *keyword, char *msg) {
+void BookSearchDisplay(char *keyword, char *msg) {
   List *results = NewList();
   if (ErrorHandle(Filter(results, keyword, BOOK), 0)) return;
 
@@ -419,27 +156,26 @@ static void inline BookSearchDisplay(char *keyword, char *msg) {
   DrawUI(kBookSearch, &user, new_history->state.book_search, msg);
 }
 
-static void BookSearch_SearchCallback(char *keyword) {
+void BookSearch_SearchCallback(char *keyword) {
   char *new_keyword = malloc(sizeof(char) * (strlen(keyword) + 1));
   strcpy(new_keyword, keyword);
   BookSearchDisplay(new_keyword, NULL);
 }
 
-static void BookSearch_TurnPage(bool direction) {
+void BookSearch_TurnPage(bool direction) {
   BookSearch *state = TopHistory()->state.book_search;
   char *msg = MoveInList(&state->book_result_start, state->book_result,
                          kBookSearchMax, direction, "Result", "Book Search");
   DrawUI(kBookSearch, &user, state, msg);
 }
 
-static void LendAndBorrow_SearchCallback(char *keyword) {
+void LendAndBorrow_SearchCallback(char *keyword) {
   // 由于 BookSearch 的 Callback 里面已经有了 keyword
   // 的深拷贝，所以这里浅拷贝就可以了
   BookSearch_SearchCallback(keyword);
 }
 
-static void LendAndBorrow_ReturnCallback(ListNode *book,
-                                         ListNode *borrow_record) {
+void LendAndBorrow_ReturnCallback(ListNode *book, ListNode *borrow_record) {
   Book *returned_book = (Book *)book->value;
   BorrowRecord *returned_borrow_record = (BorrowRecord *)borrow_record->value;
 
@@ -465,7 +201,7 @@ static void LendAndBorrow_ReturnCallback(ListNode *book,
   ReturnHistory(history_list->dummy_tail->pre, msg);
 }
 
-static void LendAndBorrow_TurnPage(bool direction) {
+void LendAndBorrow_TurnPage(bool direction) {
   LendAndBorrow *state = TopHistory()->state.lend_and_borrow;
   char *msg =
       MoveInList(&state->borrow_records_start, state->borrow_records,
@@ -473,7 +209,7 @@ static void LendAndBorrow_TurnPage(bool direction) {
   DrawUI(kLendAndBorrow, &user, state, msg);
 }
 
-static void UserModify_ConfirmCallback() {
+void UserModify_ConfirmCallback() {
   User *modified_user = TopHistory()->state.user_modify->user;
   if (user.whoami != ADMINISTRATOR || modified_user->whoami == ADMINISTRATOR) {
     char pwd_type[59];
@@ -540,20 +276,14 @@ static void UserModify_ConfirmCallback() {
   ReturnHistory(history_list->dummy_tail->pre, msg);
 }
 
-static void UserModify_TurnPage(bool direction) {
+void UserModify_TurnPage(bool direction) {
   UserModify *state = TopHistory()->state.user_modify;
   char *msg = MoveInList(&state->borrowrecords_start, state->borrowrecords,
                          kUserModifyMax, direction, "User", "User Modify");
   DrawUI(kUserModify, &user, state, msg);
 }
 
-static bool CmpGreaterBorrowRecordByReturnTime(const void *const lhs,
-                                               const void *const rhs) {
-  return strcmp(((BorrowRecord *)lhs)->returned_date,
-                ((BorrowRecord *)rhs)->returned_date) >= 0;
-}
-
-static void inline UserSearchInfoDisplay(User *show_user, char *msg) {
+void UserSearchInfoDisplay(User *show_user, char *msg) {
   if (ErrorHandle(GetById(show_user, show_user->uid, USER), 0)) return;
 
   List *borrow_record = NewList();
@@ -587,11 +317,11 @@ static void inline UserSearchInfoDisplay(User *show_user, char *msg) {
   DrawUI(kUserModify, &user, new_history->state.user_modify, msg);
 }
 
-static void UserSearch_InfoCallback(User *show_user) {
+void UserSearch_InfoCallback(User *show_user) {
   UserSearchInfoDisplay(show_user, NULL);
 }
 
-static void inline UserSearchDisplay(char *keyword, char *msg) {
+void UserSearchDisplay(char *keyword, char *msg) {
   if (user.whoami != ADMINISTRATOR) {
     char *msg = malloc(sizeof(char) * (49 + id_len));
     sprintf(msg, "[Error] [%s] Permission denied. Can't search users", user.id);
@@ -624,20 +354,20 @@ static void inline UserSearchDisplay(char *keyword, char *msg) {
   DrawUI(kUserSearch, &user, new_history->state.user_search, msg);
 }
 
-static void UserSearch_SearchCallback(char *keyword) {
+void UserSearch_SearchCallback(char *keyword) {
   char *new_keyword = malloc(sizeof(char) * (strlen(keyword) + 1));
   strcpy(new_keyword, keyword);
   UserSearchDisplay(new_keyword, NULL);
 }
 
-static void UserSearch_TurnPage(bool direction) {
+void UserSearch_TurnPage(bool direction) {
   UserSearch *state = TopHistory()->state.user_search;
   char *msg = MoveInList(&state->user_result_start, state->user_result,
                          kUserSearchMax, direction, "Result", "User Search");
   DrawUI(kUserSearch, &user, state, msg);
 }
 
-static void LoginOrRegister_LoginCallback() {
+void LoginOrRegister_LoginCallback() {
   if (TopHistory()->page == kUserRegister) {
     if (TopHistory()->state.login_or_register->password[0] == '\0') {
       char *msg = malloc(sizeof(char) * 32);
@@ -771,7 +501,7 @@ static void LoginOrRegister_LoginCallback() {
   }
 }
 
-static void UserManagement_ApproveCallback(ListNode *user_node, bool approve) {
+void UserManagement_ApproveCallback(ListNode *user_node, bool approve) {
   User *new_user = user_node->value;
   char *msg = malloc(sizeof(char) * (27 + id_len + strlen(new_user->id)));
   if (approve) {
@@ -791,7 +521,7 @@ static void UserManagement_ApproveCallback(ListNode *user_node, bool approve) {
   ReturnHistory(history_list->dummy_tail->pre, msg);
 }
 
-static void UserManagement_DeleteCallback(ListNode *user_node) {
+void UserManagement_DeleteCallback(ListNode *user_node) {
   User *new_user = user_node->value;
   if (new_user->whoami == ADMINISTRATOR) {
     char *msg = malloc(sizeof(char) * (38 + id_len));
@@ -805,7 +535,7 @@ static void UserManagement_DeleteCallback(ListNode *user_node) {
   ReturnHistory(history_list->dummy_tail->pre, msg);
 }
 
-static void UserManagement_TurnPage(bool direction, bool type) {
+void UserManagement_TurnPage(bool direction, bool type) {
   UserManagement *state = TopHistory()->state.user_management;
   char *msg;
   if (type)
@@ -818,7 +548,7 @@ static void UserManagement_TurnPage(bool direction, bool type) {
   DrawUI(kUserManagement, &user, state, msg);
 }
 
-static void BookDisplayAdminDisplay(char *msg) {
+void BookDisplayAdminDisplay(char *msg) {
   if (user.whoami != ADMINISTRATOR) {
     char *msg = malloc(sizeof(char) * (60 + id_len));
     sprintf(msg,
@@ -868,9 +598,9 @@ static void BookDisplayAdminDisplay(char *msg) {
   DrawUI(kBorrowDisplay, &user, new_history->state.borrow_display, msg);
 }
 
-static void BookDisplay_AdminCallback() { BookDisplayAdminDisplay(NULL); }
+void BookDisplay_AdminCallback() { BookDisplayAdminDisplay(NULL); }
 
-static void BookDisplay_CoverCallback() {
+void BookDisplay_CoverCallback() {
   char image_path[MAX_PATH + 1];
   try {
     SelectFile("JPG image (*.jpg|*.jpeg|*.jpe)\0*.jpg;*.jpeg;*.jpe\0", "jpg",
@@ -904,7 +634,7 @@ static void BookDisplay_CoverCallback() {
   DrawUI(TopHistory()->page, &user, TopHistory()->state.book_display, msg);
 }
 
-static void BookDisplay_ConfirmCallback() {
+void BookDisplay_ConfirmCallback() {
   if (user.whoami != ADMINISTRATOR) {
     char *msg = malloc(sizeof(char) * (60 + id_len));
     if (TopHistory()->page == kBookModify)
@@ -955,7 +685,7 @@ static void BookDisplay_ConfirmCallback() {
   }
 }
 
-static void BookDisplay_DeleteCallback() {
+void BookDisplay_DeleteCallback() {
   if (user.whoami != ADMINISTRATOR) {
     char *msg = malloc(sizeof(char) * (53 + id_len));
     sprintf(msg, "[Error] [%s] Permission denied. Can't delete the book",
@@ -978,11 +708,11 @@ static void BookDisplay_DeleteCallback() {
   ReturnHistory(history_list->dummy_tail->pre->pre, msg);
 }
 
-static void BookDisplay_BorrowCallback() {
+void BookDisplay_BorrowCallback() {
   BookSearch_BorrowCallback(TopHistory()->state.book_display->book);
 }
 
-static void BookDisplay_CopyPasteCallback() {
+void BookDisplay_CopyPasteCallback() {
   Book *book = TopHistory()->state.book_display->book;
   const unsigned old_uid = book->uid;
   if (ErrorHandle(GetById(book, old_uid, BOOK), 0) ||
@@ -1032,7 +762,7 @@ static void BookDisplay_CopyPasteCallback() {
   Navigation_BookDisplayOrInit(&new_book, 0, msg);
 }
 
-static void BorrowDisplay_TurnPage(bool direction) {
+void BorrowDisplay_TurnPage(bool direction) {
   BorrowDisplay *state = TopHistory()->state.borrow_display;
   char *msg =
       MoveInList(&state->borrow_record_start, state->borrow_record,
@@ -1040,23 +770,11 @@ static void BorrowDisplay_TurnPage(bool direction) {
   DrawUI(kBorrowDisplay, &user, state, msg);
 }
 
-static void Library_BookCallback(ListNode *book) {
+void Library_BookCallback(ListNode *book) {
   Navigation_BookDisplayOrInit(book->value, 0, NULL);
 }
 
-static bool CmpById(const void *const lhs, const void *const rhs) {
-  return strcmp(((Book *)lhs)->id, ((Book *)rhs)->id) <= 0;
-}
-
-static bool CmpByTitle(const void *const lhs, const void *const rhs) {
-  return strcmp(((Book *)lhs)->title, ((Book *)rhs)->title) <= 0;
-}
-
-static bool CmpByAuthor(const void *const lhs, const void *const rhs) {
-  return strcmp(((Book *)lhs)->authors[0], ((Book *)rhs)->authors[0]) <= 0;
-}
-
-static void Library_SortCallback(SortKeyword sort_keyword) {
+void Library_SortCallback(SortKeyword sort_keyword) {
   // 由于图片模式不可排序，所以不需要对 book_covers 做处理
   char *msg = malloc(sizeof(char) * (33 + id_len));
   switch (sort_keyword) {
@@ -1083,7 +801,7 @@ static void Library_SortCallback(SortKeyword sort_keyword) {
   DrawUI(kLibrary, &user, TopHistory()->state.library, msg);
 }
 
-static void Library_SwitchCallback() {
+void Library_SwitchCallback() {
   if (TopHistory()->state.library->type == kList) {
     Navigation_Library(NULL);
   } else {
@@ -1123,13 +841,7 @@ void Library_TurnPage(bool direction) {
   DrawUI(kLibrary, &user, state, msg);
 }
 
-static void *const StrCpy(void *const str) {
-  char *ret = malloc(sizeof(char) * (strlen(str) + 1));
-  strcpy(ret, str);
-  return ret;
-}
-
-static void Statistics_SelectCallback(ListNode *catalog) {
+void Statistics_SelectCallback(ListNode *catalog) {
   List *borrow_records = NewList();
   Book *book = malloc(sizeof(Book));
   if (ErrorHandle(Filter(borrow_records, "", BORROWRECORD), 0)) {
@@ -1174,7 +886,7 @@ static void Statistics_SelectCallback(ListNode *catalog) {
   DrawUI(kStatistics, &user, new_history->state.statistics, msg);
 }
 
-static void Statistics_TurnPage(bool direction, bool type) {
+void Statistics_TurnPage(bool direction, bool type) {
   Statistics *state = TopHistory()->state.statistics;
   char *msg;
   if (type)
@@ -1188,13 +900,7 @@ static void Statistics_TurnPage(bool direction, bool type) {
   DrawUI(kStatistics, &user, state, msg);
 }
 
-static bool CmpLessBorrowRecordByReturnTime(const void *const lhs,
-                                            const void *const rhs) {
-  return strcmp(((BorrowRecord *)lhs)->returned_date,
-                ((BorrowRecord *)rhs)->returned_date) <= 0;
-}
-
-static inline void Navigation_LendAndBorrow(char *msg) {
+void Navigation_LendAndBorrow(char *msg) {
   if (InitCheck(FALSE)) return;
   List *borrow_records_list = NewList();
   char *query = malloc(sizeof(char) * (31 + 10));
@@ -1244,14 +950,14 @@ static inline void Navigation_LendAndBorrow(char *msg) {
   DrawUI(kLendAndBorrow, &user, new_history->state.lend_and_borrow, msg);
 }
 
-static inline void Navigation_BookSearch(char *msg) {
+void Navigation_BookSearch(char *msg) {
   if (InitCheck(FALSE)) return;
   char *keyword = malloc(sizeof(char));
   *keyword = '\0';
   BookSearchDisplay(keyword, msg);
 }
 
-static inline void Navigation_UserSearch(char *msg) {
+void Navigation_UserSearch(char *msg) {
   if (InitCheck(FALSE)) return;
   char *keyword = malloc(sizeof(char));
   *keyword = '\0';
@@ -1259,7 +965,7 @@ static inline void Navigation_UserSearch(char *msg) {
 }
 
 // type = 0 => Manual
-static inline void Navigation_ManualOrAbout(bool type, char *msg) {
+void Navigation_ManualOrAbout(bool type, char *msg) {
   History *const new_history = malloc(sizeof(History));
   new_history->state.manual_and_about = malloc(sizeof(ManualAndAbout));
 
@@ -1281,7 +987,7 @@ static inline void Navigation_ManualOrAbout(bool type, char *msg) {
 }
 
 // type = 0 => LogIn
-static inline void Navigation_UserLogInOrRegister(bool type, char *msg) {
+void Navigation_UserLogInOrRegister(bool type, char *msg) {
   if (InitCheck(TRUE)) return;
   memset(&user, 0x00, sizeof(User));
   id_len = 0;
@@ -1308,7 +1014,7 @@ static inline void Navigation_UserLogInOrRegister(bool type, char *msg) {
   DrawUI(new_history->page, &user, new_history->state.login_or_register, msg);
 }
 
-static inline void Navigation_UserLogOut(char *msg) {
+void Navigation_UserLogOut(char *msg) {
   if (InitCheck(FALSE)) return;
   ClearHistory();
   History *const new_history = malloc(sizeof(History));
@@ -1327,12 +1033,12 @@ static inline void Navigation_UserLogOut(char *msg) {
   DrawUI(kWelcome, &user, new_history->state.login_or_register, msg);
 }
 
-static inline void Navigation_UserModify(char *msg) {
+void Navigation_UserModify(char *msg) {
   if (InitCheck(FALSE)) return;
   UserSearchInfoDisplay(&user, msg);
 }
 
-static inline void Navigation_UserManagement(char *msg) {
+void Navigation_UserManagement(char *msg) {
   if (InitCheck(FALSE)) return;
   if (user.whoami != ADMINISTRATOR) {
     char *msg = malloc(sizeof(char) * (49 + id_len));
@@ -1376,7 +1082,7 @@ static inline void Navigation_UserManagement(char *msg) {
   DrawUI(kUserManagement, &user, new_history->state.user_management, msg);
 }
 
-static inline void Navigation_Library(char *msg) {
+void Navigation_Library(char *msg) {
   if (InitCheck(FALSE)) return;
   List *books = NewList();
   if (ErrorHandle(Filter(books, "", BOOK), 0)) {
@@ -1416,14 +1122,19 @@ static inline void Navigation_Library(char *msg) {
   if (!msg) {
     msg = malloc(sizeof(char) * (41 + id_len));
     // sprintf(msg, "[Info] [%s] Open Page Library (image mode)", user.id);
-    sprintf(msg, "[Info] [%s] Open Page Library", user.id); // TODO:由于图片模式被砍，暂时这么处理
+    sprintf(msg, "[Info] [%s] Open Page Library",
+            user.id);  // 由于图片模式被砍，暂时这么处理
   }
   Log(msg);
   DrawUI(kLibrary, &user, new_history->state.library, msg);
 }
 
 // type == 0 => Open
-static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
+void Navigation_OpenOrInitLibrary(bool type, char *msg) {
+  // copy *.swp.db to *.db and remove *.swp.db
+  static bool Opened = FALSE;  // 表示之前是否打开过某个数据库
+  if (Opened) Navigation_SaveLibrary(0, NULL);
+
   try {
     SelectFolder("请选择保存图书库的文件夹", lib_dir);
     except(ErrorException) {
@@ -1442,11 +1153,6 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
   }
   endtry;
   lib_dir_len = strlen(lib_dir);
-
-  // copy *.swp.db to *.db and remove *.swp.db
-  static bool Opened = FALSE; // 表示之前是否打开过某个数据库
-  if (Opened)
-    Navigation_SaveLibrary(0, NULL);
 
   if (ErrorHandle(CloseDBConnection(USER), 1, DB_NOT_OPEN)) return;
   DeleteFile(user_db_dir);
@@ -1580,10 +1286,10 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
 }
 
 // type = 0 => 不回退到上一个界面
-static inline void Navigation_SaveLibrary(bool type, char *msg) {
+void Navigation_SaveLibrary(bool type, char *msg) {
   if (InitCheck(TRUE)) return;
 
-  // TODO:(TO/GA) delete them
+  // 由于现在数据库不是及时写入的，所以先这么办
   if (ErrorHandle(CloseDBConnection(USER), 0)) return;
   if (ErrorHandle(CloseDBConnection(BOOK), 0)) return;
   if (ErrorHandle(CloseDBConnection(BORROWRECORD), 0)) return;
@@ -1604,7 +1310,7 @@ static inline void Navigation_SaveLibrary(bool type, char *msg) {
   CopyFileA(borrowrecord_db_dir, borrowrecord_database_path, FALSE);
   free(borrowrecord_database_path);
 
-  // TODO:(TO/GA) delete them
+  // 由于现在数据库不是及时写入的，所以先这么办
   if (ErrorHandle(OpenDBConnection(user_db_dir, USER), 0)) return;
   if (ErrorHandle(OpenDBConnection(book_db_dir, BOOK), 0)) return;
   if (ErrorHandle(OpenDBConnection(borrowrecord_db_dir, BORROWRECORD), 0))
@@ -1621,7 +1327,7 @@ static inline void Navigation_SaveLibrary(bool type, char *msg) {
 }
 
 // type = 0 => Display
-static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
+void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
   Book *new_book;
   if (type) {
     new_book = book;
@@ -1682,7 +1388,7 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
   DrawUI(new_history->page, &user, new_history->state.book_display, msg);
 }
 
-static inline void Navigation_BookInit(char *msg) {
+void Navigation_BookInit(char *msg) {
   if (InitCheck(FALSE)) return;
   Book *book = malloc(sizeof(Book));
   memset(book, 0, sizeof(Book));
@@ -1693,14 +1399,7 @@ static inline void Navigation_BookInit(char *msg) {
   Navigation_BookDisplayOrInit(book, 1, msg);
 }
 
-static bool StrLess(const void *const lhs, const void *rhs) {
-  return strcmp(lhs, rhs) <= 0;
-}
-static bool StrSame(const void *const lhs, const void *rhs) {
-  return strcmp(lhs, rhs) == 0;
-}
-
-static inline void Navigation_Statistics(char *msg) {
+void Navigation_Statistics(char *msg) {
   if (InitCheck(FALSE)) return;
   if (user.whoami != ADMINISTRATOR) {
     char *msg = malloc(sizeof(char) * (57 + id_len));
@@ -1758,7 +1457,7 @@ static inline void Navigation_Statistics(char *msg) {
   DrawUI(kStatistics, &user, new_history->state.statistics, msg);
 }
 
-static inline void Navigation_Return(char *msg) {
+void Navigation_Return(char *msg) {
   if (history_list->size < 2) {
     if (!msg) {
       msg = malloc(sizeof(char) * (44 + id_len));
@@ -1774,8 +1473,7 @@ static inline void Navigation_Return(char *msg) {
   }
 }
 
-static inline void Navigation_Exit() {
-  // TODO:(TO/GA) template那边有没有要处理的？
+void Navigation_Exit() {
   Navigation_SaveLibrary(0, NULL);
 
   if (ErrorHandle(CloseDBConnection(USER), 1, DB_NOT_OPEN)) exit(1);
@@ -1787,11 +1485,10 @@ static inline void Navigation_Exit() {
   if (ErrorHandle(CloseDBConnection(BORROWRECORD), 1, DB_NOT_OPEN)) exit(1);
   DeleteFile(borrowrecord_db_dir);
 
-  ClearHistory();
-  DeleteList(history_list, free);
+  UninitHistory();
 
   Log("[Info] Shutdown");
-  fclose(log_file);
+  UninitUtility();
 
   exit(0);
 }
@@ -1862,111 +1559,6 @@ void NavigationCallback(Page nav_page) {
       break;
     default:
       Log("[Debug] Unknown nav_page in NavigationCallback");
-      Error("Unknown nav_page");
-  }
-}
-
-static inline void ReturnHistory(ListNode *go_back_to, char *msg) {
-  while (history_list->size > 0 && history_list->dummy_tail->pre != go_back_to)
-    PopBackHistory();
-  if (history_list->size == 0) {
-    History *const history = malloc(sizeof(History));
-    history->page = kWelcome;
-    DrawUI(kWelcome, &user, NULL, msg);
-    return;
-  }
-  History *const history = go_back_to->value;
-  switch (history->page) {
-    case kWelcome:  // 欢迎界面
-      Log(msg);
-      DrawUI(kWelcome, &user, NULL, msg);
-      break;
-    case kLendAndBorrow:  // 借还书
-      PopBackHistory();
-      Navigation_LendAndBorrow(msg);
-      break;
-    case kBookSearch: {  // 图书搜索
-      char *keyword = malloc(sizeof(char) *
-                             (strlen(history->state.book_search->keyword) + 1));
-      strcpy(keyword, history->state.book_search->keyword);
-      PopBackHistory();
-      BookSearchDisplay(keyword, msg);
-    } break;
-    case kUserSearch: {  // 用户搜索（管理员）
-      char *keyword = malloc(sizeof(char) *
-                             (strlen(history->state.user_search->keyword) + 1));
-      strcpy(keyword, history->state.user_search->keyword);
-      PopBackHistory();
-      UserSearchDisplay(keyword, msg);
-    } break;
-    case kManual:  // 帮助
-      PopBackHistory();
-      Navigation_ManualOrAbout(0, msg);
-      break;
-    case kAbout:  // 关于
-      PopBackHistory();
-      Navigation_ManualOrAbout(1, msg);
-      break;
-    case kUserRegister:  // 用户注册
-      PopBackHistory();
-      Navigation_UserLogInOrRegister(1, msg);
-      break;
-    case kUserLogIn:  // 用户登陆
-      PopBackHistory();
-      Navigation_UserLogInOrRegister(0, msg);
-      break;
-    // case kLogout:  // 用户登出
-    // break;
-    case kUserModify: {  // 用户信息修改
-      User *new_user = malloc(sizeof(User));
-      if (ErrorHandle(
-              GetById(new_user, history->state.user_modify->user->uid, USER),
-              0))
-        return;
-      PopBackHistory();
-      UserSearchInfoDisplay(new_user, msg);
-      free(new_user);
-    } break;
-    case kUserManagement:  // 用户删除/审核（管理员）
-      PopBackHistory();
-      Navigation_UserManagement(msg);
-      break;
-    case kLibrary:  // 图书库显示
-      PopBackHistory();
-      Navigation_Library(msg);
-      break;
-    // case kInitLibrary:  // 图书库新建
-    // break;
-    // case kOpenLibrary:  // 图书库打开
-    // break;
-    // case kSaveLibrary:  // 图书库保存
-    // break;
-    case kBookDisplay:   // 图书显示
-    case kBookModify: {  // 图书修改/删除
-      Book *new_book = malloc(sizeof(Book));
-      memcpy(new_book, history->state.book_display->book, sizeof(Book));
-      PopBackHistory();
-      Navigation_BookDisplayOrInit(new_book, 0, msg);
-      free(new_book);
-    } break;
-    case kBookInit:  // 图书新增
-      PopBackHistory();
-      Navigation_BookInit(msg);
-      break;
-    case kBorrowDisplay:  // 借还书统计（管理员）
-      PopBackHistory();
-      BookDisplayAdminDisplay(msg);
-      break;
-    case kStatistics:  // 统计
-      PopBackHistory();
-      Navigation_Statistics(msg);
-      break;
-    // case kReturn:  // 回到上一个界面
-    // break;
-    // case kExit:  // 关闭程序
-    // break;
-    default:
-      Log("[Debug] Unknown page in ReturnHistory");
       Error("Unknown nav_page");
   }
 }

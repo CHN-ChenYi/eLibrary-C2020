@@ -73,6 +73,7 @@ static char *whoami_on_page;
 static char *book_id_on_page;
 static char *book_name_on_page;
 static char *book_press_on_page;
+static char *book_public_date_on_page;
 static char *book_authors_on_page[3];
 static char *book_keywords_on_page[5];
 static char *catagory_on_page;
@@ -1388,6 +1389,14 @@ void AddBookDisplay() {
     book_display->book->press, kBlack, NULL_ID
   );
   book_press_on_page = press_context->caption;
+  Label *public_label = CreateLabel(
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "出版日期：", kBlack, NULL_ID
+  );
+  Label *public_context = CreateLabel(
+    (Rect){info_x + TextStringWidth("出版日期："), 0, 0, cur_y},
+    book_display->book->publication_date, kBlack, NULL_ID
+  ); 
+  book_public_date_on_page = public_context->caption;
   Label* keyword_label = CreateLabel(
     (Rect){info_x, 0, 0, cur_y += delta_y}, "关键词：", kBlack, NULL_ID
   );
@@ -1450,6 +1459,8 @@ void AddBookDisplay() {
   InsertComp(book_name_label, kLabel);
   InsertComp(book_name_context, kLabel);
   InsertComp(author_label, kLabel);
+  InsertComp(public_label, kLabel);
+  InsertComp(public_context, kLabel);
   InsertComp(press_label, kLabel);
   InsertComp(press_context, kLabel);
   InsertComp(keyword_label, kLabel);
@@ -1476,7 +1487,7 @@ void AddBookModify() {
 
   int info_x = middle;
   int cur_y = top;
-  int delta_y = (bottom - top) / 16;
+  int delta_y = (bottom - top) / 17;
 
   Book *book = book_modify->book;
   LibImage img = book_modify->book_cover;
@@ -1552,6 +1563,16 @@ void AddBookModify() {
   );
   book_press_on_page = press_context->context;
   
+  // Public Date
+  Label *public_label = CreateLabel(
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "出版日期：", kBlack, NULL_ID
+  );
+  InputBox* public_context = CreateInputBox(
+    (Rect){info_x + TextStringWidth("出版日期："), right_border - 10, 0, cur_y},
+    book->publication_date, NULL_ID, 0
+  );
+  book_public_date_on_page = public_context->context;
+
   // Keywords
   Label* keyword_label = CreateLabel(
     (Rect){info_x, 0, 0, cur_y += delta_y}, "关键词：（最多五个）", kBlack, NULL_ID
@@ -1643,6 +1664,8 @@ void AddBookModify() {
   InsertComp(book_name_label, kLabel);
   InsertComp(book_name_context, kInputBox);
   InsertComp(author_label, kLabel);
+  InsertComp(public_label, kLabel);
+  InsertComp(public_context, kInputBox);
   InsertComp(press_label, kLabel);
   InsertComp(press_context, kInputBox);
   InsertComp(keyword_label, kLabel);
@@ -1668,6 +1691,7 @@ void HandleBookCallback(int id) {
     strcpy(cur_state->book->keywords[i], book_keywords_on_page[i]);
   }
   strcpy(cur_state->book->category, catagory_on_page);
+  strcpy(cur_state->book->publication_date, book_public_date_on_page);
   cur_state->book->available_borrowed_days = atoi(days_to_borrow_on_page);
   cur_state->book->number_on_the_shelf = atoi(number_of_books_on_page);
   switch (id) {

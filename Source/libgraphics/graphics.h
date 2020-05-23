@@ -188,6 +188,8 @@ typedef struct {
 
 void loadImage(const char *image, LibImage *mapbuf);
 
+void copyImage(LibImage *dst, LibImage *src);
+
 void DrawImage(LibImage *pImage, int x, int y, int width, int height);
 
 // Creates an Open dialog box that lets the user specify a file to be opened.

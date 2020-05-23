@@ -106,7 +106,7 @@ Button* CreateButton (
   return ret;
 }
 
-InputBox* CreateInputBox(Rect rect, char* str, int id) {
+InputBox* CreateInputBox(Rect rect, char* str, int id, int is_terminal) {
   InputBox* ret = malloc(sizeof(InputBox));
   ret->id = id;
   ret->position = rect;
@@ -117,6 +117,7 @@ InputBox* CreateInputBox(Rect rect, char* str, int id) {
   ret->position.right += 5;
   ret->cursor = 0;
   ret->status = kNormal;
+  ret->is_terminal = is_terminal;
   memset(ret->context, 0, sizeof(ret->context));
   strcpy(ret->context, str);
   return ret;
@@ -268,7 +269,14 @@ void DrawTextStringN (char* str, int left, int right) {
 }
 
 void DrawContent(InputBox* input_box, int draw_cursor) {
-  SetPenColor("black");
+  switch (input_box->is_terminal) {
+    case 0:
+      SetPenColor("black");
+      break;
+    case 1:
+      SetPenColor("white");
+      break;
+  }
   int inner_length = input_box->position.right - input_box->position.left - 10;
   int len = strlen(input_box->context);
   int left_most = 0, right_most = 0; // display string [left_most, right_most)
@@ -316,7 +324,12 @@ void DrawInputBox(InputBox* input_box, int draw_cursor) {
       SetPenColor("red");
       break;
   }
-  DrawRectangle(&input_box->position);
+  if (input_box->is_terminal == 1) {
+    SetPenColor("white");
+  }
+  if (input_box->is_terminal == 0) {
+    DrawRectangle(&input_box->position);
+  }
   DrawContent(input_box, draw_cursor);
 }
 
@@ -629,7 +642,7 @@ void ChangeInputBox(int key) {
 }
 
 void DeleteInputBox() {
-  if (focus->type != kInputBox) {
+  if (focus->type != kInputBox || ((InputBox*)focus->component)->is_terminal == 1) {
     return;
   }
   InputBox* input_box = (InputBox*)focus->component;
@@ -637,7 +650,7 @@ void DeleteInputBox() {
 }
 
 void BackSpaceInputBox() {
-  if (focus->type != kInputBox) {
+  if (focus->type != kInputBox || ((InputBox*)focus->component)->is_terminal == 1) {
     return;
   }
   InputBox* input_box = (InputBox*)focus->component;

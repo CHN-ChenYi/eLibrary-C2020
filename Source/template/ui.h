@@ -38,6 +38,7 @@ typedef struct InputBox {
   Rect position;      // position
   char context[500];  // context (already input)
   int cursor;         // position of the cursor
+  int is_terminal;
 } InputBox;
 
 /* Link */
@@ -71,7 +72,7 @@ typedef struct Image {
 
 /* Create UI components */
 Button* CreateButton(Rect rect, char* caption, char* bg_color, double alpha, FontColor font_color, int id);
-InputBox* CreateInputBox(Rect rect, char* str, int id);
+InputBox* CreateInputBox(Rect rect, char* str, int id, int is_terminal);
 Link* CreateLink(Rect rect, char* caption, FontColor font_color, int id);
 Label* CreateLabel(Rect rect, char* caption, FontColor font_color, int id);
 Frame* CreateFrame(Rect rect, char* color, double alpha);

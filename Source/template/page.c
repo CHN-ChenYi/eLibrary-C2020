@@ -1571,6 +1571,7 @@ void AddBookModify() {
     (Rect){info_x + TextStringWidth("³ö°æÈÕÆÚ£º"), right_border - 10, 0, cur_y},
     book->publication_date, NULL_ID, 0
   );
+  book_public_date_on_page = public_context->context;
 
   // Keywords
   Label* keyword_label = CreateLabel(

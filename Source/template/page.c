@@ -2047,7 +2047,9 @@ void InitGUI() {
  * 15 ÓÃ»§ÐÞ¸Ä
  */
 void CallbackById(int id) {
+#ifdef _DEBUG
   printf("%d\n", id);
+#endif  // _DEBUG
   if (id < 0) {
     // click on the head bar
     InitSurface();
@@ -2148,7 +2150,9 @@ void CallbackById(int id) {
       break;
     }
   }
+#ifdef _DEBUG
   printf("%d\n", id);
+#endif  // _DEBUG
 }
 
 void HandleCtrl(int key) {

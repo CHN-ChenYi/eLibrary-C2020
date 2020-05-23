@@ -23,9 +23,9 @@ typedef struct History {
 
 static List *history_list;
 static User user;
-static char lib_path[MAX_PATH + 1], program_path[MAX_PATH + 1];
+static char lib_dir[MAX_PATH + 1], image_dir[MAX_PATH + 1];
 static bool db_open;
-static size_t lib_path_len, id_len, program_path_len;
+static size_t lib_dir_len, id_len, image_dir_len;
 static char book_db_dir[MAX_PATH + 1], user_db_dir[MAX_PATH + 1],
     borrowrecord_db_dir[MAX_PATH + 1];
 static FILE *log_file;
@@ -883,8 +883,8 @@ static void BookDisplay_CoverCallback() {
   endtry;
 
   const char *const book_id = TopHistory()->state.book_display->book->id;
-  char *new_path = malloc(sizeof(char) * (lib_path_len + 12 + 10));
-  sprintf(new_path, "%s\\image\\%d.jpg", lib_path,
+  char *new_path = malloc(sizeof(char) * (image_dir_len + 6 + 10));
+  sprintf(new_path, "%s\\%d.jpg", image_dir,
           TopHistory()->state.book_display->book->uid);
   char *msg = malloc(sizeof(char) * (46 + id_len + strlen(book_id)));
   if (!CopyFileA(image_path, new_path, FALSE)) {
@@ -966,8 +966,8 @@ static void BookDisplay_DeleteCallback() {
     if (ErrorHandle(Delete(new_book->uid, BOOK), 0)) return;
   }
 
-  char *cover_dir = malloc(sizeof(char) * (lib_path_len + 12 + 10));
-  sprintf(cover_dir, "%s\\image\\%d.jpg", lib_path, new_book->uid);
+  char *cover_dir = malloc(sizeof(char) * (image_dir_len + 6 + 10));
+  sprintf(cover_dir, "%s\\%d.jpg", image_dir, new_book->uid);
   DeleteFile(cover_dir);
   free(cover_dir);
 
@@ -1003,13 +1003,10 @@ static void BookDisplay_CopyPasteCallback() {
 
   char *msg = NULL;
 
-  const size_t image_path_len = 7 + lib_path_len;
-  char *image_path = malloc(sizeof(char) * (image_path_len + 1));
-  sprintf(image_path, "%s\\image\\", lib_path);
-  char *old_image = malloc(sizeof(char) * (5 + 10 + image_path_len));
-  sprintf(old_image, "%s%d.jpg", image_path, old_uid);
-  char *new_image = malloc(sizeof(char) * (5 + 10 + image_path_len));
-  sprintf(new_image, "%s%d.jpg", image_path, new_uid);
+  char *old_image = malloc(sizeof(char) * (6 + 10 + image_dir_len));
+  sprintf(old_image, "%s\\%d.jpg", image_dir, old_uid);
+  char *new_image = malloc(sizeof(char) * (6 + 10 + image_dir_len));
+  sprintf(new_image, "%s\\%d.jpg", image_dir, new_uid);
   if (!CopyFileA(old_image, new_image, FALSE)) {
     msg = malloc(sizeof(char) * (94 + id_len + strlen(book->id)));
     sprintf(msg,
@@ -1017,7 +1014,6 @@ static void BookDisplay_CopyPasteCallback() {
             "0, but fail to copy cover image",
             user.id, book->id);
   }
-  free(image_path);
   free(old_image);
   free(new_image);
 
@@ -1387,13 +1383,12 @@ static inline void Navigation_Library(char *msg) {
   }
 
   List *book_covers = NewList();
-  const size_t image_path_len = 8 + lib_path_len;
-  char *image_path = malloc(sizeof(char) * (image_path_len + 14));
-  sprintf(image_path, "%s\\image\\", lib_path);
+  char *image_path = malloc(sizeof(char) * (image_dir_len + 12));
+  sprintf(image_path, "%s\\", image_dir);
   for (ListNode *cur_node = books->dummy_head->nxt;
        cur_node != books->dummy_tail; cur_node = cur_node->nxt) {
     LibImage *image = malloc(sizeof(LibImage));
-    sprintf(image_path + image_path_len - 1, "%d.jpg",
+    sprintf(image_path + image_dir_len + 1, "%d.jpg",
             ((Book *)cur_node->value)->uid);
     if (!_access(image_path, 4))
       loadImage(image_path, image);
@@ -1418,7 +1413,8 @@ static inline void Navigation_Library(char *msg) {
 
   if (!msg) {
     msg = malloc(sizeof(char) * (41 + id_len));
-    sprintf(msg, "[Info] [%s] Open Page Library (image mode)", user.id);
+    // sprintf(msg, "[Info] [%s] Open Page Library (image mode)", user.id);
+    sprintf(msg, "[Info] [%s] Open Page Library", user.id); // TODO:由于图片模式被砍，暂时这么处理
   }
   Log(msg);
   DrawUI(kLibrary, &user, new_history->state.library, msg);
@@ -1427,7 +1423,7 @@ static inline void Navigation_Library(char *msg) {
 // type == 0 => Open
 static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
   try {
-    SelectFolder("请选择保存图书库的文件夹", lib_path);
+    SelectFolder("请选择保存图书库的文件夹", lib_dir);
     except(ErrorException) {
       char *msg = malloc(sizeof(char) * (56 + id_len));
       if (type)
@@ -1443,10 +1439,12 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
     }
   }
   endtry;
-  lib_path_len = strlen(lib_path);
+  lib_dir_len = strlen(lib_dir);
 
   // copy *.swp.db to *.db and remove *.swp.db
-  Navigation_SaveLibrary(0, NULL);
+  static bool Opened = FALSE; // 表示之前是否打开过某个数据库
+  if (Opened)
+    Navigation_SaveLibrary(0, NULL);
 
   if (ErrorHandle(CloseDBConnection(USER), 1, DB_NOT_OPEN)) return;
   DeleteFile(user_db_dir);
@@ -1459,11 +1457,10 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
   if (ErrorHandle(CloseDBConnection(BORROWRECORD), 1, DB_NOT_OPEN)) return;
   DeleteFile(borrowrecord_db_dir);
 
+  sprintf(image_dir, "%s\\image", lib_dir);
+  image_dir_len = strlen(image_dir);
   if (type) {
-    char *image_path = malloc(sizeof(char) * (lib_path_len + 7));
-    sprintf(image_path, "%s\\image", lib_path);
-    if (!CreateDirectory(image_path, NULL)) {
-      free(image_path);
+    if (!CreateDirectory(image_dir, NULL)) {
       char *msg = malloc(sizeof(char) * (63 + id_len));
       sprintf(
           msg,
@@ -1472,17 +1469,16 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
       ReturnHistory(history_list->dummy_tail->pre, msg);
       return;
     }
-    free(image_path);
   }
 
   int flag = 0;  // 0 => 无事发生 1=> 有swap文件 2=> 无文件
 
-  sprintf(user_db_dir, "%s%s", lib_path, "\\user.swp.db");
+  sprintf(user_db_dir, "%s%s", lib_dir, "\\user.swp.db");
   if (!_access(user_db_dir, 6)) {  // swap file exists
     flag |= 1;
   } else {
-    char *user_database_path = malloc(sizeof(char) * (lib_path_len + 9));
-    sprintf(user_database_path, "%s\\user.db", lib_path);
+    char *user_database_path = malloc(sizeof(char) * (lib_dir_len + 9));
+    sprintf(user_database_path, "%s\\user.db", lib_dir);
     if (!_access(user_database_path, 6))  // user database exists
       CopyFileA(user_database_path, user_db_dir, FALSE);
     else  // book database doesn't exist
@@ -1493,12 +1489,12 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
                   DB_ENTRY_EMPTY))
     return;
 
-  sprintf(book_db_dir, "%s%s", lib_path, "\\book.swp.db");
+  sprintf(book_db_dir, "%s%s", lib_dir, "\\book.swp.db");
   if (!_access(book_db_dir, 6)) {  // swap file exists
     flag |= 1;
   } else {
-    char *book_database_path = malloc(sizeof(char) * (lib_path_len + 9));
-    sprintf(book_database_path, "%s\\book.db", lib_path);
+    char *book_database_path = malloc(sizeof(char) * (lib_dir_len + 9));
+    sprintf(book_database_path, "%s\\book.db", lib_dir);
     if (!_access(book_database_path, 6))  // book database exists
       CopyFileA(book_database_path, book_db_dir, FALSE);
     else  // book database doesn't exist
@@ -1511,13 +1507,13 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
     return;
   }
 
-  sprintf(borrowrecord_db_dir, "%s%s", lib_path, "\\borrowrecord.swp.db");
+  sprintf(borrowrecord_db_dir, "%s%s", lib_dir, "\\borrowrecord.swp.db");
   if (!_access(borrowrecord_db_dir, 6)) {  // swap file exists
     flag |= 1;
   } else {
     char *borrowrecord_database_path =
-        malloc(sizeof(char) * (lib_path_len + 17));
-    sprintf(borrowrecord_database_path, "%s\\borrowrecord.db", lib_path);
+        malloc(sizeof(char) * (lib_dir_len + 17));
+    sprintf(borrowrecord_database_path, "%s\\borrowrecord.db", lib_dir);
     if (!_access(borrowrecord_database_path,
                  6))  // borrowrecord database exists
       CopyFileA(borrowrecord_database_path, borrowrecord_db_dir, FALSE);
@@ -1538,44 +1534,42 @@ static inline void Navigation_OpenOrInitLibrary(bool type, char *msg) {
   PushBackHistory(new_history);
 
   if (!msg) {
-    msg = malloc(sizeof(char) * (114 + lib_path_len + id_len));
+    msg = malloc(sizeof(char) * (114 + lib_dir_len + id_len));
     if (type) {
       if (flag != 2)
         sprintf(msg,
                 "[Error] [%s] Log out, Clear history and init library from %s, "
                 "where "
                 "already exists an eLibrary",
-                user.id, lib_path);
+                user.id, lib_dir);
       else
         sprintf(msg,
                 "[Info] [%s] Log out, Clear history and init library from %s",
-                user.id, lib_path);
+                user.id, lib_dir);
     } else {
       if ((flag & 2) == 2) {
         sprintf(msg,
                 "[Error] [%s] Log out, Clear history and fail to open library "
                 "from %s, "
                 "init one at there, undefined behavior may occur",
-                user.id, lib_path);
-        char *image_path = malloc(sizeof(char) * (lib_path_len + 7));
-        sprintf(image_path, "%s\\image", lib_path);
-        CreateDirectory(image_path, NULL);
-        free(image_path);
+                user.id, lib_dir);
+        CreateDirectory(image_dir, NULL);
       } else if ((flag & 1) == 1) {
         sprintf(msg,
                 "[Warning] [%s] Log out, Clear history and open library from "
                 "%s using "
                 "swap file",
-                user.id, lib_path);
+                user.id, lib_dir);
       } else if (!flag) {
         sprintf(msg,
                 "[Info] [%s] Log out, Clear history and open library from %s",
-                user.id, lib_path);
+                user.id, lib_dir);
       }
     }
   }
 
   db_open = TRUE;
+  Opened = TRUE;
   memset(&user, 0x00, sizeof(User));
   id_len = 0;
 
@@ -1593,18 +1587,18 @@ static inline void Navigation_SaveLibrary(bool type, char *msg) {
   if (ErrorHandle(CloseDBConnection(BORROWRECORD), 0)) return;
   db_open = FALSE;
 
-  char *user_database_path = malloc(sizeof(char) * (lib_path_len + 9));
-  sprintf(user_database_path, "%s\\user.db", lib_path);
+  char *user_database_path = malloc(sizeof(char) * (lib_dir_len + 9));
+  sprintf(user_database_path, "%s\\user.db", lib_dir);
   CopyFileA(user_db_dir, user_database_path, FALSE);
   free(user_database_path);
 
-  char *book_database_path = malloc(sizeof(char) * (lib_path_len + 9));
-  sprintf(book_database_path, "%s\\book.db", lib_path);
+  char *book_database_path = malloc(sizeof(char) * (lib_dir_len + 9));
+  sprintf(book_database_path, "%s\\book.db", lib_dir);
   CopyFileA(book_db_dir, book_database_path, FALSE);
   free(book_database_path);
 
-  char *borrowrecord_database_path = malloc(sizeof(char) * (lib_path_len + 17));
-  sprintf(borrowrecord_database_path, "%s\\borrowrecord.db", lib_path);
+  char *borrowrecord_database_path = malloc(sizeof(char) * (lib_dir_len + 17));
+  sprintf(borrowrecord_database_path, "%s\\borrowrecord.db", lib_dir);
   CopyFileA(borrowrecord_db_dir, borrowrecord_database_path, FALSE);
   free(borrowrecord_database_path);
 
@@ -1657,8 +1651,8 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
       BookDisplay_CopyPasteCallback;
   new_history->state.book_display->book = new_book;
   if (!type) {
-    char *image_path = malloc(sizeof(char) * (12 + lib_path_len + 10));
-    sprintf(image_path, "%s\\image\\%d.jpg", lib_path, book->uid);
+    char *image_path = malloc(sizeof(char) * (6 + image_dir_len + 10));
+    sprintf(image_path, "%s\\%d.jpg", image_dir, book->uid);
     if (!_access(image_path, 4))
       loadImage(image_path, &new_history->state.book_display->book_cover);
     else

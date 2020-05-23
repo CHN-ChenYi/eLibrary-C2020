@@ -1393,7 +1393,7 @@ static inline void Navigation_Library(char *msg) {
     if (!_access(image_path, 4))
       loadImage(image_path, image);
     else
-      *image = unknown_cover;
+      copyImage(image, &unknown_cover);
     InsertList(book_covers, book_covers->dummy_tail, image);
   }
 
@@ -1656,9 +1656,9 @@ static void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
     if (!_access(image_path, 4))
       loadImage(image_path, &new_history->state.book_display->book_cover);
     else
-      new_history->state.book_display->book_cover = unknown_cover;
+      copyImage(&new_history->state.book_display->book_cover, &unknown_cover);
   } else {
-    new_history->state.book_display->book_cover = edit_cover;
+    copyImage(&new_history->state.book_display->book_cover, &edit_cover);
   }
   PushBackHistory(new_history);
 

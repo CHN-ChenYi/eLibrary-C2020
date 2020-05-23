@@ -1938,6 +1938,12 @@ void loadImage(const char *image, LibImage *mapbuf) {
   CloseHandle(file);
 }
 
+void copyImage(LibImage *dst, LibImage *src) {
+  dst->height = src->height;
+  dst->width = src->width;
+  dst->hbitmap = CopyImage(src->hbitmap, IMAGE_BITMAP, 0, 0, 0);
+}
+
 void FlushDistrict(int min_x, int min_y, int max_x, int max_y) {
   RECT r;
   SetRect(&r, min_x, max_x, min_y, max_y);

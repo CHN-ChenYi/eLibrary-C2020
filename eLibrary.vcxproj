@@ -31,7 +31,9 @@
     <ClCompile Include="Source\template\page.c" />
     <ClCompile Include="Source\template\ui.c" />
     <ClCompile Include="Source\view\hash.c" />
+    <ClCompile Include="Source\view\history.c" />
     <ClCompile Include="Source\view\main.c" />
+    <ClCompile Include="Source\view\utility.c" />
     <ClCompile Include="Source\view\view.c" />
   </ItemGroup>
   <ItemGroup>
@@ -51,6 +53,8 @@
     <ClInclude Include="Source\template\page.h" />
     <ClInclude Include="Source\template\ui.h" />
     <ClInclude Include="Source\view\hash.h" />
+    <ClInclude Include="Source\view\history.h" />
+    <ClInclude Include="Source\view\utility.h" />
     <ClInclude Include="Source\view\view.h" />
   </ItemGroup>
   <ItemGroup>

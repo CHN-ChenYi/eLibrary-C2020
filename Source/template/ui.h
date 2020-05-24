@@ -110,10 +110,35 @@ InputBox* CreateInputBox(Rect rect, char* str, int id, int is_terminal);
 /*
  * CreateLink(rect, caption, font_color, id);
  * 创建一个链接，并返回新创建的链接的地址
+ * rect     : 此处只需要输入左下边界即可，上右边界会根据字串的长宽自动计算
+ * caption  : 链接的文字
  */
 Link* CreateLink(Rect rect, char* caption, FontColor font_color, int id);
+
+/*
+ * CreateLabel(rect, caption, font_color, id);
+ * 创建一个标签，并返回新创建的标签元件的地址
+ * rect     : 此处只需要输入左下边界即可，上右边界会根据字串的长宽自动计算
+ * caption  : 标签的文字
+ */
 Label* CreateLabel(Rect rect, char* caption, FontColor font_color, int id);
+
+/*
+ * CreateFrame(rect, color, alpha);
+ * 创建一个框架并返回指向新框架的指针
+ * color  : 一个CSS风格的6位字符串，表示框架的颜色
+ * alpha  : 框架透明度，0到1
+ */
 Frame* CreateFrame(Rect rect, char* color, double alpha);
+
+/*
+ * CreateImage(Rect rect, LibImage ui_image, int id);
+ * 创建一个图片元件，并返回一个指向新创建的图片元素的指针
+ * rect     : 此处规定的是图片允许被占用的最大区域，当图片的长宽比
+ *            恰好等于此区域的长宽比的时候，图片会刚好占到这片区域
+ *            否则将会同比缩放图片，使长宽中有一维贴合边界
+ * ui_image : 图片本身
+ */
 Image* CreateImage(Rect rect, LibImage ui_image, int id);
 
 /* Singly linked circular list for components */
@@ -127,13 +152,40 @@ struct ComponentListNode {
 
 typedef PTCNode CompList;
 
+/*
+ * InsertComp(component, type);
+ * 向当前画面插入分类为type的元素component
+ */
 void InsertComp(void* component, TypeOfComp type);
+
+/*
+ * InsertFrame(component);
+ * 向当前画面插入框架component
+ */
 void InsertFrame(void* component);
+
+/*
+ * InsertSurface(component, type);
+ * 在表层插入分类为type的元件
+ */
 void InsertSurface(void* component, TypeOfComp type);
+
+/* 初始化组件 */
 void InitComponents();
+
+/* 初始化框架 */
 void InitFrame();
+
+/* 初始化顶层 */
 void InitSurface();
+
+/*
+ * FlushScreen(x, y);
+ * 刷新屏幕
+ * x  : 当前鼠标x坐标
+ * y  : 当前鼠标y坐标
+ */
 void FlushScreen(int x, int y);
 
-// Initialization
+/* 初始化 */
 void InitializeUI();

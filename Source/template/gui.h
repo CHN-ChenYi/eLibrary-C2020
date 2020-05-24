@@ -101,16 +101,25 @@ typedef struct LoginOrRegister {
 /* 用户信息修改 */
 #define kUserModifyMax 10  // 单页最大显示数目
 typedef struct UserModify {
-  User *user;                  // 用户信息
-  List *borrowrecords;                 // 借书
+  User *user;                     // 用户信息
+  int frequency;                  // 最近一个月借书次数
+  List *borrowrecords;            // 借书
   ListNode *borrowrecords_start;  // 第一本要显示的借书
-  char old_password[50];       // 旧密码
-  char new_password[50];       // 新密码
-  char repeat_password[50];    // 重复新密码
-  void (*confirm_callback)();  // 确认按钮
+  char old_password[50];          // 旧密码
+  char new_password[50];          // 新密码
+  char repeat_password[50];       // 重复新密码
+  void (*confirm_callback)();     // 确认按钮
   // direction = 0 上一页, direction = 1 下一页
   void (*turn_page)(bool direction);
 } UserModify;
+
+typedef enum SortKeyword {
+  kId,      // 用于 Library::sort_callback 和 UserManagement::sort_callback
+  kTitle,   // 用于 Library::sort_callback
+  kAuthor,  // 用于 Library::sort_callback
+  kName,    // 用于 UserManagement::sort_callback
+  kDepartment   // 用于 UserManagement::sort_callback
+} SortKeyword;  // 关键字列表
 
 /* 审核、修改、删除用户 */
 #define kUserManagementToBeVerifiedMax 10  // 单页待审核最大显示数目
@@ -122,6 +131,8 @@ typedef struct UserManagement {
   ListNode *users_start;           // 第一个显示的已添加用户
   void (*approve_callback)(ListNode *user, bool approve);  // 审核通过或者拒绝
   void (*delete_callback)(ListNode *user);                 // 删除
+  void (*info_callback)(User *user);                       // 用户详情
+  void (*sort_callback)(SortKeyword sort_keyword);         // 排序按钮
   // direction = 0 上一页, direction = 1 下一页
   // type = 0 待审核用户列表, type = 1 已添加用户列表
   void (*turn_page)(bool direction, bool type);
@@ -129,14 +140,13 @@ typedef struct UserManagement {
 
 /* 图书库界面 */
 #define kLibraryMax 10  // 单页最大显示数目
-typedef enum SortKeyword { kId, kTitle, kAuthor } SortKeyword;  // 关键字列表
 typedef struct Library {
   enum { kPicture, kList } type;  // 图片模式还是列表模式
   List *books;                    // 图书库的图书
   ListNode *books_start;          // 第一本要显示的图书
   List *book_covers;              // 图书库的书的封面
   ListNode *books_covers_start;   // 第一本要显示的图书
-  void (*sort_callback)(SortKeyword sortkeyword);  // 排序按钮
+  void (*sort_callback)(SortKeyword sort_keyword);  // 排序按钮
   void (*book_callback)(ListNode *book);           // 图书详细信息按钮
   void (*switch_callback)();                       // 切换模式
   // direction = 0 上一页, direction = 1 下一页
@@ -158,7 +168,8 @@ typedef struct BookDisplay {
 /* 图书借还界面显示 */
 #define kBorrowDisplayMax 10  // 单页最大显示数目
 typedef struct BorrowDisplay {
-  char *book_id;                // 当前书籍
+  char *book_id;                  // 当前书籍
+  int frequency;                  // 最近一个月借书次数
   List *borrow_record;            // 当前书籍的借还记录
   ListNode *borrow_record_start;  // 要显示的第一条借还记录
   // direction = 0 上一页, direction = 1 下一页
@@ -171,6 +182,7 @@ typedef struct BorrowDisplay {
 typedef struct Statistics {
   List *catalogs;                 // 图书分类
   ListNode *catalogs_start;       // 第一个要显示的图书分类
+  int frequency;                  // 该分类下最近一个月借书次数
   List *borrow_record;            // 借还次数统计
   ListNode *borrow_record_start;  // 第一个要显示的借还记录
   void (*select_callback)(ListNode *catalog);  // 选中某图书分类

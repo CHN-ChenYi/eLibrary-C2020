@@ -22,7 +22,7 @@ void UninitUtility() { fclose(log_file); }
 
 void Log(char *const msg) {
   // get local time
-  const time_t cur_time = time(0);
+  time_t cur_time = time(NULL);
   char *time = asctime(localtime(&cur_time));
   size_t len = strlen(time);
   while (len && (time[len - 1] == '\r' ||
@@ -176,6 +176,18 @@ bool CmpLessBookByAuthor(const void *const lhs, const void *const rhs) {
   return strcmp(((Book *)lhs)->authors[0], ((Book *)rhs)->authors[0]) <= 0;
 }
 
+bool CmpLessUserById(const void *const lhs, const void *const rhs) {
+  return strcmp(((User *)lhs)->id, ((User *)rhs)->id) <= 0;
+}
+
+bool CmpLessUserByName(const void *const lhs, const void *const rhs) {
+  return strcmp(((User *)lhs)->name, ((User *)rhs)->name) <= 0;
+}
+
+bool CmpLessUserByDepartment(const void *const lhs, const void *const rhs) {
+  return strcmp(((User *)lhs)->department, ((User *)rhs)->department) <= 0;
+}
+
 void *const StrCpy(void *const str) {
   char *ret = malloc(sizeof(char) * (strlen(str) + 1));
   strcpy(ret, str);
@@ -188,4 +200,27 @@ bool StrLess(const void *const lhs, const void *rhs) {
 
 bool StrSame(const void *const lhs, const void *rhs) {
   return strcmp(lhs, rhs) == 0;
+}
+
+char *GetTime(time_t dst_tm) {
+  static char ret[10];
+  const struct tm *const tm_ = localtime(&dst_tm);
+  sprintf(ret, "%04d%02d%02d", tm_->tm_year + 1900, tm_->tm_mon + 1,
+          tm_->tm_mday);
+  return ret;
+}
+
+int GetBorrowRecordNumberAfter(List *borrow_record, time_t dst_tm) {
+  int ret = 0;
+  const char *const dst_time = GetTime(dst_tm);
+  for (ListNode *cur_node = borrow_record->dummy_head->nxt;
+       cur_node != borrow_record->dummy_tail; cur_node = cur_node->nxt) {
+    if (strcmp(((BorrowRecord *)cur_node->value)->borrowed_date, dst_time) >=
+        0)
+      ret++;
+    if (strcmp(((BorrowRecord *)cur_node->value)->returned_date, dst_time) <
+        0)
+      break;  // 由于传入的链表为归还时间的降序，所以可以剪枝
+  }
+  return ret;
 }

@@ -119,6 +119,7 @@ void ReturnHistory(ListNode *go_back_to, char *msg) {
       Navigation_LendAndBorrow(msg);
       break;
     case kBookSearch: {  // 图书搜索
+      // 由于 pop 的时候 keyword 信息会消失，所以先存下来
       char *keyword = malloc(sizeof(char) *
                              (strlen(history->state.book_search->keyword) + 1));
       strcpy(keyword, history->state.book_search->keyword);
@@ -126,6 +127,7 @@ void ReturnHistory(ListNode *go_back_to, char *msg) {
       BookSearchDisplay(keyword, msg);
     } break;
     case kUserSearch: {  // 用户搜索（管理员）
+      // 由于 pop 的时候 keyword 信息会消失，所以先存下来
       char *keyword = malloc(sizeof(char) *
                              (strlen(history->state.user_search->keyword) + 1));
       strcpy(keyword, history->state.user_search->keyword);
@@ -152,6 +154,7 @@ void ReturnHistory(ListNode *go_back_to, char *msg) {
     // break;
     case kUserModify: {  // 用户信息修改
       User *new_user = malloc(sizeof(User));
+      // 处理此用户已经被删除的情况
       if (ErrorHandle(
               GetById(new_user, history->state.user_modify->user->uid, USER),
               0))
@@ -176,6 +179,7 @@ void ReturnHistory(ListNode *go_back_to, char *msg) {
     // break;
     case kBookDisplay:   // 图书显示
     case kBookModify: {  // 图书修改/删除
+      // 由于 pop 的时候 book 信息会消失，所以先存下来
       Book *new_book = malloc(sizeof(Book));
       memcpy(new_book, history->state.book_display->book, sizeof(Book));
       PopBackHistory();

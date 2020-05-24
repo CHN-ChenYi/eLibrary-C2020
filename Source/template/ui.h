@@ -1,7 +1,6 @@
 #pragma once
 #include "graphics.h"
 
-
 typedef enum {
   kNormal,  // the normal status
   kHover,   // when the mouse is hovering on it
@@ -100,9 +99,10 @@ Button* CreateButton(Rect rect, char* caption, char* bg_color, double alpha,
 /*
  * CreateInputBox(rect, str, id, is_terminal);
  * 创建一个输入框，并返回新创建的输入框元件的地址
- * rect        : 此处只需要输入左右边界和下边界位置即可，上边界会根据字体自动调整
- * str         : 初始字符串
- * is_terminal : 底部的状态信息栏也是使用InputBox，但是不响应删除操作，颜色相反
+ * rect        :
+ * 此处只需要输入左右边界和下边界位置即可，上边界会根据字体自动调整 str :
+ * 初始字符串 is_terminal :
+ * 底部的状态信息栏也是使用InputBox，但是不响应删除操作，颜色相反
  *               因此需和一般的输入框区分，此处1表示是底部状态栏，0表示不是
  */
 InputBox* CreateInputBox(Rect rect, char* str, int id, int is_terminal);

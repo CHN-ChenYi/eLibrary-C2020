@@ -46,6 +46,8 @@ static void LoginOrRegister_LoginCallback();
 static void UserManagement_ApproveCallback(ListNode *user_node, bool approve);
 static void UserManagement_DeleteCallback(ListNode *user_node);
 static void UserManagement_TurnPage(bool direction, bool type);
+static void UserManagement_InfoCallback(User *user);
+static void UserManagement_SortCallback(SortKeyword sort_keyword);
 static void BookDisplay_AdminCallback();
 static void BookDisplay_CoverCallback();
 static void BookDisplay_ConfirmCallback();
@@ -101,15 +103,9 @@ void BookSearch_BorrowCallback(Book *book) {
   strcpy(new_record.book_id, book->id);
   new_record.book_status = BORROWED;
   new_record.book_uid = book->uid;
-  time_t now_time_t = time(0);
-  struct tm *now_tm = localtime(&now_time_t);
-  sprintf(new_record.borrowed_date, "%04d%02d%02d", now_tm->tm_year + 1900,
-          now_tm->tm_mon + 1, now_tm->tm_mday);
-  time_t nxt_time_t =
-      now_time_t + (time_t)86400 * book->available_borrowed_days;
-  struct tm *nxt_tm = localtime(&nxt_time_t);
-  sprintf(new_record.returned_date, "%04d%02d%02d", nxt_tm->tm_year + 1900,
-          nxt_tm->tm_mon + 1, nxt_tm->tm_mday);
+  strcpy(new_record.borrowed_date, GetTime(time(NULL)));
+  strcpy(new_record.returned_date,
+         GetTime(time(NULL) + (time_t)86400 * book->available_borrowed_days));
   if (ErrorHandle(GetNextPK(BORROWRECORD, &new_record.uid), 0)) {
     book->number_on_the_shelf++;
     if (ErrorHandle(Update(book, book->uid, BOOK), 0)) return;
@@ -187,10 +183,7 @@ void LendAndBorrow_ReturnCallback(ListNode *book, ListNode *borrow_record) {
           user.id, returned_book->id, returned_borrow_record->returned_date);
 
   returned_borrow_record->book_status = RETURNED;
-  time_t now_time_t = time(0);
-  struct tm *now_tm = localtime(&now_time_t);
-  sprintf(returned_borrow_record->returned_date, "%04d%02d%02d",
-          now_tm->tm_year + 1900, now_tm->tm_mon + 1, now_tm->tm_mday);
+  strcpy(returned_borrow_record->returned_date, GetTime(time(NULL)));
   if (ErrorHandle(Update(returned_borrow_record, returned_borrow_record->uid,
                          BORROWRECORD),
                   0)) {
@@ -307,6 +300,8 @@ void UserSearchInfoDisplay(User *show_user, char *msg) {
   new_history->state.user_modify->borrowrecords = borrow_record;
   new_history->state.user_modify->borrowrecords_start =
       borrow_record->dummy_head->nxt;
+  new_history->state.user_modify->frequency = GetBorrowRecordNumberAfter(
+      borrow_record, time(NULL) + (time_t)0x28DE80);  // 2678400（31天）
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -548,6 +543,44 @@ void UserManagement_TurnPage(bool direction, bool type) {
   DrawUI(kUserManagement, &user, state, msg);
 }
 
+void UserManagement_InfoCallback(User *show_user) {
+  UserSearchInfoDisplay(show_user, NULL);
+}
+
+void UserManagement_SortCallback(SortKeyword sort_keyword) {
+  char *msg = malloc(sizeof(char) * (35 + id_len));
+  switch (sort_keyword) {
+    case kId:
+      SortList(TopHistory()->state.user_management->users, CmpLessUserById);
+      SortList(TopHistory()->state.user_management->to_be_verified,
+               CmpLessUserById);
+      sprintf(msg, "[Info] [%s] sort users by id", user.id);
+      break;
+    case kName:
+      SortList(TopHistory()->state.user_management->users, CmpLessUserByName);
+      SortList(TopHistory()->state.user_management->to_be_verified,
+               CmpLessUserByName);
+      sprintf(msg, "[Info] [%s] sort users by name", user.id);
+      break;
+    case kDepartment:
+      SortList(TopHistory()->state.user_management->users, CmpLessUserByDepartment);
+      SortList(TopHistory()->state.user_management->to_be_verified,
+               CmpLessUserByDepartment);
+      sprintf(msg, "[Info] [%s] sort users by department", user.id);
+      break;
+    default:
+      Log("[Debug] Unknown sort_keyword in UserManagement_SortCallback");
+      Error("Unknown sort_keyword");
+      break;
+  }
+  TopHistory()->state.user_management->users_start =
+      TopHistory()->state.user_management->users->dummy_head->nxt;
+  TopHistory()->state.user_management->to_be_verified_start =
+      TopHistory()->state.user_management->to_be_verified->dummy_head->nxt;
+  Log(msg);
+  DrawUI(kUserManagement, &user, TopHistory()->state.user_management, msg);
+}
+
 void BookDisplayAdminDisplay(char *msg) {
   if (user.whoami != ADMINISTRATOR) {
     char *msg = malloc(sizeof(char) * (60 + id_len));
@@ -585,6 +618,8 @@ void BookDisplayAdminDisplay(char *msg) {
   new_history->state.borrow_display->borrow_record = borrow_record;
   new_history->state.borrow_display->borrow_record_start =
       borrow_record->dummy_head->nxt;
+  new_history->state.borrow_display->frequency = GetBorrowRecordNumberAfter(
+      borrow_record, time(NULL) + (time_t)0x28DE80);  // 2678400（31天）
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -792,7 +827,7 @@ void Library_SortCallback(SortKeyword sort_keyword) {
       break;
     default:
       Log("[Debug] Unknown sort_keyword in Library_SortCallback");
-      Error("Unknown nav_page");
+      Error("Unknown sort_keyword");
       break;
   }
   TopHistory()->state.library->books_start =
@@ -864,6 +899,7 @@ void Statistics_SelectCallback(ListNode *catalog) {
         cur_node = cur_node->nxt;
     }
   }
+  SortList(borrow_records, CmpGreaterBorrowRecordByReturnTime);
 
   History *const new_history = malloc(sizeof(History));
   new_history->page = kStatistics;
@@ -877,6 +913,8 @@ void Statistics_SelectCallback(ListNode *catalog) {
   new_history->state.statistics->borrow_record = borrow_records;
   new_history->state.statistics->borrow_record_start =
       borrow_records->dummy_head->nxt;
+  new_history->state.statistics->frequency = GetBorrowRecordNumberAfter(
+      borrow_records, time(NULL) + (time_t)0x28DE80);  // 2678400（31天）
   PushBackHistory(new_history);
 
   char *msg = malloc(sizeof(char) * (46 + id_len + strlen(catalog->value)));
@@ -1067,6 +1105,8 @@ void Navigation_UserManagement(char *msg) {
   new_history->state.user_management->delete_callback =
       UserManagement_DeleteCallback;
   new_history->state.user_management->turn_page = UserManagement_TurnPage;
+  new_history->state.user_management->info_callback = UserManagement_InfoCallback;
+  new_history->state.user_management->sort_callback = UserManagement_SortCallback;
   new_history->state.user_management->to_be_verified = to_be_verified;
   new_history->state.user_management->to_be_verified_start =
       to_be_verified->dummy_head->nxt;
@@ -1436,6 +1476,7 @@ void Navigation_Statistics(char *msg) {
     DeleteList(borrow_record, free);
     return;
   }
+  SortList(borrow_record, CmpGreaterBorrowRecordByReturnTime);
 
   History *const new_history = malloc(sizeof(History));
   new_history->page = kStatistics;
@@ -1447,6 +1488,8 @@ void Navigation_Statistics(char *msg) {
   new_history->state.statistics->borrow_record = borrow_record;
   new_history->state.statistics->borrow_record_start =
       borrow_record->dummy_head->nxt;
+  new_history->state.statistics->frequency = GetBorrowRecordNumberAfter(
+      borrow_record, time(NULL) + (time_t)0x28DE80); // 2678400（31天）
   PushBackHistory(new_history);
 
   if (!msg) {

@@ -132,7 +132,7 @@ typedef struct UserManagement {
   void (*approve_callback)(ListNode *user, bool approve);  // 审核通过或者拒绝
   void (*delete_callback)(ListNode *user);                 // 删除
   void (*info_callback)(User *user);                       // 用户详情
-  void (*sort_callback)(SortKeyword sortkeyword);          // 排序按钮
+  void (*sort_callback)(SortKeyword sort_keyword);         // 排序按钮
   // direction = 0 上一页, direction = 1 下一页
   // type = 0 待审核用户列表, type = 1 已添加用户列表
   void (*turn_page)(bool direction, bool type);
@@ -146,7 +146,7 @@ typedef struct Library {
   ListNode *books_start;          // 第一本要显示的图书
   List *book_covers;              // 图书库的书的封面
   ListNode *books_covers_start;   // 第一本要显示的图书
-  void (*sort_callback)(SortKeyword sortkeyword);  // 排序按钮
+  void (*sort_callback)(SortKeyword sort_keyword);  // 排序按钮
   void (*book_callback)(ListNode *book);           // 图书详细信息按钮
   void (*switch_callback)();                       // 切换模式
   // direction = 0 上一页, direction = 1 下一页

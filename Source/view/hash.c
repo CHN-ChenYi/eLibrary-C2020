@@ -99,7 +99,7 @@ void Sha256Sum(uint32_t *const dst, const uint8_t *const src,
 }
 
 void RandStr(char *const dst, const unsigned len) {
-  srand(time(0));
+  srand(time(NULL));
   for (unsigned i = 0; i != len; i++) dst[i] = '!' + rand() % 95;
   dst[len] = '\0';
 }

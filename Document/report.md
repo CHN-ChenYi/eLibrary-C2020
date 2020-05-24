@@ -176,6 +176,459 @@
 
   以调用函数时的时间戳为随机种子，逐个生成字符串中的每个字符
 
+#### utility.c
+
+##### InitUtility
+
+* 函数原型
+
+  ```c
+  void InitUtility();
+  ```
+
+* 功能描述
+
+  初始化日志文件
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  无
+
+##### UninitUtility
+
+* 函数原型
+
+  ```c
+  void UninitUtility();
+  ```
+
+* 功能描述
+
+  关闭日志文件
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  无
+
+##### Log
+
+* 函数原型
+
+  ```c
+  void Log(char *const msg);
+  ```
+
+* 功能描述
+
+  将 `msg[]` 前加上当地时间并写入日志文件
+
+* 参数描述
+
+  `msg[]`: 要写入日志文件的消息
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  const time_t cur_time = time(0);
+  ```
+
+* 重要局部变量用途描述
+
+  * `cur_time`: 当前时间
+
+* 函数算法描述
+
+  获取当前时间之后先后使用 `loacltime` 函数和 `asctime` 函数将其转换为当地时间的字符串表示，并将字符串结尾的换行符去除。将时间字符串及 `msg[]` 输出到日志文件之中
+
+##### MoveInList
+
+* 函数原型
+
+  ```c
+  char *MoveInList(ListNode **const node, List *list, int max_size,
+                   bool direction, const char *const list_name,
+                   const char *const page_name);
+  ```
+
+* 功能描述
+
+  将 `node` 在链表 `list` 中的指向向 `direction`（0为向前，1为向后）方向移动 `max_size` 个节点，并返回相应的日志消息（当前链表名为 `list_name`，当前界面名为 `page_name`）
+
+* 参数描述
+
+  见功能描述
+
+* 返回值描述
+
+  见功能描述
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  见功能描述。注意如果移动失败（超过链表结尾或开头）则 `node` 的指向不变并返回报告出错的日志消息
+
+##### ErrorHandle
+
+* 函数原型
+
+  ```c
+  bool ErrorHandle(int errno_, int num, ...)
+  ```
+
+* 功能描述
+
+  处理数据库操作的返回值，如果数据库操作失败，则绘制历史记录中的上一个页面并显示错误信息
+
+* 参数描述
+
+  * `errno_`: 数据库操作返回的错误码
+  * `num`: 可变参数的个数
+  * 可变参数: 可以视作成功的错误码
+
+* 返回值描述
+
+  如果为 FALSE 则表示数据库操作成功，如果为 TRUE 则表示数据库操作失败
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  见功能描述
+
+##### InitCheck
+
+* 函数原型
+
+  ```c
+  bool InitCheck(bool no_user);
+  ```
+
+* 功能描述
+
+  验证数据库是否打开以及当前是否有用户登录，检查如果失败则绘制历史记录中的上一个页面并显示错误信息
+
+* 参数描述
+
+  `no_user`: TRUE 表示可以接受没有用户登录
+
+* 返回值描述
+
+  TRUE 表示检查失败（如数据库未打开或用户未登录），FALSE 表示检查没有问题
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  见功能描述
+
+##### CmpGreaterBorrowRecordByReturnTime
+
+* 函数原型
+
+  ```c
+  bool CmpGreaterBorrowRecordByReturnTime(const void *const lhs,
+                                          const void *const rhs)
+  ```
+
+* 功能描述
+
+  以归还时间为关键字比较两个指向 BorrowRecord 的指针
+
+* 参数描述
+
+  *  `lhs`: 指向不等号左边的值的指针
+  *  `rhs`: 指向不等号右边的值的指针
+
+* 返回值描述
+
+  返回 `lhs` 的归还时间是否大于等于 `rhs`
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  无
+
+##### CmpLessBorrowRecordByReturnTime
+
+* 函数原型
+
+  ```c
+  bool CmpLessBorrowRecordByReturnTime(const void *const lhs,
+                                       const void *const rhs)
+  ```
+
+* 功能描述
+
+  以归还时间为关键字比较两个指向 BorrowRecord 的指针
+
+* 参数描述
+
+  *  `lhs`: 指向不等号左边的值的指针
+  *  `rhs`: 指向不等号右边的值的指针
+
+* 返回值描述
+
+  返回 `lhs` 的归还时间是否小于等于 `rhs`
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  无
+
+##### CmpLessBookById
+
+* 函数原型
+
+  ```c
+  bool CmpLessBookById(const void *const lhs, const void *const rhs);
+  ```
+
+* 功能描述
+
+  以书号为关键字比较两个指向 Book 的指针
+
+* 参数描述
+
+  *  `lhs`: 指向不等号左边的值的指针
+  *  `rhs`: 指向不等号右边的值的指针
+
+* 返回值描述
+
+  返回 `lhs` 的书号是否小于等于 `rhs`
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  无
+
+##### CmpLessBookByTitle
+
+* 函数原型
+
+  ```c
+  bool CmpLessBookByTitle(const void *const lhs, const void *const rhs);
+  ```
+
+* 功能描述
+
+  以书名为关键字比较两个指向 Book 的指针
+
+* 参数描述
+
+  *  `lhs`: 指向不等号左边的值的指针
+  *  `rhs`: 指向不等号右边的值的指针
+
+* 返回值描述
+
+  返回 `lhs` 的书名是否小于等于 `rhs`
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  无
+
+##### CmpLessBookByAuthor
+
+* 函数原型
+
+  ```c
+  bool CmpLessBookByAuthor(const void *const lhs, const void *const rhs);
+  ```
+
+* 功能描述
+
+  以第一作者为关键字比较两个指向 Book 的指针
+
+* 参数描述
+
+  *  `lhs`: 指向不等号左边的值的指针
+  *  `rhs`: 指向不等号右边的值的指针
+
+* 返回值描述
+
+  返回 `lhs` 的第一作者是否小于等于 `rhs`
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  无
+
+##### StrCpy
+
+* 函数原型
+
+  ```c
+  void *const StrCpy(void *const str);
+  ```
+
+* 功能描述
+
+  深拷贝 `str` 中储存的字符串
+
+* 参数描述
+
+  * `str`: 待拷贝的字符串
+
+* 返回值描述
+
+  * 返回复制出的字符串
+
+* 重要局部变量定义
+
+  * 无
+
+* 重要局部变量用途描述
+
+  * 无
+
+* 函数算法描述
+
+  使用 `malloc` 为返回的字符串分配空间然后 `strcpy` 过去
+
+##### StrLess
+
+* 函数原型
+
+  ```c
+  bool StrLess(const void *const lhs, const void *rhs);
+  ```
+
+* 功能描述
+
+  比较两个字符串
+
+* 参数描述
+
+  *  `lhs`: 指向不等号左边的值的指针
+  *  `rhs`: 指向不等号右边的值的指针
+
+* 返回值描述
+
+  返回 `lhs` 是否小于等于 `rhs`
+
+* 重要局部变量定义
+
+* 重要局部变量用途描述
+
+* 函数算法描述
+
+##### StrSame
+
+* 函数原型
+
+  ```c
+  bool StrSame(const void *const lhs, const void *rhs);
+  ```
+
+* 功能描述
+
+  比较两个字符串
+
+* 参数描述
+
+  *  `lhs`: 指向不等号左边的值的指针
+  *  `rhs`: 指向不等号右边的值的指针
+
+* 返回值描述
+
+  返回 `lhs` 是否等于 `rhs`
+
+* 重要局部变量定义
+
+* 重要局部变量用途描述
+
+* 函数算法描述
+
 # 4 部署运行和使用说明
 
 ## 4.1 编译安装

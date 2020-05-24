@@ -7,6 +7,7 @@ void InitUtility();
 void UninitUtility();
 
 void Log(char *const msg);
+// direction = 0 => forward
 char *MoveInList(ListNode **const node, List *list, int max_size,
                  bool direction, const char *const list_name,
                  const char *const page_name);
@@ -19,9 +20,9 @@ bool CmpGreaterBorrowRecordByReturnTime(const void *const lhs,
                                         const void *const rhs);
 bool CmpLessBorrowRecordByReturnTime(const void *const lhs,
                                      const void *const rhs);
-bool CmpById(const void *const lhs, const void *const rhs);
-bool CmpByTitle(const void *const lhs, const void *const rhs);
-bool CmpByAuthor(const void *const lhs, const void *const rhs);
+bool CmpLessBookById(const void *const lhs, const void *const rhs);
+bool CmpLessBookByTitle(const void *const lhs, const void *const rhs);
+bool CmpLessBookByAuthor(const void *const lhs, const void *const rhs);
 
 void *const StrCpy(void *const str);
 bool StrLess(const void *const lhs, const void *rhs);

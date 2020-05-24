@@ -779,15 +779,15 @@ void Library_SortCallback(SortKeyword sort_keyword) {
   char *msg = malloc(sizeof(char) * (33 + id_len));
   switch (sort_keyword) {
     case kId:
-      SortList(TopHistory()->state.library->books, CmpById);
+      SortList(TopHistory()->state.library->books, CmpLessBookById);
       sprintf(msg, "[Info] [%s] sort books by id", user.id);
       break;
     case kTitle:
-      SortList(TopHistory()->state.library->books, CmpByTitle);
+      SortList(TopHistory()->state.library->books, CmpLessBookByTitle);
       sprintf(msg, "[Info] [%s] sort books by title", user.id);
       break;
     case kAuthor:
-      SortList(TopHistory()->state.library->books, CmpByAuthor);
+      SortList(TopHistory()->state.library->books, CmpLessBookByAuthor);
       sprintf(msg, "[Info] [%s] sort books by author", user.id);
       break;
     default:

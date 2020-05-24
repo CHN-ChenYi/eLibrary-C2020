@@ -54,6 +54,7 @@ static InputBox *bottom_info;
 static Frame *hb_frame, *fb_frame;
 
 // 数组作用：将callback id和对应的组件结合起来
+// 暂存当前页面正在输入/修改的内容，回调的时候将对应数据拷贝
 #define MAX_ON_PAGE 20
 static Book* books_to_borrow_on_page[MAX_ON_PAGE];
 static ListNode* borrow_records_on_page[MAX_ON_PAGE];
@@ -152,6 +153,7 @@ static Button *search_user, *search_book;
  * 1150 - ? 还书
  */
 
+// 测试用：生成书的链表
 List* GenBook() {
   List* list = NewList();
   for (int i = 0; i < 10; i++) {
@@ -166,6 +168,7 @@ List* GenBook() {
   }
   return list;
 }
+// 测试用：生成用户链表
 List* GenUser() {
   List* list = NewList();
   for (int i = 0; i < 10; i++) {
@@ -179,6 +182,7 @@ List* GenUser() {
   }
   return list;
 }
+// 测试用：生成借还记录链表
 List* GenBorrowRecord() {
   List* list = NewList();
   for (int i = 0; i < 10; i++) {
@@ -192,6 +196,7 @@ List* GenBorrowRecord() {
   }
   return list;
 }
+// 测试用：生成分类链表
 List* GenCatalogs() {
   List* list = NewList();
   for (int i = 0; i < 10; i++) {
@@ -202,12 +207,13 @@ List* GenCatalogs() {
   return list;
 }
 
-
+// 清除表层元件（退出子菜单栏）
 void ExitSurface() {
   hb_status = kUnclicked;
   InitSurface();
 }
 
+// 绘制子菜单
 void AddSubmenuFile() {
   init_lib = CreateButton(
     (Rect) {FileButton->position.left, FileButton->position.left + 150, 70, 110},
@@ -231,6 +237,7 @@ void AddSubmenuFile() {
   InsertSurface(quit, kButton);
 }
 
+// 绘制书籍相关子菜单
 void AddSubmenuBook() {
   new_book = CreateButton(
     (Rect) {BookButton->position.left, BookButton->position.left + 150, 70, 110},
@@ -244,6 +251,7 @@ void AddSubmenuBook() {
   InsertSurface(display_book, kButton);
 }
 
+// 绘制用户相关子菜单
 void AddSubmenuUser() {
   login = CreateButton(
     (Rect) {UserButton->position.left, UserButton->position.left + 150, 70, 110},
@@ -272,6 +280,7 @@ void AddSubmenuUser() {
   InsertSurface(logout, kButton);
 }
 
+// 绘制帮助相关子菜单
 void AddSubmenuHelp() {
   about = CreateButton(
     (Rect) {GetWindowWidthPx() - 150, GetWindowWidthPx(), 70, 110},
@@ -285,6 +294,7 @@ void AddSubmenuHelp() {
   InsertSurface(manual, kButton);
 }
 
+// 绘制搜索相关子菜单
 void AddSubmenuSearch() {
   Button* user_search = CreateButton(
     (Rect) {240, 390, 70, 110},
@@ -298,6 +308,7 @@ void AddSubmenuSearch() {
   InsertSurface(book_search, kButton);
 }
 
+// 绘制子菜单
 void AddSubmenu(int status) {
   switch (status) {
     case FILE_ID:
@@ -326,6 +337,7 @@ void AddSubmenu(int status) {
 LibImage folder_icon_image, book_icon_image, lend_icon_image, user_icon_image,
     search_icon_image, statistics_icon_image;
 
+// 绘制顶部菜单
 void AddHeadBar() {
   // Head bar
   FileButton = CreateLink(
@@ -416,6 +428,7 @@ void AddHeadBar() {
   InsertComp(FileButton, kLink);
 }
 
+// 绘制底部状态信息栏
 void AddFooBar() {
   // foo bar
   bottom_output = CreateLabel (
@@ -435,6 +448,7 @@ void AddFooBar() {
   InsertComp(bottom_info, kInputBox);
 }
 
+// 绘制借还书界面
 void AddLendAndBorrow() {
   int left_border = 30;
   int right_border = GetWindowWidthPx() - 30;
@@ -514,6 +528,7 @@ void AddLendAndBorrow() {
 }
 
 /*
+ * 处理借还书界面的点击
  * 1101 借书界面上一页
  * 1102 借书界面下一页
  * 1103 借书界面搜索
@@ -537,6 +552,7 @@ void HandleLendAndBorrowCallback(int id) {
   }
 }
 
+// 绘制图书搜索界面
 void AddBookSearch() {
   BookSearch *book_search = cur_info;
   
@@ -614,6 +630,7 @@ void AddBookSearch() {
 }
 
 /*
+ * 处理图书搜索界面的回调
  * 601 书籍搜索
  * 602 书籍搜索上一页
  * 603 书籍搜索下一页
@@ -643,6 +660,7 @@ void HandleBookSearchCallback(int id) {
   }
 }
 
+// 绘制用户搜索界面
 void AddUserSearch() {
   UserSearch *user_search = cur_info;
   
@@ -715,6 +733,7 @@ void AddUserSearch() {
 }
 
 /*
+ * 处理用户搜索界面的回调
  * 101 用户搜索
  * 102 用户搜索上一页
  * 103 用户搜索下一页
@@ -739,6 +758,7 @@ void HandleUserSearchCallback(int id){
   }
 }
 
+// 绘制用户注册界面
 void AddUserRegister() {
   int pos_x = GetWindowWidthPx() / 2 - 200;
   int pos_y = GetWindowHeightPx() / 2 - 250;
@@ -812,6 +832,7 @@ void AddUserRegister() {
   InsertComp(register_title, kLabel);
 }
 
+// 处理用户注册界面回调
 void HandleUserRegisterCallback(int id) {
   State cur_state;
   cur_state.login_or_register = cur_info;
@@ -838,6 +859,7 @@ void HandleUserRegisterCallback(int id) {
   }
 }
 
+// 绘制用户登录界面
 void AddUserLogIn() {
   int pos_x = GetWindowWidthPx() / 2 - 200;
   int pos_y = GetWindowHeightPx() / 2 - 100;
@@ -875,6 +897,7 @@ void AddUserLogIn() {
   InsertComp(register_title, kLabel);
 }
 
+// 处理用户登录界面回调
 void HandleUserLoginCallback(int id) {
   State cur_state;
   cur_state.login_or_register = cur_info;
@@ -887,6 +910,7 @@ void HandleUserLoginCallback(int id) {
   }
 }
 
+// 绘制用户修改界面
 void AddUserModify() {
   UserModify *user_modify = cur_info;
 
@@ -1040,6 +1064,7 @@ void AddUserModify() {
 }
 
 /*
+ * 处理用户修改界面回调
  * 301 用户修改确认
  * 302 上一页
  * 303 下一页
@@ -1072,6 +1097,7 @@ void HandleUserModifyCallback(int id) {
   }
 }
 
+// 绘制用户管理界面
 void AddUserManagement() {
   UserManagement *user_management = cur_info;
 
@@ -1175,6 +1201,7 @@ void AddUserManagement() {
 }
 
 /*
+ * 处理用户管理界面的回调
  * 701 用户管理 - 未审核上一页
  * 702 用户管理 - 未审核下一页
  * 703 用户管理 - 已存在上一页
@@ -1209,6 +1236,7 @@ void HandleUserManagementCallback(int id) {
   }
 }
 
+// 绘制图书显示界面
 void AddLibrary() {
   Library *library = cur_info;
 
@@ -1283,6 +1311,7 @@ void AddLibrary() {
 }
 
 /*
+ * 处理图书显示界面回调
  * 501 按照ID排序
  * 502 按照title排序
  * 503 按照author排序
@@ -1315,6 +1344,7 @@ void HandleLibraryCallback(int id) {
   }
 }
 
+// 绘制图书显示界面
 void AddBookDisplay() {
   BookDisplay *book_display = cur_info;
   
@@ -1466,7 +1496,7 @@ void AddBookDisplay() {
   InsertComp(keyword_label, kLabel);
 }
 
-// modify and inititialization
+// 绘制图书修改/新建界面
 void AddBookModify() {
   BookDisplay *book_modify = cur_info;
   /*BookDisplay* book_modify = malloc(sizeof(BookDisplay));
@@ -1672,6 +1702,7 @@ void AddBookModify() {
 }
 
 /*
+ * 处理图书修改/新建界面的回调
  * 801 确认新建 / 修改
  * 802 新建 / 修改图片
  * 803 删除图书按钮
@@ -1717,6 +1748,7 @@ void HandleBookCallback(int id) {
 
 }
 
+// 绘制借还记录显示界面
 void AddBorrowDisplay() {
   BorrowDisplay *borrow_display = cur_info;
   /*
@@ -1800,6 +1832,7 @@ void AddBorrowDisplay() {
 }
 
 /*
+ * 处理借还记录显示界面的回调函数
  * 901 借还书界面上一页
  * 902 借还书界面下一页
  */
@@ -1815,6 +1848,7 @@ void HandleBorrowDisplayCallback(int id) {
   }
 }
 
+// 绘制统计显示界面
 void AddStatistics() {
   Statistics *statistics = cur_info;
   /*Statistics *statistics = malloc(sizeof(Statistics));
@@ -1937,6 +1971,7 @@ void AddStatistics() {
 }
 
 /*
+ * 处理统计界面的回调函数
  * 1001 分类统计标签上一页
  * 1002 分类统计标签下一页
  * 1003 分类统计结果上一页
@@ -1964,6 +1999,7 @@ void HandleStatisticsCallback(int id) {
   }
 }
 
+// 绘制界面
 void AddContents() {
   switch (cur_page) {
     case kWelcome:
@@ -2012,6 +2048,7 @@ void AddContents() {
   }
 }
 
+// 提供给view调用的函数，绘制当前界面
 void DrawUI(Page page, User* user, void* info, char* terminal) {
   cur_page = page;
   cur_user = user;
@@ -2021,7 +2058,7 @@ void DrawUI(Page page, User* user, void* info, char* terminal) {
   InitPage();
 }
 
-// Switch to a new page
+// 初始化一个新界面
 void InitPage() {
   InitFrame();
   InitSurface();
@@ -2032,6 +2069,7 @@ void InitPage() {
   FlushScreen(GetMouseX(), GetMouseY());
 }
 
+// 初始化GUI模块
 void InitGUI() {
   InitGraphics();
 #ifdef _DEBUG
@@ -2051,8 +2089,8 @@ void InitGUI() {
   InitPage();
 }
 
-// Handle Callback
 /*
+ * 处理回调函数
  * Callback id:
  * 1 文件新建
  * 2 文件打开
@@ -2179,6 +2217,7 @@ void CallbackById(int id) {
 #endif  // _DEBUG
 }
 
+// 快捷键
 void HandleCtrl(int key) {
   switch (key) {
   case 6: // F

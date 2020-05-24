@@ -53,7 +53,7 @@ static InputBox *bottom_info;
 /* Background for head bar and foot bar */
 static Frame *hb_frame, *fb_frame;
 
-// Êı×é×÷ÓÃ£º½«callback idºÍ¶ÔÓ¦µÄ×é¼ş½áºÏÆğÀ´
+// æ•°ç»„ä½œç”¨ï¼šå°†callback idå’Œå¯¹åº”çš„ç»„ä»¶ç»“åˆèµ·æ¥
 #define MAX_ON_PAGE 20
 static Book* books_to_borrow_on_page[MAX_ON_PAGE];
 static ListNode* borrow_records_on_page[MAX_ON_PAGE];
@@ -95,61 +95,61 @@ static Button *search_user, *search_book;
 
 /*
  * Callback id:
- * 1 ÎÄ¼şĞÂ½¨
- * 2 ÎÄ¼ş´ò¿ª
- * 3 ÎÄ¼ş±£´æ
- * 4 ÍË³ö
- * 5 Í¼ÊéĞÂ½¨
- * 6 Í¼ÊéÏÔÊ¾
- * 7 µÇÂ¼
- * 8 ÓÃ»§ĞÂ½¨
- * 9 ÓÃ»§ÉóºË
- * 10 ÓÃ»§µÇ³ö
- * 11 ¹ØÓÚ
- * 12 ÓÃ»§ÊÖ²á
- * 13 ÓÃ»§ËÑË÷
- * 14 Í¼ÊéËÑË÷
- * 15 ÓÃ»§ĞŞ¸Ä
- * 101 ÓÃ»§ËÑË÷
- * 102 ÓÃ»§ËÑË÷ÉÏÒ»Ò³
- * 103 ÓÃ»§ËÑË÷ÏÂÒ»Ò³
- * 151 - ? ÓÃ»§ÏêÏ¸ĞÅÏ¢
- * 201 ÓÃ»§×¢²áÈ·ÈÏ
- * 301 ÓÃ»§ĞŞ¸ÄÈ·ÈÏ
- * 302 ÓÃ»§ĞŞ¸ÄÉÏÒ»Ò³
- * 303 ÓÃ»§ĞŞ¸ÄÏÂÒ»Ò³
- * 401 µÇÂ½
- * 501 °´ÕÕIDÅÅĞò
- * 502 °´ÕÕtitleÅÅĞò
- * 503 °´ÕÕauthorÅÅĞò
- * 504 ÏÔÊ¾ÉÏÒ»Ò³Êé¿â
- * 505 ÏÔÊ¾ÏÂÒ»Ò³Êé¿â
- * 551 - ? Êé¼®ÏêÏ¸ĞÅÏ¢
- * 601 Êé¼®ËÑË÷
- * 602 Êé¼®ËÑË÷ÉÏÒ»Ò³
- * 603 Êé¼®ËÑË÷ÏÂÒ»Ò³
- * 651 - £¿ Êé¼®ÏêÏ¸ĞÅÏ¢
- * 701 ÓÃ»§¹ÜÀí-Î´ÉóºËÉÏÒ»Ò³
- * 702 ÓÃ»§¹ÜÀí-Î´ÉóºËÏÂÒ»Ò³
- * 703 ÓÃ»§¹ÜÀí-ÒÑ´æÔÚÉÏÒ»Ò³
- * 704 ÓÃ»§¹ÜÀí-ÒÑ´æÔÚÏÂÒ»Ò³
- * 740 - ? ÓÃ»§¹ÜÀí-Í¬Òâ£¨ÆæÊı£©/¾Ü¾ø£¨Å¼Êı£©µÚk¸öÉêÇë
- * 770 - £¿ÓÃ»§¹ÜÀí-É¾³ıµÚk
- * 801 È·ÈÏĞÂ½¨/ĞŞ¸Ä
- * 802 ĞÂ½¨/ĞŞ¸ÄÍ¼Æ¬
- * 803 É¾³ıÍ¼Êé°´Å¥
- * 804 ½èÊé°´Å¥
- * 901 ½è»¹ÊéÍ³¼Æ½çÃæÉÏÒ»Ò³
- * 902 ½è»¹ÊéÍ³¼Æ½çÃæÏÂÒ»Ò³
- * 1001 ·ÖÀàÍ³¼Æ±êÇ©ÉÏÒ»Ò³
- * 1002 ·ÖÀàÍ³¼Æ±êÇ©ÏÂÒ»Ò³
- * 1003 ·ÖÀàÍ³¼Æ½á¹ûÉÏÒ»Ò³
- * 1004 ·ÖÀàÍ³¼Æ½á¹ûÉÏÒ»Ò³
- * 1050 - ? ·ÖÀà±êÇ©
- * 1101 ½èÊé½çÃæÉÏÒ»Ò³
- * 1102 ½èÊé½çÃæÏÂÒ»Ò³
- * 1103 ½èÊé½çÃæËÑË÷
- * 1150 - ? »¹Êé
+ * 1 æ–‡ä»¶æ–°å»º
+ * 2 æ–‡ä»¶æ‰“å¼€
+ * 3 æ–‡ä»¶ä¿å­˜
+ * 4 é€€å‡º
+ * 5 å›¾ä¹¦æ–°å»º
+ * 6 å›¾ä¹¦æ˜¾ç¤º
+ * 7 ç™»å½•
+ * 8 ç”¨æˆ·æ–°å»º
+ * 9 ç”¨æˆ·å®¡æ ¸
+ * 10 ç”¨æˆ·ç™»å‡º
+ * 11 å…³äº
+ * 12 ç”¨æˆ·æ‰‹å†Œ
+ * 13 ç”¨æˆ·æœç´¢
+ * 14 å›¾ä¹¦æœç´¢
+ * 15 ç”¨æˆ·ä¿®æ”¹
+ * 101 ç”¨æˆ·æœç´¢
+ * 102 ç”¨æˆ·æœç´¢ä¸Šä¸€é¡µ
+ * 103 ç”¨æˆ·æœç´¢ä¸‹ä¸€é¡µ
+ * 151 - ? ç”¨æˆ·è¯¦ç»†ä¿¡æ¯
+ * 201 ç”¨æˆ·æ³¨å†Œç¡®è®¤
+ * 301 ç”¨æˆ·ä¿®æ”¹ç¡®è®¤
+ * 302 ç”¨æˆ·ä¿®æ”¹ä¸Šä¸€é¡µ
+ * 303 ç”¨æˆ·ä¿®æ”¹ä¸‹ä¸€é¡µ
+ * 401 ç™»é™†
+ * 501 æŒ‰ç…§IDæ’åº
+ * 502 æŒ‰ç…§titleæ’åº
+ * 503 æŒ‰ç…§authoræ’åº
+ * 504 æ˜¾ç¤ºä¸Šä¸€é¡µä¹¦åº“
+ * 505 æ˜¾ç¤ºä¸‹ä¸€é¡µä¹¦åº“
+ * 551 - ? ä¹¦ç±è¯¦ç»†ä¿¡æ¯
+ * 601 ä¹¦ç±æœç´¢
+ * 602 ä¹¦ç±æœç´¢ä¸Šä¸€é¡µ
+ * 603 ä¹¦ç±æœç´¢ä¸‹ä¸€é¡µ
+ * 651 - ï¼Ÿ ä¹¦ç±è¯¦ç»†ä¿¡æ¯
+ * 701 ç”¨æˆ·ç®¡ç†-æœªå®¡æ ¸ä¸Šä¸€é¡µ
+ * 702 ç”¨æˆ·ç®¡ç†-æœªå®¡æ ¸ä¸‹ä¸€é¡µ
+ * 703 ç”¨æˆ·ç®¡ç†-å·²å­˜åœ¨ä¸Šä¸€é¡µ
+ * 704 ç”¨æˆ·ç®¡ç†-å·²å­˜åœ¨ä¸‹ä¸€é¡µ
+ * 740 - ? ç”¨æˆ·ç®¡ç†-åŒæ„ï¼ˆå¥‡æ•°ï¼‰/æ‹’ç»ï¼ˆå¶æ•°ï¼‰ç¬¬kä¸ªç”³è¯·
+ * 770 - ï¼Ÿç”¨æˆ·ç®¡ç†-åˆ é™¤ç¬¬k
+ * 801 ç¡®è®¤æ–°å»º/ä¿®æ”¹
+ * 802 æ–°å»º/ä¿®æ”¹å›¾ç‰‡
+ * 803 åˆ é™¤å›¾ä¹¦æŒ‰é’®
+ * 804 å€Ÿä¹¦æŒ‰é’®
+ * 901 å€Ÿè¿˜ä¹¦ç»Ÿè®¡ç•Œé¢ä¸Šä¸€é¡µ
+ * 902 å€Ÿè¿˜ä¹¦ç»Ÿè®¡ç•Œé¢ä¸‹ä¸€é¡µ
+ * 1001 åˆ†ç±»ç»Ÿè®¡æ ‡ç­¾ä¸Šä¸€é¡µ
+ * 1002 åˆ†ç±»ç»Ÿè®¡æ ‡ç­¾ä¸‹ä¸€é¡µ
+ * 1003 åˆ†ç±»ç»Ÿè®¡ç»“æœä¸Šä¸€é¡µ
+ * 1004 åˆ†ç±»ç»Ÿè®¡ç»“æœä¸Šä¸€é¡µ
+ * 1050 - ? åˆ†ç±»æ ‡ç­¾
+ * 1101 å€Ÿä¹¦ç•Œé¢ä¸Šä¸€é¡µ
+ * 1102 å€Ÿä¹¦ç•Œé¢ä¸‹ä¸€é¡µ
+ * 1103 å€Ÿä¹¦ç•Œé¢æœç´¢
+ * 1150 - ? è¿˜ä¹¦
  */
 
 List* GenBook() {
@@ -211,19 +211,19 @@ void ExitSurface() {
 void AddSubmenuFile() {
   init_lib = CreateButton(
     (Rect) {FileButton->position.left, FileButton->position.left + 150, 70, 110},
-    "ĞÂ½¨", MENU_COLOR, 1, kWhite, 1
+    "æ–°å»º", MENU_COLOR, 1, kWhite, 1
   );
   open_lib = CreateButton(
     (Rect) {FileButton->position.left, FileButton->position.left + 150, 110, 150},
-    "´ò¿ª", MENU_COLOR, 1, kWhite, 2
+    "æ‰“å¼€", MENU_COLOR, 1, kWhite, 2
   );
   save_lib = CreateButton(
     (Rect) {FileButton->position.left, FileButton->position.left + 150, 150, 190},
-    "±£´æ", MENU_COLOR, 1, kWhite, 3
+    "ä¿å­˜", MENU_COLOR, 1, kWhite, 3
   );
   quit = CreateButton(
     (Rect) {FileButton->position.left, FileButton->position.left + 150, 190, 230},
-    "ÍË³ö", MENU_COLOR, 1, kWhite, 4
+    "é€€å‡º", MENU_COLOR, 1, kWhite, 4
   );
   InsertSurface(init_lib, kButton);
   InsertSurface(open_lib, kButton);
@@ -234,11 +234,11 @@ void AddSubmenuFile() {
 void AddSubmenuBook() {
   new_book = CreateButton(
     (Rect) {BookButton->position.left, BookButton->position.left + 150, 70, 110},
-    "ĞÂ½¨", MENU_COLOR, 1, kWhite, 5
+    "æ–°å»º", MENU_COLOR, 1, kWhite, 5
   );
   display_book = CreateButton(
     (Rect) {BookButton->position.left, BookButton->position.left + 150, 110, 150},
-    "ÏÔÊ¾", MENU_COLOR, 1, kWhite, 6
+    "æ˜¾ç¤º", MENU_COLOR, 1, kWhite, 6
   );
   InsertSurface(new_book, kButton);
   InsertSurface(display_book, kButton);
@@ -247,23 +247,23 @@ void AddSubmenuBook() {
 void AddSubmenuUser() {
   login = CreateButton(
     (Rect) {UserButton->position.left, UserButton->position.left + 150, 70, 110},
-    "µÇÂ¼", MENU_COLOR, 1, kWhite, 7
+    "ç™»å½•", MENU_COLOR, 1, kWhite, 7
   );
   new_user = CreateButton(
     (Rect) {UserButton->position.left, UserButton->position.left + 150, 110, 150},
-    "ĞÂ½¨", MENU_COLOR, 1, kWhite, 8
+    "æ–°å»º", MENU_COLOR, 1, kWhite, 8
   );
   varify = CreateButton(
     (Rect) {UserButton->position.left, UserButton->position.left + 150, 150, 190},
-    "ÉóºË", MENU_COLOR, 1, kWhite, 9
+    "å®¡æ ¸", MENU_COLOR, 1, kWhite, 9
   );
   logout = CreateButton(
     (Rect) {UserButton->position.left, UserButton->position.left + 150, 190, 230},
-    "µÇ³ö", MENU_COLOR, 1, kWhite, 10
+    "ç™»å‡º", MENU_COLOR, 1, kWhite, 10
   );
   modify = CreateButton(
     (Rect) {UserButton->position.left, UserButton->position.left + 150, 230, 270},
-    "ĞŞ¸Ä", MENU_COLOR, 1, kWhite, 15
+    "ä¿®æ”¹", MENU_COLOR, 1, kWhite, 15
   );
   InsertSurface(modify, kButton);
   InsertSurface(login, kButton);
@@ -275,11 +275,11 @@ void AddSubmenuUser() {
 void AddSubmenuHelp() {
   about = CreateButton(
     (Rect) {GetWindowWidthPx() - 150, GetWindowWidthPx(), 70, 110},
-    "¹ØÓÚ", MENU_COLOR, 1, kWhite, 11
+    "å…³äº", MENU_COLOR, 1, kWhite, 11
   );
   manual = CreateButton(
     (Rect) {GetWindowWidthPx() - 150, GetWindowWidthPx(), 110, 150},
-    "ÓÃ»§ÊÖ²á", MENU_COLOR, 1, kWhite, 12
+    "ç”¨æˆ·æ‰‹å†Œ", MENU_COLOR, 1, kWhite, 12
   );
   InsertSurface(about, kButton);
   InsertSurface(manual, kButton);
@@ -288,11 +288,11 @@ void AddSubmenuHelp() {
 void AddSubmenuSearch() {
   Button* user_search = CreateButton(
     (Rect) {240, 390, 70, 110},
-    "ÓÃ»§ËÑË÷", MENU_COLOR, 1, kWhite, 13
+    "ç”¨æˆ·æœç´¢", MENU_COLOR, 1, kWhite, 13
   );
   Button* book_search = CreateButton(
     (Rect) {240, 390, 110, 150},
-    "Í¼ÊéËÑË÷", MENU_COLOR, 1, kWhite, 14
+    "å›¾ä¹¦æœç´¢", MENU_COLOR, 1, kWhite, 14
   );
   InsertSurface(user_search, kButton);
   InsertSurface(book_search, kButton);
@@ -330,7 +330,7 @@ void AddHeadBar() {
   // Head bar
   FileButton = CreateLink(
     (Rect) {15, 0, 0, 45},
-    "ÎÄ¼ş", kWhite, FILE_ID
+    "æ–‡ä»¶", kWhite, FILE_ID
   );
   Image* folder_icon = CreateImage(
     (Rect) {FileButton->position.right, FileButton->position.right + 25, 25, 50},
@@ -339,7 +339,7 @@ void AddHeadBar() {
   InsertComp(folder_icon, kImage);
   BookButton = CreateLink(
     (Rect) {folder_icon->position.right + 10, 0, 0, 45},
-    "Í¼Êé", kWhite, BOOK_ID
+    "å›¾ä¹¦", kWhite, BOOK_ID
   );
   Image* book_icon = CreateImage(
     (Rect) {BookButton->position.right, BookButton->position.right + 25, 25, 50},
@@ -348,7 +348,7 @@ void AddHeadBar() {
   InsertComp(book_icon, kImage);
   LendAndBorrowButton = CreateLink(
     (Rect) {book_icon->position.right + 10, 0, 0, 45},
-    "½è»¹", kWhite, LEND_ID
+    "å€Ÿè¿˜", kWhite, LEND_ID
   );
   Image* lend_icon = CreateImage(
     (Rect) {LendAndBorrowButton->position.right, LendAndBorrowButton->position.right + 25, 25, 50},
@@ -357,7 +357,7 @@ void AddHeadBar() {
   InsertComp(lend_icon, kImage);
   UserButton = CreateLink(
     (Rect) {lend_icon->position.right + 10, 0, 0, 45},
-    "ÓÃ»§", kWhite, USER_ID
+    "ç”¨æˆ·", kWhite, USER_ID
   );
   Image* user_icon = CreateImage(
     (Rect) {UserButton->position.right, UserButton->position.right + 25, 25, 50},
@@ -367,7 +367,7 @@ void AddHeadBar() {
   Label *user_id = NULL;
   if (cur_user == NULL || cur_user->id[0] == '\0') {
     user_id = CreateLabel(
-      (Rect){user_icon->position.right + 10, 0, 0, 45}, "Î´µÇÂ¼", kBlack, NULL_ID
+      (Rect){user_icon->position.right + 10, 0, 0, 45}, "æœªç™»å½•", kBlack, NULL_ID
     );
   } else {
     user_id = CreateLabel(
@@ -376,7 +376,7 @@ void AddHeadBar() {
   }
   SearchButton = CreateLink(
     (Rect) {user_id->position.right + 10, 0, 0, 45},
-    "ËÑË÷", kWhite, SEARCH_ID
+    "æœç´¢", kWhite, SEARCH_ID
   );
   Image* search_icon = CreateImage(
     (Rect) {SearchButton->position.right, SearchButton->position.right + 25, 25, 50},
@@ -385,7 +385,7 @@ void AddHeadBar() {
   InsertComp(search_icon, kImage);
   Statistic = CreateLink(
     (Rect) {search_icon->position.right + 10, 0, 0, 45},
-    "Í³¼Æ", kWhite, ST_ID
+    "ç»Ÿè®¡", kWhite, ST_ID
   );
   Image* statistics_icon = CreateImage(
     (Rect) {Statistic->position.right, Statistic->position.right + 25, 25, 50},
@@ -394,11 +394,11 @@ void AddHeadBar() {
   InsertComp(statistics_icon, kImage);
   return_button = CreateButton(
     (Rect) {statistics_icon->position.right + 10, statistics_icon->position.right + 80, 15, 55},
-    "·µ»Ø", "757575", 1, kWhite, RTN_ID
+    "è¿”å›", "757575", 1, kWhite, RTN_ID
   );
   HelpButton = CreateLink(
     (Rect) {GetWindowWidthPx() - 60, 0, 5, 45},
-    "°ïÖú", kWhite, HELP_ID
+    "å¸®åŠ©", kWhite, HELP_ID
   );
   hb_frame = CreateFrame(
     (Rect) {0, GetWindowWidthPx(), 0, 70},
@@ -420,14 +420,14 @@ void AddFooBar() {
   // foo bar
   bottom_output = CreateLabel (
     (Rect) {5, GetWindowWidthPx(), GetWindowHeightPx() - 50, GetWindowHeightPx() - 15},
-    "×´Ì¬À¸Êä³ö£º", kWhite, NULL_ID
+    "çŠ¶æ€æ è¾“å‡ºï¼š", kWhite, NULL_ID
   );
   fb_frame = CreateFrame(
     (Rect) {0, GetWindowWidthPx(), GetWindowHeightPx() - 50, GetWindowHeightPx()},
     "212121", 0.5
   );
   bottom_info = CreateInputBox (
-    (Rect) {TextStringWidth("×´Ì¬À¸Êä³ö£º") + 5, GetWindowWidthPx() - 30, 0, GetWindowHeightPx() - 15},
+    (Rect) {TextStringWidth("çŠ¶æ€æ è¾“å‡ºï¼š") + 5, GetWindowWidthPx() - 30, 0, GetWindowHeightPx() - 15},
     cur_terminal, NULL_ID, 1
   );
   InsertFrame(fb_frame);
@@ -448,27 +448,27 @@ void AddLendAndBorrow() {
   InsertFrame(frame);
   Label *borrow_title = CreateLabel(
     (Rect){left_border, 100, search_button_top, search_button_bottom},
-    "½èÊé£º", kBlack, NULL_ID
+    "å€Ÿä¹¦ï¼š", kBlack, NULL_ID
   );
   InputBox *input_box = CreateInputBox(
-    (Rect){left_border + TextStringWidth("½èÊé£º"),
-           length_input_box + left_border + TextStringWidth("½èÊé£º"),
+    (Rect){left_border + TextStringWidth("å€Ÿä¹¦ï¼š"),
+           length_input_box + left_border + TextStringWidth("å€Ÿä¹¦ï¼š"),
            search_button_top, search_button_bottom},
     "", NULL_ID, 0
   );
   keyword_on_page = input_box->context;
   Button *search_button = CreateButton(
-    (Rect){length_input_box + left_border + TextStringWidth("½èÊé£º") + 10,
-           length_input_box + left_border + TextStringWidth("½èÊé£º") + 80,
+    (Rect){length_input_box + left_border + TextStringWidth("å€Ÿä¹¦ï¼š") + 10,
+           length_input_box + left_border + TextStringWidth("å€Ÿä¹¦ï¼š") + 80,
            search_button_top - 5, search_button_bottom + 10}, 
-    "ËÑË÷", SEARCH_COLOR, 1, kWhite, 1103
+    "æœç´¢", SEARCH_COLOR, 1, kWhite, 1103
   );
   Label *return_title = CreateLabel(
-    (Rect){left_border, 0, 0, 150}, "»¹Êé£º£¨ÓÒ²àÎªµ½ÆÚÊ±¼ä£©", kBlack, NULL_ID
+    (Rect){left_border, 0, 0, 150}, "è¿˜ä¹¦ï¼šï¼ˆå³ä¾§ä¸ºåˆ°æœŸæ—¶é—´ï¼‰", kBlack, NULL_ID
   );
   LendAndBorrow *cur_state = cur_info;
   int count = 1;
-  left_border += TextStringWidth("»¹Êé");
+  left_border += TextStringWidth("è¿˜ä¹¦");
   int cur_y = 150;
   int delta_y = 50;
   for (ListNode* p = cur_state->books_start;
@@ -481,7 +481,7 @@ void AddLendAndBorrow() {
     );
     InsertComp(label, kLabel);
     Link *link = CreateLink(
-      (Rect){right_border - 50, 0, 0, cur_y}, "»¹Êé", kBlack, 1150 + count
+      (Rect){right_border - 50, 0, 0, cur_y}, "è¿˜ä¹¦", kBlack, 1150 + count
     );
     InsertComp(link, kLink);
   }
@@ -499,11 +499,11 @@ void AddLendAndBorrow() {
   }
   Button *pre_page_button = CreateButton(
     (Rect){20, 100, GetWindowHeightPx() - 125, GetWindowHeightPx() - 70},
-    "ÉÏÒ»Ò³", TURN_COLOR, 1, kWhite, 1101
+    "ä¸Šä¸€é¡µ", TURN_COLOR, 1, kWhite, 1101
   );
   Button *next_page_button = CreateButton(
     (Rect){GetWindowWidthPx() - 100, GetWindowWidthPx() - 20, GetWindowHeightPx() - 125, GetWindowHeightPx() - 70},
-    "ÏÂÒ»Ò³", TURN_COLOR, 1, kWhite, 1102
+    "ä¸‹ä¸€é¡µ", TURN_COLOR, 1, kWhite, 1102
   );
   InsertComp(next_page_button, kButton);
   InsertComp(pre_page_button, kButton);
@@ -514,10 +514,10 @@ void AddLendAndBorrow() {
 }
 
 /*
- * 1101 ½èÊé½çÃæÉÏÒ»Ò³
- * 1102 ½èÊé½çÃæÏÂÒ»Ò³
- * 1103 ½èÊé½çÃæËÑË÷
- * 1150 - ? »¹Êé
+ * 1101 å€Ÿä¹¦ç•Œé¢ä¸Šä¸€é¡µ
+ * 1102 å€Ÿä¹¦ç•Œé¢ä¸‹ä¸€é¡µ
+ * 1103 å€Ÿä¹¦ç•Œé¢æœç´¢
+ * 1150 - ? è¿˜ä¹¦
  */
 void HandleLendAndBorrowCallback(int id) {
   LendAndBorrow *cur_state = cur_info;
@@ -541,10 +541,10 @@ void AddBookSearch() {
   BookSearch *book_search = cur_info;
   
   Label *search_title = CreateLabel(
-    (Rect){30, 0, 0, 120}, "ËÑË÷½á¹û£º", kBlack, NULL_ID
+    (Rect){30, 0, 0, 120}, "æœç´¢ç»“æœï¼š", kBlack, NULL_ID
   );
   Label *search_info = CreateLabel(
-    (Rect){30 + TextStringWidth("ËÑË÷½á¹û£º"), 0, 0, 120},
+    (Rect){30 + TextStringWidth("æœç´¢ç»“æœï¼š"), 0, 0, 120},
     book_search->keyword, kBlack, NULL_ID
   );
   InputBox *input_box = CreateInputBox(
@@ -552,7 +552,7 @@ void AddBookSearch() {
   );
   keyword_on_page = input_box->context;
   Button *button = CreateButton(
-    (Rect){400, 500, 120, 160}, "ËÑË÷", SEARCH_COLOR, 1, kBlack, 601
+    (Rect){400, 500, 120, 160}, "æœç´¢", SEARCH_COLOR, 1, kBlack, 601
   );
 
   int left_border = 20;
@@ -592,18 +592,18 @@ void AddBookSearch() {
     );
     InsertComp(author, kLabel);
     Link *borrow = CreateLink(
-      (Rect){right_border - 100, 0, 0, cur_y}, "½èÊé", kBlack, 650 + count
+      (Rect){right_border - 100, 0, 0, cur_y}, "å€Ÿä¹¦", kBlack, 650 + count
     );
     InsertComp(borrow, kLink);
   }
 
   Button *pre_page_button = CreateButton(
     (Rect){left_border, left_border + 80, bottom - 50, bottom},
-    "ÉÏÒ»Ò³", TURN_COLOR, 1, kWhite, 602
+    "ä¸Šä¸€é¡µ", TURN_COLOR, 1, kWhite, 602
   );
   Button *next_page_button = CreateButton(
     (Rect){right_border - 80, right_border, bottom - 50, bottom},
-    "ÏÂÒ»Ò³", TURN_COLOR, 1, kWhite, 603
+    "ä¸‹ä¸€é¡µ", TURN_COLOR, 1, kWhite, 603
   );
   InsertComp(next_page_button, kButton);
   InsertComp(pre_page_button, kButton);
@@ -614,11 +614,11 @@ void AddBookSearch() {
 }
 
 /*
- * 601 Êé¼®ËÑË÷
- * 602 Êé¼®ËÑË÷ÉÏÒ»Ò³
- * 603 Êé¼®ËÑË÷ÏÂÒ»Ò³
- * 651 - ? ½èÊé
- * 671 - ? Í¼ÊéÏêÏ¸ĞÅÏ¢
+ * 601 ä¹¦ç±æœç´¢
+ * 602 ä¹¦ç±æœç´¢ä¸Šä¸€é¡µ
+ * 603 ä¹¦ç±æœç´¢ä¸‹ä¸€é¡µ
+ * 651 - ? å€Ÿä¹¦
+ * 671 - ? å›¾ä¹¦è¯¦ç»†ä¿¡æ¯
  */
 void HandleBookSearchCallback(int id) {
   State cur_state;
@@ -647,10 +647,10 @@ void AddUserSearch() {
   UserSearch *user_search = cur_info;
   
   Label *search_title = CreateLabel(
-    (Rect){30, 0, 0, 120}, "ËÑË÷½á¹û£º", kBlack, NULL_ID
+    (Rect){30, 0, 0, 120}, "æœç´¢ç»“æœï¼š", kBlack, NULL_ID
   );
   Label *search_info = CreateLabel(
-    (Rect){30 + TextStringWidth("ËÑË÷½á¹û£º"), 0, 0, 120},
+    (Rect){30 + TextStringWidth("æœç´¢ç»“æœï¼š"), 0, 0, 120},
     user_search->keyword, kBlack, NULL_ID
   );
   InputBox *input_box = CreateInputBox(
@@ -658,7 +658,7 @@ void AddUserSearch() {
   );
   keyword_on_page = input_box->context;
   Button *button = CreateButton(
-    (Rect){400, 500, 120, 160}, "ËÑË÷", SEARCH_COLOR, 1, kBlack, 101
+    (Rect){400, 500, 120, 160}, "æœç´¢", SEARCH_COLOR, 1, kBlack, 101
   );
 
   int left_border = 20;
@@ -687,10 +687,10 @@ void AddUserSearch() {
       (Rect){name->position.right + 10, 0, 0, cur_y}, user->department, kBlack, NULL_ID
     );
     Label* gender = CreateLabel(
-      (Rect){department->position.right + 10, 0, 0, cur_y}, user->gender == MALE ? "ÄĞ" : "Å®", kBlack, NULL_ID
+      (Rect){department->position.right + 10, 0, 0, cur_y}, user->gender == MALE ? "ç”·" : "å¥³", kBlack, NULL_ID
     );
     Link* more_info = CreateLink(
-      (Rect){right_border - TextStringWidth("ÏêÏ¸ĞÅÏ¢") - 10, 0, 0, cur_y}, "ÏêÏ¸ĞÅÏ¢", kBlack, 150 + count
+      (Rect){right_border - TextStringWidth("è¯¦ç»†ä¿¡æ¯") - 10, 0, 0, cur_y}, "è¯¦ç»†ä¿¡æ¯", kBlack, 150 + count
     );
     InsertComp(more_info, kLink);
     InsertComp(gender, kLabel);
@@ -700,11 +700,11 @@ void AddUserSearch() {
 
   Button *pre_page_button = CreateButton(
     (Rect){left_border, left_border + 80, bottom - 50, bottom},
-    "ÉÏÒ»Ò³", TURN_COLOR, 1, kWhite, 102
+    "ä¸Šä¸€é¡µ", TURN_COLOR, 1, kWhite, 102
   );
   Button *next_page_button = CreateButton(
     (Rect){right_border - 80, right_border, bottom - 50, bottom},
-    "ÏÂÒ»Ò³", TURN_COLOR, 1, kWhite, 103
+    "ä¸‹ä¸€é¡µ", TURN_COLOR, 1, kWhite, 103
   );
   InsertComp(next_page_button, kButton);
   InsertComp(pre_page_button, kButton);
@@ -715,10 +715,10 @@ void AddUserSearch() {
 }
 
 /*
- * 101 ÓÃ»§ËÑË÷
- * 102 ÓÃ»§ËÑË÷ÉÏÒ»Ò³
- * 103 ÓÃ»§ËÑË÷ÏÂÒ»Ò³
- * 151 - ? ÓÃ»§ÏêÏ¸ĞÅÏ¢
+ * 101 ç”¨æˆ·æœç´¢
+ * 102 ç”¨æˆ·æœç´¢ä¸Šä¸€é¡µ
+ * 103 ç”¨æˆ·æœç´¢ä¸‹ä¸€é¡µ
+ * 151 - ? ç”¨æˆ·è¯¦ç»†ä¿¡æ¯
  */
 void HandleUserSearchCallback(int id){
   State cur_state;
@@ -748,52 +748,52 @@ void AddUserRegister() {
   );
   InsertFrame(center_frame);
   Label *register_title = CreateLabel(
-    (Rect){pos_x + 5, 0, 0, pos_y + 25}, "ÓÃ»§×¢²á£º", kBlack, NULL_ID
+    (Rect){pos_x + 5, 0, 0, pos_y + 25}, "ç”¨æˆ·æ³¨å†Œï¼š", kBlack, NULL_ID
   );
   Label *id_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 70}, "ÓÃ»§ºÅ£º", kBlack, NULL_ID
+    (Rect){pos_x + 15, 0, 0, pos_y + 70}, "ç”¨æˆ·å·ï¼š", kBlack, NULL_ID
   );
   InputBox* id_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 70}, "", NULL_ID, 0
   );
   id_on_page = id_input->context;
   Label *first_pw_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 130}, "ÃÜÂë£º", kBlack, NULL_ID
+    (Rect){pos_x + 15, 0, 0, pos_y + 130}, "å¯†ç ï¼š", kBlack, NULL_ID
   );
   InputBox* first_pw_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 130}, "", NULL_ID, 0
   );
   pwd_on_page = first_pw_input->context;
   Label *second_pw_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 190}, "ÖØ¸´ÃÜÂë£º", kBlack, NULL_ID
+    (Rect){pos_x + 15, 0, 0, pos_y + 190}, "é‡å¤å¯†ç ï¼š", kBlack, NULL_ID
   );
   InputBox* second_pw_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 190}, "", NULL_ID, 0
   );
   rep_pwd_on_page = second_pw_input->context;
   Label *dpt_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 250}, "²¿ÃÅ£º", kBlack, NULL_ID
+    (Rect){pos_x + 15, 0, 0, pos_y + 250}, "éƒ¨é—¨ï¼š", kBlack, NULL_ID
   );
   InputBox* dpt_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 250}, "", NULL_ID, 0
   );
   dpt_on_page = dpt_input->context;
   Label *sex_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 310}, "ĞÔ±ğ£¨M/F£©", kBlack, NULL_ID
+    (Rect){pos_x + 15, 0, 0, pos_y + 310}, "æ€§åˆ«ï¼ˆM/Fï¼‰", kBlack, NULL_ID
   );
   InputBox* sex_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 310}, "", NULL_ID, 0
   );
   gender_on_page = sex_input->context;
   Label *admin_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 370}, "ÊÇ·ñÉêÇë¹ÜÀíÔ±ÕËºÅ£¿(Y/N)", kBlack, NULL_ID
+    (Rect){pos_x + 15, 0, 0, pos_y + 370}, "æ˜¯å¦ç”³è¯·ç®¡ç†å‘˜è´¦å·ï¼Ÿ(Y/N)", kBlack, NULL_ID
   );
   InputBox* admin_input = CreateInputBox(
     (Rect){pos_x + 250, pos_x + 350, 0, pos_y + 370}, "", NULL_ID, 0
   );
   whoami_on_page = admin_input->context;
   Button* confirm_button = CreateButton(
-    (Rect){pos_x + 100, pos_x + 300, pos_y + 400, pos_y + 470}, "È·ÈÏ",
+    (Rect){pos_x + 100, pos_x + 300, pos_y + 400, pos_y + 470}, "ç¡®è®¤",
     CONFIRM_COLOR, 1, kBlack, 201
   );
   InsertComp(confirm_button, kButton);
@@ -824,13 +824,13 @@ void HandleUserRegisterCallback(int id) {
     if (strcmp(gender_on_page, "F") == 0) {
       cur_state.login_or_register->user->gender = FEMALE;
     } else {
-      // ²»ºÏ·¨ĞÔ±ğÄ¬ÈÏÎªÄĞĞÔ
+      // ä¸åˆæ³•æ€§åˆ«é»˜è®¤ä¸ºç”·æ€§
       cur_state.login_or_register->user->gender = MALE;
     }
     if (strcmp(whoami_on_page, "Y") == 0) {
       cur_state.login_or_register->user->whoami = ADMINISTRATOR;
     } else {
-      // ²»ºÏ·¨Ä¬ÈÏ²»ÉêÇë
+      // ä¸åˆæ³•é»˜è®¤ä¸ç”³è¯·
       cur_state.login_or_register->user->whoami = NORMAL_USER;
     }
     cur_state.login_or_register->login_callback();
@@ -847,24 +847,24 @@ void AddUserLogIn() {
   );
   InsertFrame(center_frame);
   Label *register_title = CreateLabel(
-    (Rect){pos_x + 5, 0, 0, pos_y + 25}, "ÓÃ»§µÇÂ½£º", kBlack, NULL_ID
+    (Rect){pos_x + 5, 0, 0, pos_y + 25}, "ç”¨æˆ·ç™»é™†ï¼š", kBlack, NULL_ID
   );
   Label *id_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 70}, "ÓÃ»§ºÅ£º", kBlack, NULL_ID
+    (Rect){pos_x + 15, 0, 0, pos_y + 70}, "ç”¨æˆ·å·ï¼š", kBlack, NULL_ID
   );
   InputBox* id_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 70}, "", NULL_ID, 0
   );
   id_on_page = id_input->context;
   Label *first_pw_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 130}, "ÃÜÂë£º", kBlack, NULL_ID
+    (Rect){pos_x + 15, 0, 0, pos_y + 130}, "å¯†ç ï¼š", kBlack, NULL_ID
   );
   InputBox* first_pw_input = CreateInputBox(
     (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 130}, "", NULL_ID, 0
   );
   pwd_on_page = first_pw_input->context;
   Button* confirm_button = CreateButton(
-    (Rect){pos_x + 100, pos_x + 300, pos_y + 160, pos_y + 220}, "µÇÂ¼",
+    (Rect){pos_x + 100, pos_x + 300, pos_y + 160, pos_y + 220}, "ç™»å½•",
     CONFIRM_COLOR, 1, kBlack, 401
   );
   InsertComp(confirm_button, kButton);
@@ -911,59 +911,59 @@ void AddUserModify() {
   int cur_y = top;
   int delta_y = (bottom - top - 100) / 8;
   Label *register_title = CreateLabel(
-    (Rect){left_x, 0, 0, cur_y += delta_y}, "ÓÃ»§ĞŞ¸Ä£º", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "ç”¨æˆ·ä¿®æ”¹ï¼š", kBlack, NULL_ID
   );
   Label *id_label = CreateLabel(
     (Rect){left_x , 0, 0, cur_y += delta_y},
-    "ÓÃ»§ºÅ£º", kBlack, NULL_ID
+    "ç”¨æˆ·å·ï¼š", kBlack, NULL_ID
   );
   InputBox* id_input = CreateInputBox(
-    (Rect){left_x + TextStringWidth("ÓÃ»§ºÅ£º"), middle - 20, 0, cur_y},
+    (Rect){left_x + TextStringWidth("ç”¨æˆ·å·ï¼š"), middle - 20, 0, cur_y},
     user->id, NULL_ID, 0
   );
   id_on_page = id_input->context;
   Label *first_pw_label = CreateLabel(
-    (Rect){left_x, 0, 0, cur_y += delta_y}, "Ô­ÃÜÂë£º", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "åŸå¯†ç ï¼š", kBlack, NULL_ID
   );
   InputBox* first_pw_input = CreateInputBox(
-    (Rect){left_x + TextStringWidth("Ô­ÃÜÂë£º"), middle - 20, 0, cur_y},
+    (Rect){left_x + TextStringWidth("åŸå¯†ç ï¼š"), middle - 20, 0, cur_y},
     "", NULL_ID, 0
   );
   old_pwd_on_page = first_pw_input->context;
   Label *second_pw_label = CreateLabel(
-    (Rect){left_x, 0, 0, cur_y += delta_y}, "ĞÂÃÜÂë£º", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "æ–°å¯†ç ï¼š", kBlack, NULL_ID
   );
   InputBox* second_pw_input = CreateInputBox(
-    (Rect){left_x + TextStringWidth("ĞÂÃÜÂë£º"), middle - 20, 0, cur_y},
+    (Rect){left_x + TextStringWidth("æ–°å¯†ç ï¼š"), middle - 20, 0, cur_y},
     "", NULL_ID, 0
   );
   pwd_on_page = second_pw_input->context;
   Label *dpt_label = CreateLabel(
-    (Rect){left_x, 0, 0, cur_y += delta_y}, "ÖØ¸´ĞÂÃÜÂë£º", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "é‡å¤æ–°å¯†ç ï¼š", kBlack, NULL_ID
   );
   InputBox* dpt_input = CreateInputBox(
-    (Rect){left_x + TextStringWidth("ÖØ¸´ĞÂÃÜÂë£º"), middle - 20, 0, cur_y},
+    (Rect){left_x + TextStringWidth("é‡å¤æ–°å¯†ç ï¼š"), middle - 20, 0, cur_y},
     "", NULL_ID, 0
   );
   rep_pwd_on_page = dpt_input->context;
   Label *sex_label = CreateLabel(
-    (Rect){left_x, 0, 0, cur_y += delta_y}, "ĞÔ±ğ£¨M/F£©£º£¨ÕæµÄÒª¸ÄÂğ£©",kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "æ€§åˆ«ï¼ˆM/Fï¼‰ï¼šï¼ˆçœŸçš„è¦æ”¹å—ï¼‰",kBlack, NULL_ID
   );
   InputBox* sex_input = CreateInputBox(
-    (Rect){left_x + TextStringWidth("ĞÔ±ğ£¨M/F£©£º£¨ÕæµÄÒª¸ÄÂğ£©"), middle - 20, 0, cur_y},
+    (Rect){left_x + TextStringWidth("æ€§åˆ«ï¼ˆM/Fï¼‰ï¼šï¼ˆçœŸçš„è¦æ”¹å—ï¼‰"), middle - 20, 0, cur_y},
     user->gender == MALE ? "M" : "F", NULL_ID, 0
   );
   gender_on_page = sex_input->context;
   Label *admin_label = CreateLabel(
-    (Rect){left_x, 0, 0, cur_y += delta_y}, "²¿ÃÅ£º", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "éƒ¨é—¨ï¼š", kBlack, NULL_ID
   );
   InputBox* admin_input = CreateInputBox(
-    (Rect){left_x + TextStringWidth("²¿ÃÅ£º"), middle - 20, 0, cur_y},
+    (Rect){left_x + TextStringWidth("éƒ¨é—¨ï¼š"), middle - 20, 0, cur_y},
     user->department, NULL_ID, 0
   );
   dpt_on_page = admin_input->context;
   Button* confirm_button = CreateButton(
-    (Rect){left_border, middle - 10, bottom - 50, bottom}, "È·ÈÏ",
+    (Rect){left_border, middle - 10, bottom - 50, bottom}, "ç¡®è®¤",
     CONFIRM_COLOR, 1, kBlack, 301
   );
 
@@ -972,7 +972,7 @@ void AddUserModify() {
   int right_x = middle + 20;
 
   Label* borrow_title = CreateLabel(
-    (Rect){right_x, 0, 0, cur_y += delta_y}, "½è»¹Êé¼ÇÂ¼", kBlack, NULL_ID
+    (Rect){right_x, 0, 0, cur_y += delta_y}, "å€Ÿè¿˜ä¹¦è®°å½•", kBlack, NULL_ID
   );
   InsertComp(borrow_title, kLabel);
 
@@ -986,7 +986,7 @@ void AddUserModify() {
     );
     Label* info_1 = CreateLabel(
       (Rect){user_id->position.right + 10, 0, 0, cur_y},
-      "ÔÚ", kBlack, NULL_ID
+      "åœ¨", kBlack, NULL_ID
     );
     Label* borrow_time = CreateLabel(
       (Rect){info_1->position.right + 10, 0, 0, cur_y},
@@ -994,7 +994,7 @@ void AddUserModify() {
     );
     Label* info_2 = CreateLabel(
       (Rect){borrow_time->position.right + 10, 0, 0, cur_y},
-      borrow_record->book_status == BORROWED ? "½è³ö£¬Ó¦ÓÚ" : "½è³ö£¬ÓÚ",
+      borrow_record->book_status == BORROWED ? "å€Ÿå‡ºï¼Œåº”äº" : "å€Ÿå‡ºï¼Œäº",
       kBlack, NULL_ID
     );
     Label* return_time = CreateLabel(
@@ -1003,7 +1003,7 @@ void AddUserModify() {
     );
     Label *info_3 = CreateLabel (
       (Rect){return_time->position.right + 10, 0, 0, cur_y},
-      "¹é»¹", kBlack, NULL_ID
+      "å½’è¿˜", kBlack, NULL_ID
     );
     InsertComp(user_id, kLabel);
     InsertComp(info_1, kLabel);
@@ -1014,11 +1014,11 @@ void AddUserModify() {
   }
   Button* pre_page_button = CreateButton(
     (Rect){middle + 10, middle + 90, bottom - 50, bottom},
-    "ÉÏÒ»Ò³", SEARCH_COLOR, 1, kWhite, 302
+    "ä¸Šä¸€é¡µ", SEARCH_COLOR, 1, kWhite, 302
   );
   Button* next_page_button = CreateButton(
     (Rect){right_border - 80, right_border, bottom - 50, bottom},
-    "ÏÂÒ»Ò³", SEARCH_COLOR, 1, kWhite, 303
+    "ä¸‹ä¸€é¡µ", SEARCH_COLOR, 1, kWhite, 303
   );
 
   InsertComp(next_page_button, kButton);
@@ -1040,9 +1040,9 @@ void AddUserModify() {
 }
 
 /*
- * 301 ÓÃ»§ĞŞ¸ÄÈ·ÈÏ
- * 302 ÉÏÒ»Ò³
- * 303 ÏÂÒ»Ò³
+ * 301 ç”¨æˆ·ä¿®æ”¹ç¡®è®¤
+ * 302 ä¸Šä¸€é¡µ
+ * 303 ä¸‹ä¸€é¡µ
  */
 void HandleUserModifyCallback(int id) {
   State cur_state;
@@ -1059,7 +1059,7 @@ void HandleUserModifyCallback(int id) {
     }
     else {
       cur_state.user_modify->user->gender = MALE;
-      // ²»ºÏ·¨ĞÔ±ğÄ¬ÈÏÎªÄĞĞÔ
+      // ä¸åˆæ³•æ€§åˆ«é»˜è®¤ä¸ºç”·æ€§
     }
     cur_state.user_modify->confirm_callback();
     break;
@@ -1094,11 +1094,11 @@ void AddUserManagement() {
   InsertFrame(left_frame);
   InsertFrame(right_frame);
   Label* to_be_varified_label = CreateLabel(
-    (Rect){left_x, 0, 0, left_cur_y += delta_y}, "´ıÉóºËÓÃ»§£º", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, left_cur_y += delta_y}, "å¾…å®¡æ ¸ç”¨æˆ·ï¼š", kBlack, NULL_ID
   );
 
   Label* user_list_label = CreateLabel(
-    (Rect){right_x, 0, 0, right_cur_y += delta_y}, "ÒÑ´æÔÚÓÃ»§£º", kBlack, NULL_ID
+    (Rect){right_x, 0, 0, right_cur_y += delta_y}, "å·²å­˜åœ¨ç”¨æˆ·ï¼š", kBlack, NULL_ID
   );
 
   int count = 1;
@@ -1118,16 +1118,16 @@ void AddUserManagement() {
     InsertComp(dpt, kLabel);
     if (user->whoami == ADMINISTRATOR) {
       Label* whoami = CreateLabel(
-        (Rect){dpt->position.right + 10, 0, 0, left_cur_y}, "ÉêÇë¹ÜÀíÔ±", kBlack, NULL_ID
+        (Rect){dpt->position.right + 10, 0, 0, left_cur_y}, "ç”³è¯·ç®¡ç†å‘˜", kBlack, NULL_ID
       );
       InsertComp(whoami, kLabel);
     }
     Link *reject = CreateLink(
-      (Rect){middle - 10 - TextStringWidth("¾Ü¾ø") - 10, 0, 0, left_cur_y}, "¾Ü¾ø", kBlack, 740 + 2 * count
+      (Rect){middle - 10 - TextStringWidth("æ‹’ç»") - 10, 0, 0, left_cur_y}, "æ‹’ç»", kBlack, 740 + 2 * count
     );
     Link *approve = CreateLink(
-      (Rect){reject->position.left - 10 - TextStringWidth("Í¨¹ı"), 0, 0, left_cur_y},
-      "Í¨¹ı", kBlack, 740 + 2 * count - 1
+      (Rect){reject->position.left - 10 - TextStringWidth("é€šè¿‡"), 0, 0, left_cur_y},
+      "é€šè¿‡", kBlack, 740 + 2 * count - 1
     );
     InsertComp(approve, kLink);
     InsertComp(reject, kLink);
@@ -1145,26 +1145,26 @@ void AddUserManagement() {
     );
     InsertComp(label, kLabel);
     Link *delete_button = CreateLink(
-      (Rect){right_border - 10 - TextStringWidth("É¾³ı") - 10, 0, 0, right_cur_y}, "É¾³ı", kBlack, 770 + count
+      (Rect){right_border - 10 - TextStringWidth("åˆ é™¤") - 10, 0, 0, right_cur_y}, "åˆ é™¤", kBlack, 770 + count
     );
     InsertComp(delete_button, kLink);
   }
   
   Button *pre_page_left_button = CreateButton(
     (Rect){left_border, left_border + 80, bottom - 50, bottom},
-    "ÉÏÒ»Ò³", TURN_COLOR, 1, kWhite, 701
+    "ä¸Šä¸€é¡µ", TURN_COLOR, 1, kWhite, 701
   );
   Button *next_page_left_button = CreateButton(
     (Rect){middle - 90, middle - 10, bottom - 50, bottom},
-    "ÏÂÒ»Ò³", TURN_COLOR, 1, kWhite, 702
+    "ä¸‹ä¸€é¡µ", TURN_COLOR, 1, kWhite, 702
   );
   Button *pre_page_right_button = CreateButton(
     (Rect){middle + 10, middle + 90, bottom - 50, bottom},
-    "ÉÏÒ»Ò³", TURN_COLOR, 1, kWhite, 703
+    "ä¸Šä¸€é¡µ", TURN_COLOR, 1, kWhite, 703
   );
   Button *next_page_right_button = CreateButton(
     (Rect){right_border - 80, right_border, bottom - 50, bottom},
-    "ÏÂÒ»Ò³", TURN_COLOR, 1, kWhite, 704
+    "ä¸‹ä¸€é¡µ", TURN_COLOR, 1, kWhite, 704
   );
   InsertComp(next_page_right_button, kButton);
   InsertComp(pre_page_right_button, kButton);
@@ -1175,12 +1175,12 @@ void AddUserManagement() {
 }
 
 /*
- * 701 ÓÃ»§¹ÜÀí - Î´ÉóºËÉÏÒ»Ò³
- * 702 ÓÃ»§¹ÜÀí - Î´ÉóºËÏÂÒ»Ò³
- * 703 ÓÃ»§¹ÜÀí - ÒÑ´æÔÚÉÏÒ»Ò³
- * 704 ÓÃ»§¹ÜÀí - ÒÑ´æÔÚÏÂÒ»Ò³
- * 740 - ? ÓÃ»§¹ÜÀí-Í¬Òâ£¨ÆæÊı£©/¾Ü¾ø£¨Å¼Êı£©µÚk¸öÉêÇë
- * 770 - £¿ÓÃ»§¹ÜÀí-É¾³ıµÚk
+ * 701 ç”¨æˆ·ç®¡ç† - æœªå®¡æ ¸ä¸Šä¸€é¡µ
+ * 702 ç”¨æˆ·ç®¡ç† - æœªå®¡æ ¸ä¸‹ä¸€é¡µ
+ * 703 ç”¨æˆ·ç®¡ç† - å·²å­˜åœ¨ä¸Šä¸€é¡µ
+ * 704 ç”¨æˆ·ç®¡ç† - å·²å­˜åœ¨ä¸‹ä¸€é¡µ
+ * 740 - ? ç”¨æˆ·ç®¡ç†-åŒæ„ï¼ˆå¥‡æ•°ï¼‰/æ‹’ç»ï¼ˆå¶æ•°ï¼‰ç¬¬kä¸ªç”³è¯·
+ * 770 - ï¼Ÿç”¨æˆ·ç®¡ç†-åˆ é™¤ç¬¬k
  */
 void HandleUserManagementCallback(int id) {
   State cur_state;
@@ -1227,27 +1227,27 @@ void AddLibrary() {
   int cur_x = 20; // for the head line
   int width_button = 100;
   Label* title = CreateLabel(
-    (Rect){cur_x, 0, 0, cur_y}, "µ±Ç°Í¼Êé¿âÍ¼Êé£º", kBlack, NULL_ID
+    (Rect){cur_x, 0, 0, cur_y}, "å½“å‰å›¾ä¹¦åº“å›¾ä¹¦ï¼š", kBlack, NULL_ID
   );
   Button* sort_by_id = CreateButton(
-    (Rect){cur_x += TextStringWidth("µ±Ç°Í¼Êé¿âÍ¼Êé£º"), cur_x + 100, 80, 125}, "°´IDÅÅĞò", SEARCH_COLOR, 1,
+    (Rect){cur_x += TextStringWidth("å½“å‰å›¾ä¹¦åº“å›¾ä¹¦ï¼š"), cur_x + 100, 80, 125}, "æŒ‰IDæ’åº", SEARCH_COLOR, 1,
     kWhite, 501
   );
   Button* sort_by_title = CreateButton(
-    (Rect){cur_x += 110, cur_x + 100, 80, 125}, "°´±êÌâÅÅĞò", SEARCH_COLOR, 1,
+    (Rect){cur_x += 110, cur_x + 100, 80, 125}, "æŒ‰æ ‡é¢˜æ’åº", SEARCH_COLOR, 1,
     kWhite, 502
   );
   Button* sort_by_author = CreateButton(
-    (Rect){cur_x += 110, cur_x + 100, 80, 125}, "°´×÷ÕßÅÅĞò", SEARCH_COLOR, 1,
+    (Rect){cur_x += 110, cur_x + 100, 80, 125}, "æŒ‰ä½œè€…æ’åº", SEARCH_COLOR, 1,
     kWhite, 503
   );
   Button *pre_page_button = CreateButton(
     (Rect){left_border, left_border + 80, bottom - 50, bottom},
-    "ÉÏÒ»Ò³", TURN_COLOR, 1, kWhite, 504
+    "ä¸Šä¸€é¡µ", TURN_COLOR, 1, kWhite, 504
   );
   Button *next_page_button = CreateButton(
     (Rect){right_border - 80, right_border, bottom - 50, bottom},
-    "ÏÂÒ»Ò³", TURN_COLOR, 1, kWhite, 505
+    "ä¸‹ä¸€é¡µ", TURN_COLOR, 1, kWhite, 505
   );
   int count = 1;
   cur_y = top;
@@ -1267,7 +1267,7 @@ void AddLibrary() {
       (Rect){id_label->position.right + 10, 0, 0, cur_y}, book->authors[0], kBlack, NULL_ID
     );
     Link *more_info = CreateLink(
-      (Rect){right_border - TextStringWidth("ÏêÏ¸ĞÅÏ¢") -10, 0, 0, cur_y}, "ÏêÏ¸ĞÅÏ¢", kBlack, 550 + count
+      (Rect){right_border - TextStringWidth("è¯¦ç»†ä¿¡æ¯") -10, 0, 0, cur_y}, "è¯¦ç»†ä¿¡æ¯", kBlack, 550 + count
     );
     InsertComp(more_info, kLink);
     InsertComp(author1, kLabel);
@@ -1283,12 +1283,12 @@ void AddLibrary() {
 }
 
 /*
- * 501 °´ÕÕIDÅÅĞò
- * 502 °´ÕÕtitleÅÅĞò
- * 503 °´ÕÕauthorÅÅĞò
- * 504 ÏÔÊ¾ÉÏÒ»Ò³Êé¿â
- * 505 ÏÔÊ¾ÏÂÒ»Ò³Êé¿â
- * 551 - ? Êé¼®ÏêÏ¸ĞÅÏ¢
+ * 501 æŒ‰ç…§IDæ’åº
+ * 502 æŒ‰ç…§titleæ’åº
+ * 503 æŒ‰ç…§authoræ’åº
+ * 504 æ˜¾ç¤ºä¸Šä¸€é¡µä¹¦åº“
+ * 505 æ˜¾ç¤ºä¸‹ä¸€é¡µä¹¦åº“
+ * 551 - ? ä¹¦ç±è¯¦ç»†ä¿¡æ¯
  */
 void HandleLibraryCallback(int id) {
   State cur_state;
@@ -1350,101 +1350,101 @@ void AddBookDisplay() {
   int cur_y = top;
   int delta_y = (bottom - top) / 16;
   Label* title = CreateLabel(
-    (Rect){left_border, 0, 0, top - 5}, "Í¼ÊéĞÅÏ¢", kBlack, NULL_ID
+    (Rect){left_border, 0, 0, top - 5}, "å›¾ä¹¦ä¿¡æ¯", kBlack, NULL_ID
   );
   Label* book_id_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += GetFontHeight()}, "ÊéºÅ£º", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += GetFontHeight()}, "ä¹¦å·ï¼š", kBlack, NULL_ID
   );
   Label* book_id_context = CreateLabel(
-    (Rect){info_x + TextStringWidth("ÊéºÅ£º"), 0, 0, cur_y},
+    (Rect){info_x + TextStringWidth("ä¹¦å·ï¼š"), 0, 0, cur_y},
     book_display->book->id, kBlack, NULL_ID
   );
   book_id_on_page = book_id_context->caption;
   Label* book_name_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "ÊéÃû£º", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "ä¹¦åï¼š", kBlack, NULL_ID
   );
   Label* book_name_context = CreateLabel(
-    (Rect){info_x + TextStringWidth("ÊéÃû£º"), 0, 0, cur_y},
+    (Rect){info_x + TextStringWidth("ä¹¦åï¼š"), 0, 0, cur_y},
     book_display->book->title, kBlack, NULL_ID
   );
   book_name_on_page = book_name_context->caption;
   Label* author_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "×÷Õß£º", kBlack, NULL_ID 
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "ä½œè€…ï¼š", kBlack, NULL_ID 
   );
   Label* author_context[3];
   cur_y -= delta_y;
   for (int i = 0; i < 3; i++) {
     author_context[i] = CreateLabel(
-      (Rect){info_x + TextStringWidth("×÷Õß£º"), 0, 0, cur_y += delta_y},
+      (Rect){info_x + TextStringWidth("ä½œè€…ï¼š"), 0, 0, cur_y += delta_y},
       book_display->book->authors[i], kBlack, NULL_ID
     );
     InsertComp(author_context[i], kLabel);
     book_authors_on_page[i] = author_context[i]->caption;
   }
   Label* press_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "³ö°æÉç£º", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "å‡ºç‰ˆç¤¾ï¼š", kBlack, NULL_ID
   );
   Label* press_context = CreateLabel(
-    (Rect){info_x + TextStringWidth("³ö°æÉç£º"), 0, 0, cur_y},
+    (Rect){info_x + TextStringWidth("å‡ºç‰ˆç¤¾ï¼š"), 0, 0, cur_y},
     book_display->book->press, kBlack, NULL_ID
   );
   book_press_on_page = press_context->caption;
   Label *public_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "³ö°æÈÕÆÚ£º", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "å‡ºç‰ˆæ—¥æœŸï¼š", kBlack, NULL_ID
   );
   Label *public_context = CreateLabel(
-    (Rect){info_x + TextStringWidth("³ö°æÈÕÆÚ£º"), 0, 0, cur_y},
+    (Rect){info_x + TextStringWidth("å‡ºç‰ˆæ—¥æœŸï¼š"), 0, 0, cur_y},
     book_display->book->publication_date, kBlack, NULL_ID
   ); 
   book_public_date_on_page = public_context->caption;
   Label* keyword_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "¹Ø¼ü´Ê£º", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "å…³é”®è¯ï¼š", kBlack, NULL_ID
   );
   Label* keyword_context[5];
   cur_y -= delta_y;
   for (int i = 0; i < 5; i++) {
     keyword_context[i] = CreateLabel(
-      (Rect){info_x + TextStringWidth("¹Ø¼ü´Ê£º"), 0, 0, cur_y += delta_y},
+      (Rect){info_x + TextStringWidth("å…³é”®è¯ï¼š"), 0, 0, cur_y += delta_y},
       book_display->book->keywords[i], kBlack, NULL_ID
     );
     InsertComp(keyword_context[i], kLabel);
     book_keywords_on_page[i] = keyword_context[i]->caption;
   }
   Label *catagory_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "·ÖÀà£º", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "åˆ†ç±»ï¼š", kBlack, NULL_ID
   );
   Label *catagory_context = CreateLabel(
-    (Rect){info_x + TextStringWidth("·ÖÀà£º"), 0, 0, cur_y},
+    (Rect){info_x + TextStringWidth("åˆ†ç±»ï¼š"), 0, 0, cur_y},
     book_display->book->category, kBlack, NULL_ID
   );
   catagory_on_page = catagory_context->caption;
   // Days to borrow
   Book* book = book_display->book;
   Label* days_to_borrow_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "¿É½èÔÄÌìÊı£º", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "å¯å€Ÿé˜…å¤©æ•°ï¼š", kBlack, NULL_ID
   );
   char borrowed_days[50];
   sprintf(borrowed_days, "%d", book->available_borrowed_days);
   Label *days_to_borrow_info = CreateLabel(
-    (Rect){info_x + TextStringWidth("¿É½èÔÄÌìÊı£º"), right_border - 10, 0, cur_y},
+    (Rect){info_x + TextStringWidth("å¯å€Ÿé˜…å¤©æ•°ï¼š"), right_border - 10, 0, cur_y},
     borrowed_days, kBlack, NULL_ID
   );
   days_to_borrow_on_page = days_to_borrow_info->caption;
 
   // Books on shelf
   Label *books_on_shelf_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "ÔÚ¼ÜÊı£º", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "åœ¨æ¶æ•°ï¼š", kBlack, NULL_ID
   );
   char number_on_the_shelf[50];
   sprintf(number_on_the_shelf, "%d", book->number_on_the_shelf);
   Label *books_on_shelf_info = CreateLabel(
-    (Rect){info_x + TextStringWidth("ÔÚ¼ÜÊı£º"), right_border - 10, 0, cur_y},
+    (Rect){info_x + TextStringWidth("åœ¨æ¶æ•°ï¼š"), right_border - 10, 0, cur_y},
     number_on_the_shelf, kBlack, NULL_ID
   );
   number_of_books_on_page = books_on_shelf_info->caption;
   Button *borrow_button = CreateButton(
     (Rect){left_border, left_border + 80, bottom, bottom + 50},
-    "½èÊé", SEARCH_COLOR, 1, kWhite, 804
+    "å€Ÿä¹¦", SEARCH_COLOR, 1, kWhite, 804
   );
   InsertComp(days_to_borrow_label, kLabel);
   InsertComp(days_to_borrow_info, kLabel);
@@ -1511,42 +1511,42 @@ void AddBookModify() {
   Label* title;
   if (cur_page == kBookInit) {
     title = CreateLabel(
-      (Rect){left_border, 0, 0, top - 10}, "Í¼ÊéĞÂ½¨£º", kBlack, NULL_ID
+      (Rect){left_border, 0, 0, top - 10}, "å›¾ä¹¦æ–°å»ºï¼š", kBlack, NULL_ID
     );
   } else {
     title = CreateLabel(
-      (Rect){left_border, 0, 0, top - 10}, "Í¼ÊéĞŞ¸Ä£º", kBlack, NULL_ID
+      (Rect){left_border, 0, 0, top - 10}, "å›¾ä¹¦ä¿®æ”¹ï¼š", kBlack, NULL_ID
     );
   }
 
   // Id
   Label* book_id_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "ÊéºÅ£º", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "ä¹¦å·ï¼š", kBlack, NULL_ID
   );
   InputBox* book_id_context = CreateInputBox(
-    (Rect){info_x + TextStringWidth("ÊéºÅ£º"), right_border - 10, 0, cur_y},
+    (Rect){info_x + TextStringWidth("ä¹¦å·ï¼š"), right_border - 10, 0, cur_y},
     book->id, NULL_ID, 0
   );
   book_id_on_page = book_id_context->context;
   
   // Title
   Label* book_name_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "ÊéÃû£º", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "ä¹¦åï¼š", kBlack, NULL_ID
   );
   InputBox* book_name_context = CreateInputBox(
-    (Rect){info_x + TextStringWidth("ÊéÃû£º"), right_border - 10, 0, cur_y},
+    (Rect){info_x + TextStringWidth("ä¹¦åï¼š"), right_border - 10, 0, cur_y},
     book->title, NULL_ID, 0
   );
   book_name_on_page = book_name_context->context;
   
   // Authors
   Label* author_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "×÷Õß£º£¨×î¶àÈıÈË£©", kBlack, NULL_ID 
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "ä½œè€…ï¼šï¼ˆæœ€å¤šä¸‰äººï¼‰", kBlack, NULL_ID 
   );
   InputBox* author_context[3];
   for (int i = 0; i < 3; i++) {
     author_context[i] = CreateInputBox(
-      (Rect){info_x + TextStringWidth("×÷Õß£º"), right_border - 10, 0, cur_y += delta_y},
+      (Rect){info_x + TextStringWidth("ä½œè€…ï¼š"), right_border - 10, 0, cur_y += delta_y},
       book->authors[i], NULL_ID, 0
     );
     book_authors_on_page[i] = author_context[i]->context;
@@ -1555,32 +1555,32 @@ void AddBookModify() {
 
   // Press
   Label* press_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "³ö°æÉç£º", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "å‡ºç‰ˆç¤¾ï¼š", kBlack, NULL_ID
   );
   InputBox* press_context = CreateInputBox(
-    (Rect){info_x + TextStringWidth("³ö°æÉç£º"), right_border - 10, 0, cur_y},
+    (Rect){info_x + TextStringWidth("å‡ºç‰ˆç¤¾ï¼š"), right_border - 10, 0, cur_y},
     book->press, NULL_ID, 0
   );
   book_press_on_page = press_context->context;
   
   // Public Date
   Label *public_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "³ö°æÈÕÆÚ£º", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "å‡ºç‰ˆæ—¥æœŸï¼š", kBlack, NULL_ID
   );
   InputBox* public_context = CreateInputBox(
-    (Rect){info_x + TextStringWidth("³ö°æÈÕÆÚ£º"), right_border - 10, 0, cur_y},
+    (Rect){info_x + TextStringWidth("å‡ºç‰ˆæ—¥æœŸï¼š"), right_border - 10, 0, cur_y},
     book->publication_date, NULL_ID, 0
   );
   book_public_date_on_page = public_context->context;
 
   // Keywords
   Label* keyword_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "¹Ø¼ü´Ê£º£¨×î¶àÎå¸ö£©", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "å…³é”®è¯ï¼šï¼ˆæœ€å¤šäº”ä¸ªï¼‰", kBlack, NULL_ID
   );
   InputBox* keyword_context[5];
   for (int i = 0; i < 5; i++) {
     keyword_context[i] = CreateInputBox(
-      (Rect){info_x + TextStringWidth("¹Ø¼ü´Ê£º"), right_border - 10, 100, cur_y += delta_y},
+      (Rect){info_x + TextStringWidth("å…³é”®è¯ï¼š"), right_border - 10, 100, cur_y += delta_y},
       book->keywords[i], NULL_ID, 0
     );
     book_keywords_on_page[i] = keyword_context[i]->context;
@@ -1589,57 +1589,57 @@ void AddBookModify() {
 
   // Catagory
   Label* catagory_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "·ÖÀà£º", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "åˆ†ç±»ï¼š", kBlack, NULL_ID
   );
   InputBox *catagory_input = CreateInputBox(
-    (Rect){info_x + TextStringWidth("·ÖÀà£º"), right_border - 10, 0, cur_y},
+    (Rect){info_x + TextStringWidth("åˆ†ç±»ï¼š"), right_border - 10, 0, cur_y},
     book->category, NULL_ID, 0
   );
   catagory_on_page = catagory_input->context;
 
   // Days to borrow
   Label* days_to_borrow_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "¿É½èÔÄÌìÊı£º", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "å¯å€Ÿé˜…å¤©æ•°ï¼š", kBlack, NULL_ID
   );
   char borrowed_days[50];
   sprintf(borrowed_days, "%d", book->available_borrowed_days);
   InputBox *days_to_borrow_input = CreateInputBox(
-    (Rect){info_x + TextStringWidth("¿É½èÔÄÌìÊı£º"), right_border - 10, 0, cur_y},
+    (Rect){info_x + TextStringWidth("å¯å€Ÿé˜…å¤©æ•°ï¼š"), right_border - 10, 0, cur_y},
     borrowed_days, NULL_ID, 0
   );
   days_to_borrow_on_page = days_to_borrow_input->context;
 
   // Books on shelf
   Label *books_on_shelf_label = CreateLabel(
-    (Rect){info_x, 0, 0, cur_y += delta_y}, "ÔÚ¼ÜÊı£º", kBlack, NULL_ID
+    (Rect){info_x, 0, 0, cur_y += delta_y}, "åœ¨æ¶æ•°ï¼š", kBlack, NULL_ID
   );
   char number_on_the_shelf[50];
   sprintf(number_on_the_shelf, "%d", book->number_on_the_shelf);
   InputBox *books_on_shelf_input = CreateInputBox(
-    (Rect){info_x + TextStringWidth("ÔÚ¼ÜÊı£º"), right_border - 10, 0, cur_y},
+    (Rect){info_x + TextStringWidth("åœ¨æ¶æ•°ï¼š"), right_border - 10, 0, cur_y},
     number_on_the_shelf, NULL_ID, 0
   );
   number_of_books_on_page = books_on_shelf_input->context;
 
   Button *confirm_button = CreateButton(
     (Rect){left_border, left_border + 80, bottom, bottom + 50},
-    "È·ÈÏ", SEARCH_COLOR, 1, kWhite, 801
+    "ç¡®è®¤", SEARCH_COLOR, 1, kWhite, 801
   );
   Button *delete_button = CreateButton(
     (Rect){left_border + 80, left_border + 160, bottom, bottom + 50},
-    "É¾³ı", SEARCH_COLOR, 1, kWhite, 803
+    "åˆ é™¤", SEARCH_COLOR, 1, kWhite, 803
   );
   Button *borrow_button = CreateButton(
     (Rect){left_border + 160, left_border + 240, bottom, bottom + 50},
-    "½èÊé", SEARCH_COLOR, 1, kWhite, 804
+    "å€Ÿä¹¦", SEARCH_COLOR, 1, kWhite, 804
   );
   Button *copy_button = CreateButton(
     (Rect){left_border + 240, left_border + 300, bottom, bottom + 50},
-    "¸´ÖÆ", SEARCH_COLOR, 1, kWhite, 805
+    "å¤åˆ¶", SEARCH_COLOR, 1, kWhite, 805
   );
   Button *admin_button = CreateButton(
     (Rect){left_border + 300, left_border + 400, bottom, bottom + 50},
-    "½èÔÄ¼ÇÂ¼", SEARCH_COLOR, 1, kWhite, 806
+    "å€Ÿé˜…è®°å½•", SEARCH_COLOR, 1, kWhite, 806
   );
   if (cur_page == kBookInit) {
     InsertComp(delete_button, kButton);
@@ -1672,12 +1672,12 @@ void AddBookModify() {
 }
 
 /*
- * 801 È·ÈÏĞÂ½¨ / ĞŞ¸Ä
- * 802 ĞÂ½¨ / ĞŞ¸ÄÍ¼Æ¬
- * 803 É¾³ıÍ¼Êé°´Å¥
- * 804 ½èÊé°´Å¥
- * 805 ¸´ÖÆÍ¼ÊéĞÅÏ¢
- * 806 ¹ÜÀíÔ±²é¿´Í¼ÊéÏêÏ¸ĞÅÏ¢
+ * 801 ç¡®è®¤æ–°å»º / ä¿®æ”¹
+ * 802 æ–°å»º / ä¿®æ”¹å›¾ç‰‡
+ * 803 åˆ é™¤å›¾ä¹¦æŒ‰é’®
+ * 804 å€Ÿä¹¦æŒ‰é’®
+ * 805 å¤åˆ¶å›¾ä¹¦ä¿¡æ¯
+ * 806 ç®¡ç†å‘˜æŸ¥çœ‹å›¾ä¹¦è¯¦ç»†ä¿¡æ¯
  */
 void HandleBookCallback(int id) {
   BookDisplay *cur_state = cur_info;
@@ -1723,7 +1723,7 @@ void AddBorrowDisplay() {
   BorrowDisplay *borrow_display = malloc(sizeof(borrow_display));
   borrow_display->book_id = malloc(sizeof(char) * 10);
   memset(borrow_display->book_id, 0, sizeof(borrow_display->book_id));
-  strcpy(borrow_display->book_id, "Ëû¸Ä±äÁËÖĞ¹ú");
+  strcpy(borrow_display->book_id, "ä»–æ”¹å˜äº†ä¸­å›½");
   borrow_display->borrow_record = GenBorrowRecord();
   borrow_display->borrow_record_start = borrow_display->borrow_record->dummy_head->nxt;
   */
@@ -1742,7 +1742,7 @@ void AddBorrowDisplay() {
   int cur_y = top;
   int delta_y = (bottom - top - 100) / (kBorrowDisplayMax + 1);
   Label *title = CreateLabel(
-    (Rect) {left_border, 0, 0, cur_y += delta_y}, "½è»¹Êé¼ÇÂ¼£º", kBlack, NULL_ID
+    (Rect) {left_border, 0, 0, cur_y += delta_y}, "å€Ÿè¿˜ä¹¦è®°å½•ï¼š", kBlack, NULL_ID
   );
   Label *book_title = CreateLabel(
     (Rect){title->position.right + 10, 0, 0, cur_y}, borrow_display->book_id, kBlack, NULL_ID
@@ -1759,7 +1759,7 @@ void AddBorrowDisplay() {
     );
     Label* info_1 = CreateLabel(
       (Rect){user_id->position.right + 10, 0, 0, cur_y},
-      "ÔÚ", kBlack, NULL_ID
+      "åœ¨", kBlack, NULL_ID
     );
     Label* borrow_time = CreateLabel(
       (Rect){info_1->position.right + 10, 0, 0, cur_y},
@@ -1767,7 +1767,7 @@ void AddBorrowDisplay() {
     );
     Label* info_2 = CreateLabel(
       (Rect){borrow_time->position.right + 10, 0, 0, cur_y},
-      borrow_record->book_status == BORROWED ? "½è³ö£¬Ó¦ÓÚ" : "½è³ö£¬ÓÚ",
+      borrow_record->book_status == BORROWED ? "å€Ÿå‡ºï¼Œåº”äº" : "å€Ÿå‡ºï¼Œäº",
       kBlack, NULL_ID
     );
     Label* return_time = CreateLabel(
@@ -1776,7 +1776,7 @@ void AddBorrowDisplay() {
     );
     Label *info_3 = CreateLabel (
       (Rect){return_time->position.right + 10, 0, 0, cur_y},
-      "¹é»¹", kBlack, NULL_ID
+      "å½’è¿˜", kBlack, NULL_ID
     );
     InsertComp(user_id, kLabel);
     InsertComp(info_1, kLabel);
@@ -1787,11 +1787,11 @@ void AddBorrowDisplay() {
   }
   Button *pre_page_button = CreateButton(
     (Rect){left_border, left_border + 80, bottom - 50, bottom},
-    "ÉÏÒ»Ò³", TURN_COLOR, 1, kWhite, 901
+    "ä¸Šä¸€é¡µ", TURN_COLOR, 1, kWhite, 901
   );
   Button *next_page_button = CreateButton(
     (Rect){right_border - 80, right_border, bottom - 50, bottom},
-    "ÏÂÒ»Ò³", TURN_COLOR, 1, kWhite, 902
+    "ä¸‹ä¸€é¡µ", TURN_COLOR, 1, kWhite, 902
   );
   InsertComp(next_page_button, kButton);
   InsertComp(pre_page_button, kButton);
@@ -1800,8 +1800,8 @@ void AddBorrowDisplay() {
 }
 
 /*
- * 901 ½è»¹Êé½çÃæÉÏÒ»Ò³
- * 902 ½è»¹Êé½çÃæÏÂÒ»Ò³
+ * 901 å€Ÿè¿˜ä¹¦ç•Œé¢ä¸Šä¸€é¡µ
+ * 902 å€Ÿè¿˜ä¹¦ç•Œé¢ä¸‹ä¸€é¡µ
  */
 void HandleBorrowDisplayCallback(int id) {
   BorrowDisplay *cur_state = cur_info;
@@ -1839,7 +1839,7 @@ void AddStatistics() {
   InsertFrame(frame_right);
 
   Label *title = CreateLabel(
-    (Rect) {left_border + 10, 0, 0, top - 10}, "·ÖÀàÍ³¼Æ£º", kBlack, NULL_ID
+    (Rect) {left_border + 10, 0, 0, top - 10}, "åˆ†ç±»ç»Ÿè®¡ï¼š", kBlack, NULL_ID
   );
   InsertComp(title, kLabel);
 
@@ -1848,7 +1848,7 @@ void AddStatistics() {
   int left_x = left_border + 10;
   int right_x = middle + 20;
   Label *catalog_title = CreateLabel(
-    (Rect){left_x, 0, 0, cur_y += delta_y}, "ÏÖÓĞ·ÖÀà£º", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "ç°æœ‰åˆ†ç±»ï¼š", kBlack, NULL_ID
   );
   InsertComp(catalog_title, kLabel);
   int count = 1;
@@ -1867,7 +1867,7 @@ void AddStatistics() {
   cur_y = top;
   delta_y = (bottom - top - 100) / (kStatisticsBorrowRecordMax + 1);
   Label *record_title = CreateLabel(
-    (Rect){right_x, 0, 0, cur_y += delta_y}, "¸Ã·ÖÀàÏÂ½è»¹Êı¾İ£º", kBlack, NULL_ID
+    (Rect){right_x, 0, 0, cur_y += delta_y}, "è¯¥åˆ†ç±»ä¸‹å€Ÿè¿˜æ•°æ®ï¼š", kBlack, NULL_ID
   );
   InsertComp(record_title, kLabel);
   for (ListNode* p = statistics->borrow_record_start;
@@ -1881,7 +1881,7 @@ void AddStatistics() {
     );
     Label* info_1 = CreateLabel(
       (Rect){user_id->position.right + 10, 0, 0, cur_y},
-      "ÔÚ", kBlack, NULL_ID
+      "åœ¨", kBlack, NULL_ID
     );
     Label* borrow_time = CreateLabel(
       (Rect){info_1->position.right + 10, 0, 0, cur_y},
@@ -1889,7 +1889,7 @@ void AddStatistics() {
     );
     Label* info_2 = CreateLabel(
       (Rect){borrow_time->position.right + 10, 0, 0, cur_y},
-      borrow_record->book_status == BORROWED ? "½è³ö£¬Ó¦ÓÚ" : "½è³ö£¬ÓÚ",
+      borrow_record->book_status == BORROWED ? "å€Ÿå‡ºï¼Œåº”äº" : "å€Ÿå‡ºï¼Œäº",
       kBlack, NULL_ID
     );
     Label* return_time = CreateLabel(
@@ -1898,7 +1898,7 @@ void AddStatistics() {
     );
     Label *info_3 = CreateLabel (
       (Rect){return_time->position.right + 10, 0, 0, cur_y},
-      "¹é»¹", kBlack, NULL_ID
+      "å½’è¿˜", kBlack, NULL_ID
     );
     Label *book_id = CreateLabel(
       (Rect){info_3->position.right + 10, 0, 0, cur_y},
@@ -1916,19 +1916,19 @@ void AddStatistics() {
 
   Button *left_pre_page_button = CreateButton(
     (Rect){left_border, left_border + 80, bottom - 50, bottom},
-    "ÉÏÒ»Ò³", SEARCH_COLOR, 1, kWhite, 1001
+    "ä¸Šä¸€é¡µ", SEARCH_COLOR, 1, kWhite, 1001
   );
   Button *left_next_page_button = CreateButton(
     (Rect){middle - 90, middle - 10, bottom - 50, bottom},
-    "ÏÂÒ»Ò³", SEARCH_COLOR, 1, kWhite, 1002
+    "ä¸‹ä¸€é¡µ", SEARCH_COLOR, 1, kWhite, 1002
   );
   Button *right_pre_page_button = CreateButton(
     (Rect){middle + 10, middle + 90, bottom - 50, bottom},
-    "ÉÏÒ»Ò³", SEARCH_COLOR, 1, kWhite, 1003
+    "ä¸Šä¸€é¡µ", SEARCH_COLOR, 1, kWhite, 1003
   );
   Button *right_next_page_button = CreateButton(
     (Rect){right_border - 80, right_border, bottom - 50, bottom},
-    "ÏÂÒ»Ò³", SEARCH_COLOR, 1, kWhite, 1004
+    "ä¸‹ä¸€é¡µ", SEARCH_COLOR, 1, kWhite, 1004
   );
   InsertComp(right_next_page_button, kButton);
   InsertComp(right_pre_page_button, kButton);
@@ -1937,11 +1937,11 @@ void AddStatistics() {
 }
 
 /*
- * 1001 ·ÖÀàÍ³¼Æ±êÇ©ÉÏÒ»Ò³
- * 1002 ·ÖÀàÍ³¼Æ±êÇ©ÏÂÒ»Ò³
- * 1003 ·ÖÀàÍ³¼Æ½á¹ûÉÏÒ»Ò³
- * 1004 ·ÖÀàÍ³¼Æ½á¹ûÉÏÒ»Ò³
- * 1050 - ? ·ÖÀà±êÇ©
+ * 1001 åˆ†ç±»ç»Ÿè®¡æ ‡ç­¾ä¸Šä¸€é¡µ
+ * 1002 åˆ†ç±»ç»Ÿè®¡æ ‡ç­¾ä¸‹ä¸€é¡µ
+ * 1003 åˆ†ç±»ç»Ÿè®¡ç»“æœä¸Šä¸€é¡µ
+ * 1004 åˆ†ç±»ç»Ÿè®¡ç»“æœä¸Šä¸€é¡µ
+ * 1050 - ? åˆ†ç±»æ ‡ç­¾
  */
 void HandleStatisticsCallback(int id) {
   Statistics *cur_state = cur_info;
@@ -2054,21 +2054,21 @@ void InitGUI() {
 // Handle Callback
 /*
  * Callback id:
- * 1 ÎÄ¼şĞÂ½¨
- * 2 ÎÄ¼ş´ò¿ª
- * 3 ÎÄ¼ş±£´æ
- * 4 ÍË³ö
- * 5 Í¼ÊéĞÂ½¨
- * 6 Í¼ÊéÏÔÊ¾
- * 7 µÇÂ¼
- * 8 ÓÃ»§ĞÂ½¨
- * 9 ÓÃ»§ÉóºË
- * 10 ÓÃ»§µÇ³ö
- * 11 ¹ØÓÚ
- * 12 ÓÃ»§ÊÖ²á
- * 13 ÓÃ»§ËÑË÷
- * 14 Í¼ÊéËÑË÷
- * 15 ÓÃ»§ĞŞ¸Ä
+ * 1 æ–‡ä»¶æ–°å»º
+ * 2 æ–‡ä»¶æ‰“å¼€
+ * 3 æ–‡ä»¶ä¿å­˜
+ * 4 é€€å‡º
+ * 5 å›¾ä¹¦æ–°å»º
+ * 6 å›¾ä¹¦æ˜¾ç¤º
+ * 7 ç™»å½•
+ * 8 ç”¨æˆ·æ–°å»º
+ * 9 ç”¨æˆ·å®¡æ ¸
+ * 10 ç”¨æˆ·ç™»å‡º
+ * 11 å…³äº
+ * 12 ç”¨æˆ·æ‰‹å†Œ
+ * 13 ç”¨æˆ·æœç´¢
+ * 14 å›¾ä¹¦æœç´¢
+ * 15 ç”¨æˆ·ä¿®æ”¹
  */
 void CallbackById(int id) {
 #ifdef _DEBUG

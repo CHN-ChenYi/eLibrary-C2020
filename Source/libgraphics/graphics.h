@@ -190,7 +190,8 @@ void loadImage(const char *image, LibImage *mapbuf);
 
 void copyImage(LibImage *dst, LibImage *src);
 
-void DrawImage(LibImage *pImage, int x, int y, int width, int height);
+void DrawImage(LibImage* pImage, int px_x, int px_y, int px_width,
+               int px_height);
 
 // Creates an Open dialog box that lets the user specify a file to be opened.
 // The path of that file would be stored in char path[]

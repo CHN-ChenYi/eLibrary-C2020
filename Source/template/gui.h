@@ -191,6 +191,7 @@ typedef struct Statistics {
   void (*turn_page)(bool direction, bool type);
 } Statistics;
 
+// 联合体是为了提高代码可读性，用 Union 而不是 struct 是为了节省空间
 typedef union State {
   LendAndBorrow *lend_and_borrow;
   BookSearch *book_search;

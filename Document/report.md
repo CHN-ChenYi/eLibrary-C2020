@@ -20,6 +20,189 @@
 
 ## 3.5 函数设计描述
 
+### libgraphics
+
+#### graphics.c
+
+##### loadImage
+
+* 函数原型
+
+  ```c
+  void loadImage(const char *image, LibImage *mapbuf);
+  ```
+
+* 功能描述
+
+  加载 jpg 图片到一个 LibImage 中
+
+* 参数描述
+
+  * `image`: 图片的存储位置
+  * `mapbuf`: 存储 LibImage 的地方
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  IPicture *ipicture;
+  ```
+
+* 重要局部变量用途描述
+
+  * `ipicture`: 存储指向图片的接口指针
+
+* 函数算法描述
+
+  先读入图片，再通过 Win32API 把图片绘制到 LibImage 中
+
+##### copyImage
+
+* 函数原型
+
+  ```c
+  void copyImage(LibImage *dst, LibImage *src);
+  ```
+
+* 功能描述
+
+  深拷贝图片
+
+* 参数描述
+
+  * `src`: 指向原图片
+  * `dst`: 指向新图片要存储的位置
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  通过 Win32API 将原 LibImage 中 hbitmap 句柄指向的 bmp 图片深拷贝到新 LibImage 中
+
+##### DrawImage
+
+* 函数原型
+
+  ```c
+  void DrawImage(LibImage* pImage, int px_x, int px_y, int px_width,
+                 int px_height);
+  ```
+
+* 功能描述
+
+  在指定位置绘制图片
+
+* 参数描述
+
+  * `pImage`: 指向要绘制的图片
+  * `px_x`: 图片左上角的横轴坐标（像素为单位）
+  * `px_y`: 图片左上角的纵轴坐标（像素为单位）
+  * `px_width`: 图片要绘制的宽度（像素为单位）
+  * `px_height`: 图片要绘制的高度（像素为单位）
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  创建一个当前窗口的设备上下文环境，使用 Win32API 将图片刷进去，然后刷新这篇区域并释放创建的设备上下文环境
+
+##### SelectFile
+
+* 函数原型
+
+  ```c
+  void SelectFile(const char filter[], const char extension[],
+                  const bool new_file, char path[], const int max_length);
+  ```
+
+* 功能描述
+
+  创建一个 Open dialog box（中文可能叫打开文件对话框），并返回用户选择的文件地址
+
+* 参数描述
+
+  * `filter`: 限制可选择的文件的后缀，如 "JPG image\0\*.jpg;\*.jpeg;*.jpe\0"
+  * `extension`: 默认后缀（不含英文句点且3个字符及以内）
+  * `new_file`: 是否允许用户新建文件
+  * `path[]`: 储存用户选择的文件地址
+  * `max_length`: `path[]` 的最大可存储字符数
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  OPENFILENAME ofn;
+  ```
+
+* 重要局部变量用途描述
+
+  `ofn`: 储存传入参数对于对话框的设置，用于调用 Win32API
+
+* 函数算法描述
+
+  在 `ofn` 中设置好调用者提供的对话框参数之后调用 Win32API
+
+##### SelectFolder
+
+* 函数原型
+
+  ```c
+  void SelectFolder(const char hint_text[], char path[]);
+  ```
+
+* 功能描述
+
+  创建一个对话框，并返回用户选择的文件夹地址
+
+* 参数描述
+
+  `hint_text`: 在对话框中显示的提示性信息
+  `path`: 储存用户选择的文件夹地址（要求至少能存储 `MAX_PATH` 个字符，`MAX_PATH` 在头文件 minwindef.h 中有定义）
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  BROWSEINFO bInfo;
+  ```
+
+* 重要局部变量用途描述
+
+  * `bInfo`: 储存传入参数对于对话框的设置，用于调用 Win32API
+
+* 函数算法描述
+
+  在 `bInfo` 中设置好调用者提供的对话框参数之后调用 Win32API
+
 ### model
 
 ### template

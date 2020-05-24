@@ -22,9 +22,18 @@ bool CmpLessBorrowRecordByReturnTime(const void *const lhs,
 bool CmpById(const void *const lhs, const void *const rhs);
 bool CmpByTitle(const void *const lhs, const void *const rhs);
 bool CmpByAuthor(const void *const lhs, const void *const rhs);
+bool CmpLessUserById(const void *const lhs, const void *const rhs);
+bool CmpLessUserByName(const void *const lhs, const void *const rhs);
+bool CmpLessUserByDepartment(const void *const lhs, const void *const rhs);
 
 void *const StrCpy(void *const str);
 bool StrLess(const void *const lhs, const void *rhs);
 bool StrSame(const void *const lhs, const void *rhs);
+
+// in format of YYYYMMDD
+char *GetTime(time_t tm); // TODO:(TO/GA) 在文档中添加
+// 传入的链表均为归还时间的降序
+int GetBorrowRecordNumberAfter(List *borrow_record,
+                               time_t dst_tm);  // TODO:(TO/GA) 在文档中添加
 
 #endif  // !UTILITY_H_

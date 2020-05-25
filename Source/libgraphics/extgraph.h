@@ -1,4 +1,4 @@
-/*
+﻿/*
  * File: extgraph.h
  * Version: 3.0
  * Last modified on Tue Oct  4 11:24:41 1994 by eroberts

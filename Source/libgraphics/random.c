@@ -1,4 +1,4 @@
-/*
+﻿/*
  * File: random.c
  * Version: 1.0
  * Last modified on Mon Sep 13 10:42:45 1993 by eroberts

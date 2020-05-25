@@ -1,4 +1,4 @@
-/*
+﻿/*
  * File: strlib.h
  * Version: 1.0
  * Last modified on Fri Jul 15 14:10:40 1994 by eroberts

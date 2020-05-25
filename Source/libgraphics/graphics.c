@@ -1,4 +1,4 @@
-/*
+﻿/*
  * File: graphics.c
  * Version: 3.1
  * Last modified on Thu Feb 23 13:39:32 1995 by eroberts

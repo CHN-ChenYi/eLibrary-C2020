@@ -1,4 +1,4 @@
-/*
+﻿/*
  * File: exception.c
  * Version: 1.0
  * Last modified on Sun Jul 24 10:28:11 1994 by eroberts

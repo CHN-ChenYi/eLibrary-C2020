@@ -1,4 +1,4 @@
-/*
+﻿/*
  * File: exception.h
  * Version: 1.0
  * Last modified on Sun Jul 24 10:26:20 1994 by eroberts

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "gui.h"
 
 void InitPage();            // 新建一个界面

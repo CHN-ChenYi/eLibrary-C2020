@@ -309,6 +309,158 @@
 * 函数算法描述  
 判断数据实例为哪个数据模型，再简单`O(n)`遍历相对应的链表。
 
+#### utils.c
+##### SaveStrCpy
+* 函数原型
+  ```c
+  int SaveStrCpy(char* t, const char* s);
+  ```
+* 功能描述  
+避免字串为空指针，多了检查的安全拷贝。
+* 参数描述  
+  `t` - 指针指向拷贝目标  
+  `s` - 指针指向拷贝来源  
+* 返回值描述  
+  `DB_FAIL_ON_FETCHING` - 拷贝失败  
+  `DB_SUCCESS` - 拷贝成功  
+* 函数算法描述  
+先判断字串是否为空指针，再执行拷贝。
+##### *Copy
+* 函数原型  
+  ```c
+  int BookCopy(Book* destination, Book* source);
+  int UserCopy(User* destination, User* source);
+  int RecordCopy(BorrowRecord* destination, BorrowRecord* source);
+  ```
+* 功能描述  
+深拷贝一份实例。
+* 参数描述  
+`destination` - 拷贝目标  
+`source` - 拷贝来源  
+* 返回值描述  
+  `DB_FAIL_ON_FETCHING` - 拷贝失败  
+  `DB_SUCCESS` - 拷贝成功 
+* 函数算法描述  
+将来源实例结构中的每个变量深拷贝一份到目标实例中。
+##### Cmp
+* 函数原型  
+  ```c
+  int Cmp(const char* str1, const char* str2, int insensitive, int equal);
+  ```
+* 功能描述  
+  根据`insensitive`和`equal`判断两字串是否符合关系。
+* 参数描述  
+  `str1` - 字串1  
+  `str2` - 字串2  
+  `insenstive` - 是否模糊  
+  `equal` - 是否相等  
+* 返回值描述  
+  回传`1`如果两字串符合关系；反之，回传`0`。
+* 函数算法描述  
+  如果`insensitive`为真，`str2`在`str1`中则符合关系。如果`insensitive`为假且`equal`为真，两者需相等才符合关系；若`equal`为假，则两者需不相等。
+##### *Filter
+* 函数原型  
+  ```c
+  int BookFilter(Book* p_b, String queries);
+  int UserFilter(User* p_u, String queries);
+  int RecordFilter(BorrowRecord* p_r, String queries);
+  ```
+* 功能描述  
+判断一实例是否符合请求。
+* 参数描述  
+`p_*` - 指针指向实例。  
+`queries` - 请求。  
+* 返回值描述  
+`int`。如果符合请求，回传`1`；反之回传`0`。
+* 重要局部变量定义  
+  ```c
+  char* property;
+  char* para;
+  int insensitive;
+  int equal;
+  ```
+* 重要局部变量用途描述  
+`property` - 属性，代表实例结构中一个变量。  
+`para` - 参数，代表实例结构中变量的值。  
+`insensitive` - 是否模糊查找。  
+`equal` - 是否相等。  
+* 函数算法描述  
+使用`strtok()`，按照先`property`后`para`的次序，切割`queries`，得到`property`和`para`的值，再判断`property`是实例结构中的哪个变量，并用`para`与其进行相对应比较。关于比较，详见`Cmp()`。
+##### Slice
+* 函数原型  
+  ```c
+  int Slice(const char* str, char* slice, int* pos);
+  ```
+* 功能描述  
+类似`strtok()`的自定义字串切割函数。
+* 参数描述  
+`str` - 待切割字串。  
+`slice` - 切割后的一小段字串切片。  
+`pos` - 待切割字串起始点。  
+* 返回值描述  
+`DB_FAIL_ON_INIT` - 切割时发生错误。  
+`DB_SUCCESS` - 切割成功。
+* 函数算法描述  
+从`pos`开始遍历字串，并将其字元新增至切片，遇到目标字元`;`时停止遍历。
+##### StringTo*
+* 函数原型  
+  ```c
+  int StringToBook(Book* p_b, String str);
+  int StringToUser(User* p_u, String str);
+  int StringToRecord(BorrowRecord* p_r, String str);
+  ```
+* 功能描述  
+  将字串转为指定模型实例。
+* 参数描述  
+  `p_*` - 指针指向目标实例。  
+  `str` - 待转换字串。  
+* 返回值描述  
+  `DB_FAIL_ON_FETCHING` - 在途中拷贝失败，转换失败。  
+  `DB_SUCCESS` - 转换成功。  
+* 重要局部变量定义  
+  ```c
+  int pos;
+  ```
+* 重要局部变量用途描述  
+  `pos` - 字串切割起始点。
+* 函数算法描述  
+使用切割函数`Slice()`按照数据格式切割字串，得到实例结构变量的值，将其赋予实例结构中的变量。关于切割函数，详见`Slice()`。
+##### StringToModel
+* 函数原型  
+  ```c
+  int StringToModel(void** handle, Model model, String str);
+  ```
+* 功能描述  
+  将字串转为模型实例。
+* 参数描述  
+  `handle` - 指针指向目标模型实例存取位置。  
+  `model` - 数据库的模型(`BOOK`, `USER`, `BORROWRECORD`...)  
+  `str` - 待转换字串。  
+* 返回值描述  
+`DB_SUCCESS` - 代表转换成功。 
+* 函数算法描述  
+先判断当前实例属于的数据模型，再调用相应转换函数`StringTo*()`，详见`StringTo*()`。
+##### ModelToString
+* 函数原型  
+  ```c
+  int ModelToString(void* handle, Model model, char* p_str);
+  ```
+* 功能描述  
+将数据实例转换为字串。
+* 参数描述  
+  `handle` - 指针指向待转换模型实例。  
+  `model` - 数据库的模型(`BOOK`, `USER`, `BORROWRECORD`...)  
+  `str` - 目标字串。  
+* 返回值描述  
+`0`，代表成功。
+* 重要局部变量定义  
+  ```c
+  char p_str_2[1000];
+  ```
+* 重要局部变量用途描述  
+`p_str2` - 实例结构中的变量转换而成的部分字串。
+* 函数算法描述  
+先判断当前实例属于的数据模型，再将实例中的变量一一转换为字串`p_str2`，并将`p_str2`接在`p_str`后面，最后`p_str`会成为完整的字串。
 
 ### template
 

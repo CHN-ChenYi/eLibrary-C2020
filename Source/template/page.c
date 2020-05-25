@@ -1000,6 +1000,18 @@ void AddUserModify() {
   );
   InsertComp(borrow_title, kLabel);
 
+  Label* borrow_frequency = CreateLabel(
+    (Rect){borrow_title->position.right + 10, 0, 0, cur_y}, "近一个月借书次数：", kBlack, NULL_ID
+  );
+
+  Label* borrow_times = CreateLabel(
+    (Rect){borrow_frequency->position.right + 10, 0, 0, cur_y}, "", kBlack, NULL_ID
+  );
+  sprintf(borrow_times->caption, "%d", user_modify->frequency);
+
+  InsertComp(borrow_frequency, kLabel);
+  InsertComp(borrow_times, kLabel);
+
   int count = 1;
   for (ListNode* p = user_modify->borrowrecords_start;
        p != user_modify->borrowrecords->dummy_tail && count <= kUserModifyMax; p = p->nxt, count++) {
@@ -1789,6 +1801,17 @@ void AddBorrowDisplay() {
   Label *book_title = CreateLabel(
     (Rect){title->position.right + 10, 0, 0, cur_y}, borrow_display->book_id, kBlack, NULL_ID
   );
+  Label* borrow_frequency = CreateLabel(
+    (Rect){book_title->position.right + 10, 0, 0, cur_y}, "近一个月借书次数：", kBlack, NULL_ID
+  );
+
+  Label* borrow_times = CreateLabel(
+    (Rect){borrow_frequency->position.right + 10, 0, 0, cur_y}, "", kBlack, NULL_ID
+  );
+  sprintf(borrow_times->caption, "%d", borrow_display->frequency);
+
+  InsertComp(borrow_frequency, kLabel);
+  InsertComp(borrow_times, kLabel);
   int count = 1;
   for (ListNode* p = borrow_display->borrow_record_start;
        p != borrow_display->borrow_record->dummy_tail &&
@@ -1914,6 +1937,18 @@ void AddStatistics() {
     (Rect){right_x, 0, 0, cur_y += delta_y}, "该分类下借还数据：", kBlack, NULL_ID
   );
   InsertComp(record_title, kLabel);
+  
+  Label* borrow_frequency = CreateLabel(
+    (Rect){record_title->position.right + 10, 0, 0, cur_y}, "近一个月借书次数：", kBlack, NULL_ID
+  );
+
+  Label* borrow_times = CreateLabel(
+    (Rect){borrow_frequency->position.right + 10, 0, 0, cur_y}, "", kBlack, NULL_ID
+  );
+  sprintf(borrow_times->caption, "%d", statistics->frequency);
+
+  InsertComp(borrow_frequency, kLabel);
+  InsertComp(borrow_times, kLabel);
   for (ListNode* p = statistics->borrow_record_start;
        p != statistics->borrow_record->dummy_tail &&
        count <= kStatisticsCatalogsMax;

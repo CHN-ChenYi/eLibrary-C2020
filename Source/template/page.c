@@ -1206,6 +1206,7 @@ void AddUserManagement() {
  * 702 用户管理 - 未审核下一页
  * 703 用户管理 - 已存在上一页
  * 704 用户管理 - 已存在下一页
+ * 710 - ? 用户详细信息（用户管理）
  * 740 - ? 用户管理-同意（奇数）/拒绝（偶数）第k个申请
  * 770 - ？用户管理-删除第k
  */
@@ -1258,7 +1259,7 @@ void AddLibrary() {
     (Rect){cur_x, 0, 0, cur_y}, "当前图书库图书：", kBlack, NULL_ID
   );
   Button* sort_by_id = CreateButton(
-    (Rect){cur_x += TextStringWidth("当前图书库图书："), cur_x + 100, 80, 125}, "按ID排序", SEARCH_COLOR, 1,
+    (Rect){cur_x += TextStringWidth("当前图书库图书："), cur_x + 100, 80, 125}, "按书号排序", SEARCH_COLOR, 1,
     kWhite, 501
   );
   Button* sort_by_title = CreateButton(

@@ -89,6 +89,7 @@ void InitView() {
 }
 
 void BookSearch_BorrowCallback(Book *book) {
+  // 减少在架数量
   if (!book->number_on_the_shelf) {
     char *msg = malloc(sizeof(char) * (38 + id_len + strlen(book->id)));
     sprintf(msg, "[Error] [%s] There's no [%s] on the shelf", user.id,
@@ -99,6 +100,7 @@ void BookSearch_BorrowCallback(Book *book) {
   book->number_on_the_shelf--;
   if (ErrorHandle(Update(book, book->uid, BOOK), 0)) return;
 
+  // 新建借阅记录
   BorrowRecord new_record;
   strcpy(new_record.book_id, book->id);
   new_record.book_status = BORROWED;
@@ -175,6 +177,7 @@ void LendAndBorrow_ReturnCallback(ListNode *book, ListNode *borrow_record) {
   Book *returned_book = (Book *)book->value;
   BorrowRecord *returned_borrow_record = (BorrowRecord *)borrow_record->value;
 
+  // 增加要还的书的在架数
   returned_book->number_on_the_shelf++;
   if (ErrorHandle(Update(returned_book, returned_book->uid, BOOK), 0)) return;
 
@@ -182,6 +185,7 @@ void LendAndBorrow_ReturnCallback(ListNode *book, ListNode *borrow_record) {
   sprintf(msg, "[Info] [%s] Return book [%s], expected return date[%s]",
           user.id, returned_book->id, returned_borrow_record->returned_date);
 
+  // 将借还记录的状态改成已还并更新还书的时间
   returned_borrow_record->book_status = RETURNED;
   strcpy(returned_borrow_record->returned_date, GetTime(time(NULL)));
   if (ErrorHandle(Update(returned_borrow_record, returned_borrow_record->uid,
@@ -204,6 +208,8 @@ void LendAndBorrow_TurnPage(bool direction) {
 
 void UserModify_ConfirmCallback() {
   User *modified_user = TopHistory()->state.user_modify->user;
+
+  // 如果当前用户和待修改用户权限等级相同，则检查密码是否正确
   if (user.whoami != ADMINISTRATOR || modified_user->whoami == ADMINISTRATOR) {
     char pwd_type[59];
     sprintf(pwd_type, "%s%s", TopHistory()->state.user_modify->old_password,
@@ -218,6 +224,8 @@ void UserModify_ConfirmCallback() {
       return;
     }
   }
+
+  // 如果设置了新的密码
   if (TopHistory()->state.user_modify->new_password[0] != '\0') {
     if (strcmp(TopHistory()->state.user_modify->new_password,
                TopHistory()->state.user_modify->repeat_password)) {
@@ -234,6 +242,16 @@ void UserModify_ConfirmCallback() {
     Sha256Sum(modified_user->password, new_pwd, strlen(new_pwd));
   }
 
+  // 用户号不能为空
+  if (modified_user->id[0] == '\0') {
+    char *msg = malloc(sizeof(char) * (51 + id_len + 10));
+    sprintf(msg, "[Error] [%s] User [uid = %d]'s id can't be blank", user.id,
+            modified_user->uid);
+    ReturnHistory(history_list->dummy_tail->pre, msg);
+    return;
+  }
+
+  // 用户号不能重复
   List *users = NewList();
   char *query = malloc(sizeof(char) * (10 + strlen(modified_user->id)));
   sprintf(query, "id=%s", modified_user->id);
@@ -249,14 +267,7 @@ void UserModify_ConfirmCallback() {
   }
   DeleteList(users, free);
 
-  if (modified_user->id[0] == '\0') {
-    char *msg = malloc(sizeof(char) * (51 + id_len + 10));
-    sprintf(msg, "[Error] [%s] User [uid = %d]'s id can't be blank", user.id,
-            modified_user->uid);
-    ReturnHistory(history_list->dummy_tail->pre, msg);
-    return;
-  }
-
+  // 更新数据库
   if (ErrorHandle(Update(modified_user, modified_user->uid, USER), 0)) return;
   if (modified_user->uid == user.uid) {
     memcpy(&user, modified_user, sizeof(User));
@@ -277,6 +288,7 @@ void UserModify_TurnPage(bool direction) {
 }
 
 void UserSearchInfoDisplay(User *show_user, char *msg) {
+  // 更新这个用户的信息
   if (ErrorHandle(GetById(show_user, show_user->uid, USER), 0)) return;
 
   List *borrow_record = NewList();
@@ -380,6 +392,7 @@ void LoginOrRegister_LoginCallback() {
 
     User *new_user = TopHistory()->state.login_or_register->user;
 
+    // 用户号不为空
     if (new_user->id[0] == '\0') {
       char *msg = malloc(sizeof(char) * 32);
       sprintf(msg, "[Error] id can't be blank");
@@ -387,6 +400,7 @@ void LoginOrRegister_LoginCallback() {
       return;
     }
 
+    // 用户号不重复
     List *users = NewList();
     char *query = malloc(sizeof(char) * (10 + strlen(new_user->id)));
     sprintf(query, "id=%s", new_user->id);
@@ -405,6 +419,7 @@ void LoginOrRegister_LoginCallback() {
     }
     DeleteList(users, free);
 
+    // 生成新用户
     if (ErrorHandle(GetNextPK(USER, &new_user->uid), 0)) return;
     RandStr(new_user->salt, 9);
     char pwd_type[59];
@@ -444,6 +459,7 @@ void LoginOrRegister_LoginCallback() {
   } else {
     User *new_user = TopHistory()->state.login_or_register->user;
 
+    // 在数据库里找出对应的用户
     List *users = NewList();
     char *query = malloc(sizeof(char) * (4 + strlen(new_user->id)));
     sprintf(query, "id=%s", new_user->id);
@@ -463,6 +479,7 @@ void LoginOrRegister_LoginCallback() {
     memcpy(new_user, users->dummy_head->nxt->value, sizeof(User));
     DeleteList(users, free);
 
+    // 验证密码
     char pwd_type[59];
     sprintf(pwd_type, "%s%s", TopHistory()->state.login_or_register->password,
             new_user->salt);
@@ -518,6 +535,7 @@ void UserManagement_ApproveCallback(ListNode *user_node, bool approve) {
 
 void UserManagement_DeleteCallback(ListNode *user_node) {
   User *new_user = user_node->value;
+  // 管理员帐号不可删除
   if (new_user->whoami == ADMINISTRATOR) {
     char *msg = malloc(sizeof(char) * (38 + id_len));
     sprintf(msg, "[Error] [%s] Can't delete admin account", user.id);
@@ -591,11 +609,18 @@ void BookDisplayAdminDisplay(char *msg) {
     return;
   }
 
+  // 更新书的信息
+  if (history_list->size ==
+      0) {  // 有可能由于历史记录的个数上限，所需的信息已经丢失
+    ReturnHistory(history_list->dummy_tail->pre, NULL);
+    return;
+  }
   if (ErrorHandle(GetById(TopHistory()->state.book_display->book,
                           TopHistory()->state.book_display->book->uid, BOOK),
                   0))
     return;
 
+  // 获得这本书的借还记录
   List *borrow_record = NewList();
   char *query = malloc(sizeof(char) * 20);
   sprintf(query, "book_uid=%d", TopHistory()->state.book_display->book->uid);
@@ -649,6 +674,7 @@ void BookDisplay_CoverCallback() {
   }
   endtry;
 
+  // 将图片拷贝至 image 文件夹并加载图片
   const char *const book_id = TopHistory()->state.book_display->book->id;
   char *new_path = malloc(sizeof(char) * (image_dir_len + 6 + 10));
   sprintf(new_path, "%s\\%d.jpg", image_dir,
@@ -682,6 +708,7 @@ void BookDisplay_ConfirmCallback() {
     return;
   }
 
+  // 书号不能为空
   Book *new_book = TopHistory()->state.book_display->book;
   if (new_book->id[0] == '\0') {
     char *msg = malloc(sizeof(char) * (36 + id_len));
@@ -690,6 +717,7 @@ void BookDisplay_ConfirmCallback() {
     return;
   }
 
+  // 书号不能重复
   List *books = NewList();
   char *query = malloc(sizeof(char) * (10 + strlen(new_book->id)));
   sprintf(query, "id=%s", new_book->id);
@@ -729,10 +757,13 @@ void BookDisplay_DeleteCallback() {
     return;
   }
   Book *new_book = TopHistory()->state.book_display->book;
+
+  // 删除数据库中的书
   if (TopHistory()->page == kBookModify) {
     if (ErrorHandle(Delete(new_book->uid, BOOK), 0)) return;
   }
 
+  // 删除图书库文件夹中的封面
   char *cover_dir = malloc(sizeof(char) * (image_dir_len + 6 + 10));
   sprintf(cover_dir, "%s\\%d.jpg", image_dir, new_book->uid);
   DeleteFile(cover_dir);
@@ -758,6 +789,7 @@ void BookDisplay_CopyPasteCallback() {
     ReturnHistory(history_list->dummy_tail->pre, msg);
   }
 
+  // 设置在架数为0并更新数据库
   book->number_on_the_shelf = 0;
   if (ErrorHandle(Create(book, BOOK), 0)) {
     book->uid = old_uid;
@@ -770,6 +802,7 @@ void BookDisplay_CopyPasteCallback() {
 
   char *msg = NULL;
 
+  // 复制图书封面
   char *old_image = malloc(sizeof(char) * (6 + 10 + image_dir_len));
   sprintf(old_image, "%s\\%d.jpg", image_dir, old_uid);
   char *new_image = malloc(sizeof(char) * (6 + 10 + image_dir_len));
@@ -784,6 +817,7 @@ void BookDisplay_CopyPasteCallback() {
   free(old_image);
   free(new_image);
 
+  // 新建一本书是防止历史记录遭到破坏
   Book new_book;
   new_book.uid = new_uid;
 
@@ -814,15 +848,15 @@ void Library_SortCallback(SortKeyword sort_keyword) {
   char *msg = malloc(sizeof(char) * (33 + id_len));
   switch (sort_keyword) {
     case kId:
-      SortList(TopHistory()->state.library->books, CmpById);
+      SortList(TopHistory()->state.library->books, CmpLessBookById);
       sprintf(msg, "[Info] [%s] sort books by id", user.id);
       break;
     case kTitle:
-      SortList(TopHistory()->state.library->books, CmpByTitle);
+      SortList(TopHistory()->state.library->books, CmpLessBookByTitle);
       sprintf(msg, "[Info] [%s] sort books by title", user.id);
       break;
     case kAuthor:
-      SortList(TopHistory()->state.library->books, CmpByAuthor);
+      SortList(TopHistory()->state.library->books, CmpLessBookByAuthor);
       sprintf(msg, "[Info] [%s] sort books by author", user.id);
       break;
     default:
@@ -837,9 +871,11 @@ void Library_SortCallback(SortKeyword sort_keyword) {
 }
 
 void Library_SwitchCallback() {
-  if (TopHistory()->state.library->type == kList) {
+  // 有可能由于历史记录的个数上限，所需的信息已经丢失
+  if (history_list->size == 0 || TopHistory()->state.library->type == kList) {
     Navigation_Library(NULL);
   } else {
+    // 获得图书库中的所有图书
     List *books = NewList();
     if (ErrorHandle(Filter(books, "", BOOK), 0)) {
       DeleteList(books, free);
@@ -877,13 +913,18 @@ void Library_TurnPage(bool direction) {
 }
 
 void Statistics_SelectCallback(ListNode *catalog) {
+  if (history_list->size ==
+      0) {  // 有可能由于历史记录的个数上限，所需的信息已经丢失
+    ReturnHistory(history_list->dummy_tail->pre, NULL);
+    return;
+  }
   List *borrow_records = NewList();
   Book *book = malloc(sizeof(Book));
   if (ErrorHandle(Filter(borrow_records, "", BORROWRECORD), 0)) {
     DeleteList(borrow_records, free);
     return;
   }
-  if (strcmp(catalog->value, "ALL")) {
+  if (strcmp(catalog->value, "ALL")) { // 如果不是 ALL 这个分类，则进行筛选
     for (const ListNode *cur_node = borrow_records->dummy_head->nxt;
          cur_node != borrow_records->dummy_tail;) {
       if (ErrorHandle(
@@ -893,7 +934,7 @@ void Statistics_SelectCallback(ListNode *catalog) {
         free(book);
         return;
       }
-      if (strcmp(book->category, catalog->value))
+      if (strcmp(book->category, catalog->value)) // 分类不匹配的就删除
         cur_node = EraseList(borrow_records, cur_node, NULL);
       else
         cur_node = cur_node->nxt;
@@ -940,6 +981,8 @@ void Statistics_TurnPage(bool direction, bool type) {
 
 void Navigation_LendAndBorrow(char *msg) {
   if (InitCheck(FALSE)) return;
+
+  // 当前用户还没有归还的图书借阅记录
   List *borrow_records_list = NewList();
   char *query = malloc(sizeof(char) * (31 + 10));
   sprintf(query, "user_uid=%d&book_status=1", user.uid);
@@ -951,6 +994,7 @@ void Navigation_LendAndBorrow(char *msg) {
   free(query);
   SortList(borrow_records_list, CmpLessBorrowRecordByReturnTime);
 
+  // 对应的借阅记录的图书
   List *books = NewList();
   for (ListNode *cur_node = borrow_records_list->dummy_head->nxt;
        cur_node != borrow_records_list->dummy_tail; cur_node = cur_node->nxt) {
@@ -1002,7 +1046,6 @@ void Navigation_UserSearch(char *msg) {
   UserSearchDisplay(keyword, msg);
 }
 
-// type = 0 => Manual
 void Navigation_ManualOrAbout(bool type, char *msg) {
   History *const new_history = malloc(sizeof(History));
   new_history->state.manual_and_about = malloc(sizeof(ManualAndAbout));
@@ -1012,6 +1055,8 @@ void Navigation_ManualOrAbout(bool type, char *msg) {
   else
     new_history->page = kManual;
   PushBackHistory(new_history);
+
+  // TODO: finish it
 
   if (!msg) {
     msg = malloc(sizeof(char) * (27 + id_len));
@@ -1024,13 +1069,14 @@ void Navigation_ManualOrAbout(bool type, char *msg) {
   DrawUI(kAbout, &user, new_history->state.manual_and_about, msg);
 }
 
-// type = 0 => LogIn
 void Navigation_UserLogInOrRegister(bool type, char *msg) {
   if (InitCheck(TRUE)) return;
+
+  // 登出当前用户
   memset(&user, 0x00, sizeof(User));
   id_len = 0;
 
-  ClearHistory();
+  ClearHistory(); // 不能让下一个用户了解到上一个用户干了什么
   History *const new_history = malloc(sizeof(History));
   if (type)
     new_history->page = kUserRegister;
@@ -1085,12 +1131,14 @@ void Navigation_UserManagement(char *msg) {
     return;
   }
 
+  // 待审核的用户列表
   List *to_be_verified = NewList();
   if (ErrorHandle(Filter(to_be_verified, "verified=0", USER), 0)) {
     DeleteList(to_be_verified, free);
     return;
   }
 
+  // 已审核有效的用户列表
   List *verified = NewList();
   if (ErrorHandle(Filter(verified, "verified=1", USER), 0)) {
     DeleteList(verified, free);
@@ -1131,19 +1179,20 @@ void Navigation_Library(char *msg) {
   }
 
   List *book_covers = NewList();
-  char *image_path = malloc(sizeof(char) * (image_dir_len + 12));
-  sprintf(image_path, "%s\\", image_dir);
-  for (ListNode *cur_node = books->dummy_head->nxt;
-       cur_node != books->dummy_tail; cur_node = cur_node->nxt) {
-    LibImage *image = malloc(sizeof(LibImage));
-    sprintf(image_path + image_dir_len + 1, "%d.jpg",
-            ((Book *)cur_node->value)->uid);
-    if (!_access(image_path, 4))
-      loadImage(image_path, image);
-    else
-      copyImage(image, &unknown_cover);
-    InsertList(book_covers, book_covers->dummy_tail, image);
-  }
+  // 由于图片模式被砍，先注释掉
+  // char *image_path = malloc(sizeof(char) * (image_dir_len + 12));
+  // sprintf(image_path, "%s\\", image_dir);
+  // for (ListNode *cur_node = books->dummy_head->nxt;
+  //      cur_node != books->dummy_tail; cur_node = cur_node->nxt) {
+  //   LibImage *image = malloc(sizeof(LibImage));
+  //   sprintf(image_path + image_dir_len + 1, "%d.jpg",
+  //           ((Book *)cur_node->value)->uid);
+  //   if (!_access(image_path, 4))
+  //     loadImage(image_path, image);
+  //   else
+  //     copyImage(image, &unknown_cover);
+  //   InsertList(book_covers, book_covers->dummy_tail, image);
+  // }
 
   History *const new_history = malloc(sizeof(History));
   new_history->page = kLibrary;
@@ -1169,11 +1218,10 @@ void Navigation_Library(char *msg) {
   DrawUI(kLibrary, &user, new_history->state.library, msg);
 }
 
-// type == 0 => Open
 void Navigation_OpenOrInitLibrary(bool type, char *msg) {
   // copy *.swp.db to *.db and remove *.swp.db
-  static bool Opened = FALSE;  // 表示之前是否打开过某个数据库
-  if (Opened) Navigation_SaveLibrary(0, NULL);
+  static bool opened = FALSE;  // 表示之前是否打开过某个数据库
+  if (opened) Navigation_SaveLibrary(0, NULL);
 
   try {
     SelectFolder("请选择保存图书库的文件夹", lib_dir);
@@ -1194,6 +1242,7 @@ void Navigation_OpenOrInitLibrary(bool type, char *msg) {
   endtry;
   lib_dir_len = strlen(lib_dir);
 
+  // 关闭老的数据库
   if (ErrorHandle(CloseDBConnection(USER), 1, DB_NOT_OPEN)) return;
   DeleteFile(user_db_dir);
 
@@ -1207,7 +1256,7 @@ void Navigation_OpenOrInitLibrary(bool type, char *msg) {
 
   sprintf(image_dir, "%s\\image", lib_dir);
   image_dir_len = strlen(image_dir);
-  if (type) {
+  if (type) {    // 新建图片文件夹
     if (!CreateDirectory(image_dir, NULL)) {
       char *msg = malloc(sizeof(char) * (63 + id_len));
       sprintf(
@@ -1221,6 +1270,7 @@ void Navigation_OpenOrInitLibrary(bool type, char *msg) {
 
   int flag = 0;  // 0 => 无事发生 1=> 有swap文件 2=> 无文件
 
+  // 打开数据库
   sprintf(user_db_dir, "%s%s", lib_dir, "\\user.swp.db");
   if (!_access(user_db_dir, 6)) {  // swap file exists
     flag |= 1;
@@ -1317,7 +1367,7 @@ void Navigation_OpenOrInitLibrary(bool type, char *msg) {
   }
 
   db_open = TRUE;
-  Opened = TRUE;
+  opened = TRUE;
   memset(&user, 0x00, sizeof(User));
   id_len = 0;
 
@@ -1325,7 +1375,6 @@ void Navigation_OpenOrInitLibrary(bool type, char *msg) {
   DrawUI(kWelcome, &user, NULL, msg);
 }
 
-// type = 0 => 不回退到上一个界面
 void Navigation_SaveLibrary(bool type, char *msg) {
   if (InitCheck(TRUE)) return;
 
@@ -1335,6 +1384,7 @@ void Navigation_SaveLibrary(bool type, char *msg) {
   if (ErrorHandle(CloseDBConnection(BORROWRECORD), 0)) return;
   db_open = FALSE;
 
+  // 复制 swap 文件
   char *user_database_path = malloc(sizeof(char) * (lib_dir_len + 9));
   sprintf(user_database_path, "%s\\user.db", lib_dir);
   CopyFileA(user_db_dir, user_database_path, FALSE);
@@ -1366,7 +1416,6 @@ void Navigation_SaveLibrary(bool type, char *msg) {
   }
 }
 
-// type = 0 => Display
 void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
   Book *new_book;
   if (type) {
@@ -1398,14 +1447,15 @@ void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
   new_history->state.book_display->copy_paste_callback =
       BookDisplay_CopyPasteCallback;
   new_history->state.book_display->book = new_book;
-  if (!type) {
+  // 加载要显示的封面图片
+  if (!type) { // 图书显示
     char *image_path = malloc(sizeof(char) * (6 + image_dir_len + 10));
     sprintf(image_path, "%s\\%d.jpg", image_dir, book->uid);
-    if (!_access(image_path, 4))
+    if (!_access(image_path, 4)) // 找的到图书封面
       loadImage(image_path, &new_history->state.book_display->book_cover);
-    else
+    else // 找不到图书封面
       copyImage(&new_history->state.book_display->book_cover, &unknown_cover);
-  } else {
+  } else { // 图书新建
     copyImage(&new_history->state.book_display->book_cover, &edit_cover);
   }
   PushBackHistory(new_history);
@@ -1450,11 +1500,13 @@ void Navigation_Statistics(char *msg) {
   }
 
   List *book = NewList(), *category = NewList();
+  // 获得所有书
   if (ErrorHandle(Filter(book, "", BOOK), 0)) {
     DeleteList(book, free);
     DeleteList(category, free);
     return;
   }
+  // 提取出所有分类
   for (ListNode *cur_node = book->dummy_head->nxt; cur_node != book->dummy_tail;
        cur_node = cur_node->nxt) {
     char *str = malloc(sizeof(char) *
@@ -1466,10 +1518,12 @@ void Navigation_Statistics(char *msg) {
   SortList(category, StrLess);
   UniqueList(category, StrSame, free);
 
+  // 加入"全部"这一分类
   char *str = malloc(sizeof(char) * 4);
   sprintf(str, "ALL");
   InsertList(category, category->dummy_head->nxt, str);
 
+  // 获得所有借阅记录
   List *borrow_record = NewList();
   if (ErrorHandle(Filter(borrow_record, "", BORROWRECORD), 0)) {
     DeleteList(category, free);
@@ -1501,7 +1555,7 @@ void Navigation_Statistics(char *msg) {
 }
 
 void Navigation_Return(char *msg) {
-  if (history_list->size < 2) {
+  if (history_list->size < 2) { // 没有可以返回的界面
     if (!msg) {
       msg = malloc(sizeof(char) * (44 + id_len));
       sprintf(msg, "[Error] [%s] There's no history to go back to", user.id);
@@ -1519,6 +1573,7 @@ void Navigation_Return(char *msg) {
 void Navigation_Exit() {
   Navigation_SaveLibrary(0, NULL);
 
+  // 关闭数据库，删除 swap 文件
   if (ErrorHandle(CloseDBConnection(USER), 1, DB_NOT_OPEN)) exit(1);
   DeleteFile(user_db_dir);
 
@@ -1533,7 +1588,7 @@ void Navigation_Exit() {
   Log("[Info] Shutdown");
   UninitUtility();
 
-  exit(0);
+  ExitGraphics();
 }
 
 void NavigationCallback(Page nav_page) {

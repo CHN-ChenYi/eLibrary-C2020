@@ -1235,6 +1235,772 @@
 
   根据要回滚到的历史记录的页面不同绘制对应的页面，如果栈被清空了，则绘制欢迎界面
 
+#### view.c
+
+##### InitView
+
+* 函数原型
+
+  ```c
+  void InitView();
+  ```
+
+* 功能描述
+
+  初始化 view 模块
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  调用 `InitHistory` 与 `InitUtility`，加载资源并绘制欢迎界面
+
+##### NavigationCallback
+
+* 函数原型
+
+  ```c
+  void NavigationCallback(Page nav_page);
+  ```
+
+* 功能描述
+
+  响应用户导航栏的操作
+
+* 参数描述
+
+  * `nav_page`: 用户选择的界面
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  调用对应的处理函数
+
+##### Navigation_LendAndBorrow
+
+* 函数原型
+
+  ```c
+  void Navigation_LendAndBorrow(char *msg);
+  ```
+
+* 功能描述
+
+  处理 LendAndBorrow 界面需要显示的东西并调用绘制函数
+
+* 参数描述
+
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  List *borrow_records_list = NewList();
+  List *books = NewList();
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `borrow_records_list`: 当前用户还没有归还的图书借阅记录
+  * `books`: 对应的借阅记录的图书
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  从借阅记录数据库中筛选出所有满足要求的借阅记录，再遍历一遍，从图书数据库中提取出对应的图书，初始化这一次历史记录的各个参数，调用 `DrawUI`
+
+##### Navigation_BookSearch
+
+* 函数原型
+
+  ```c
+  void Navigation_BookSearch(char *msg);
+  ```
+
+* 功能描述
+
+  处理 BookSearch 界面需要显示的东西并调用绘制函数
+
+* 参数描述
+
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  导航栏单击图书搜索相当于关键字为空的图书搜索，直接调用 `BookSearchDisplay` 做进一步的处理
+
+##### Navigation_UserSearch
+
+* 函数原型
+
+  ```c
+  void Navigation_UserSearch(char *msg);
+  ```
+
+* 功能描述
+
+  处理 UserSearch 界面需要显示的东西并调用绘制函数
+
+* 参数描述
+
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  导航栏单击用户搜索相当于关键字为空的用户搜索，直接调用 `UserSearchDisplay` 做进一步的处理
+
+##### Navigation_ManualOrAbout
+
+* 函数原型
+
+  ```c
+  void Navigation_ManualOrAbout(bool type, char *msg);
+  ```
+
+* 功能描述
+
+  处理 Manual 或者 About 界面需要显示的东西并调用绘制函数
+
+* 参数描述
+
+  * `type`: 0 表示绘制 Manual，1 表示绘制 About
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  初始化这一次历史记录的各个参数，调用 `DrawUI`
+
+##### Navigation_UserLogInOrRegister
+
+* 函数原型
+
+  ```c
+  void Navigation_UserLogInOrRegister(bool type, char *msg);
+  ```
+
+* 功能描述
+
+  处理 LogIn 或者 Register 界面需要显示的东西并调用绘制函数
+
+* 参数描述
+
+  * `type`: 0 表示绘制 Manual，1 表示绘制 About
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 重要局部变量定义
+
+  ```c
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  先退出当前用户，然后初始化这一次历史记录的各个参数，调用 `DrawUI`
+
+##### Navigation_UserLogOut
+
+* 函数原型
+
+  ```c
+  void Navigation_UserLogOut(char *msg);
+  ```
+
+* 功能描述
+
+  登出当前用户并绘制 Welcome 界面
+
+* 参数描述
+
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  见功能描述
+
+##### Navigation_UserModify
+
+* 函数原型
+
+  ```c
+  void Navigation_UserModify(char *msg);
+  ```
+
+* 功能描述
+
+  处理 UserModify 界面需要显示的东西并调用绘制函数
+
+* 参数描述
+
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `UserSearchInfoDisplay`，其中要显示的用户为当前用户
+
+##### Navigation_UserManagement
+
+* 函数原型
+
+  ```c
+  void Navigation_UserManagement(char *msg);
+  ```
+
+* 功能描述
+
+  处理 UserManagement 界面需要显示的东西并调用绘制函数
+
+* 参数描述
+
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  List *to_be_verified = NewList();
+  List *verified = NewList();
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `to_be_verified`: 待审核的用户列表
+  * `verified`: 已审核有效的用户列表
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  从用户数据库中提取出两个用户列表，然后初始化这一次历史记录的各个参数，调用 `DrawUI`
+
+##### Navigation_Library
+
+* 函数原型
+
+  ```c
+  void Navigation_Library(char *msg);
+  ```
+
+* 功能描述
+
+  处理 Library 界面需要显示的东西并调用绘制函数
+
+* 参数描述
+
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  List *books = NewList();
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `books`: 要显示的图书
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  从图书数据库中提取出所有图书，然后初始化这一次历史记录的各个参数，调用 `DrawUI`
+
+##### Navigation_OpenOrInitLibrary
+
+* 函数原型
+
+  ```c
+  void Navigation_OpenOrInitLibrary(bool type, char *msg);
+  ```
+
+* 功能描述
+
+  打开或者新建一个图书库
+
+* 参数描述
+
+  * `type`: 0 表示打开，1 表示新建
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  static bool opened = FALSE;
+  int flag = 0;
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `opened`: 之前是否打开过某个数据库
+  * `flag`: 0 => 无事发生 1=> 有swap文件 2=> 无文件 （3个状态有可能同时存在，使用位运算读取）
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  调用 `SelectFolder` 使用户选择一个文件夹，如果是新建图书库则新建一个 image 文件夹，如果有之前数据库的 swap 文件（这意味着上次一场退出了）则优先打开 swap 文件。清空历史记录并退出当前用户，绘制 Welcome 界面
+
+##### Navigation_SaveLibrary
+
+* 函数原型
+
+  ```c
+  void Navigation_SaveLibrary(bool type, char *msg);
+  ```
+
+* 功能描述
+
+  保存一个图书库
+
+* 参数描述
+
+  * `type`: 0 表示不回退到上一个界面，1 表示回退到上一个界面
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  复制数据库的 swap 文件
+
+##### Navigation_BookDisplayOrInit
+
+* 函数原型
+
+  ```c
+  void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg);
+  ```
+
+* 功能描述
+
+  处理 BookDisplay 或者 BookInit 界面需要显示的东西并调用绘制函数
+
+* 参数描述
+
+  * `book`: 要显示的图书
+  * `type`: 0 表示图书显示，1 表示图书新建
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  用 `loadImage` 或者 `copyImage` 加载图书封面，然后初始化这一次历史记录的各个参数，调用 `DrawUI`
+
+##### Navigation_BookInit
+
+* 函数原型
+
+  ```c
+  void Navigation_BookInit(char *msg);
+  ```
+
+* 功能描述
+
+  生成 BookInit 界面
+
+* 参数描述
+
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  Book *book = malloc(sizeof(Book));
+  ```
+
+* 重要局部变量用途描述
+
+  * `book`: 要新建的图书
+
+* 函数算法描述
+
+  通过 `GetNextPk` 获得要新建的图书的主键，存入 `book` 中，然后调用 `Navigation_BookDisplayOrInit`
+
+##### Navigation_Statistics
+
+* 函数原型
+
+  ```c
+  void Navigation_Statistics(char *msg);
+  ```
+
+* 功能描述
+
+  处理 Statistics 界面需要显示的东西并调用绘制函数
+
+* 参数描述
+
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  List *book = NewList(), *category = NewList();
+  List *borrow_record = NewList();
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `book`: 图书数据库中的所有书
+  * `category`: 所有分类
+  * `borrow_record`: 借还记录数据库中所有借还记录
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  提取出所有书，将书的分类都放到一个链表中，对这个链表排序再去重，获得所有分类。提取出所有借还记录。然后初始化这一次历史记录的各个参数，调用 `DrawUI`
+
+##### Navigation_Return
+
+* 函数原型
+
+  ```c
+  void Navigation_Return(char *msg);
+  ```
+
+* 功能描述
+
+  绘制上一个界面
+
+* 参数描述
+
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `ReturnHistory`。如果历史记录不够了则不返回
+
+##### Navigation_Exit
+
+* 函数原型
+
+  ```c
+  void Navigation_Exit()
+  ```
+
+* 功能描述
+
+  退出整个程序
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  保存并关闭所有数据库，关闭历史记录模块和日志模块，关闭程序
+
+##### BookDisplayAdminDisplay
+
+* 函数原型
+
+  ```c
+  void BookDisplayAdminDisplay(char *msg);
+  ```
+
+* 功能描述
+
+  处理 BorrowDisplay 界面需要显示的东西并调用绘制函数
+
+* 参数描述
+
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  List *borrow_record = NewList();
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `borrow_record`: 这本书的借还记录
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  从借还记录数据库中获得这本书的借还记录。然后初始化这一次历史记录的各个参数，调用 `DrawUI`
+
+##### BookSearchDisplay
+
+* 函数原型
+
+  ```c
+  void BookSearchDisplay(char *keyword, char *msg);
+  ```
+
+* 功能描述
+
+  绘制指定关键词的图书搜索界面
+
+* 参数描述
+
+  * `keyword`: 指定的关键词
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  List *results = NewList();
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `results`: 搜索结果
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  在图书数据库中得到搜索结果。然后初始化这一次历史记录的各个参数，调用 `DrawUI`
+
+##### UserSearchDisplay
+
+* 函数原型
+
+  ```c
+  void UserSearchDisplay(char *keyword, char *msg);
+  ```
+
+* 功能描述
+
+  绘制指定关键词的用户搜索界面
+
+* 参数描述
+
+  * `keyword`: 指定的关键词
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  List *results = NewList();
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `results`: 搜索结果
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  在用户数据库中得到搜索结果。然后初始化这一次历史记录的各个参数，调用 `DrawUI`
+
+##### UserSearchInfoDisplay
+
+* 函数原型
+
+  ```c
+  void UserSearchInfoDisplay(User *show_user, char *msg);
+  ```
+
+* 功能描述
+
+  绘制指定用户的详细信息
+
+* 参数描述
+
+  * `show_user`: 要绘制的用户
+  * `msg`: 日志消息，如果为空则函数自行生成
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  List *borrow_record = NewList();
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `borrow_record`: 该用户的借阅记录
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  在借阅记录数据库中得到该用户的借阅记录。然后初始化这一次历史记录的各个参数，调用 `DrawUI`
+
 # 4 部署运行和使用说明
 
 ## 4.1 编译安装

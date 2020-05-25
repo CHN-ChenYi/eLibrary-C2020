@@ -25,8 +25,7 @@ void DeleteList(const List *const list, void (*Free)(void *const value));
 void ClearList(List *const list, void (*Free)(void *const value));
 
 // Inserts elements before pos, returns a pointer points to the inserted node
-// Note that the value may be freed during the operation of list,
-// so after inserting the value, you shouldn't use it any more
+// Note that after inserting the value, you shouldn't modify it any more
 const ListNode *InsertList(List *const list, ListNode *const pos,
                            void *const value);
 

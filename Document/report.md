@@ -205,6 +205,356 @@
 
 ### model
 
+#### list.c
+
+##### NewList
+
+* 函数原型
+
+  ```c
+  List *NewList();
+  ```
+
+* 功能描述
+
+  初始化一个链表
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  返回已初始化的链表
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  先动态申请空间，然后将 `dummy_head` 和 `dummy_tail` 连起来。返回链表指针
+
+##### DeleteList
+
+* 函数原型
+
+  ```c
+  void DeleteList(const List *const list, void (*Free)(void *const value));
+  ```
+
+* 功能描述
+
+  删除链表
+
+* 参数描述
+
+  * `list`: 待删除的链表
+  * `Free`: 释放链表储存内容的函数
+
+* 返回值描述
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  先调用 `ClearList` 再释放 `list` 的空间
+
+##### ClearList
+
+* 函数原型
+
+  ```c
+  void ClearList(List *const list, void (*Free)(void *const value));
+  ```
+
+* 功能描述
+
+  清空列表
+
+* 参数描述
+
+  * `list`: 待清空的链表
+  * `Free`: 释放链表储存内容的函数
+
+* 返回值描述
+
+* 重要局部变量定义
+
+  ```c
+  const ListNode *now = list->dummy_head->nxt;
+  ```
+
+* 重要局部变量用途描述
+
+  * `now`: 当前待删除的节点
+
+* 函数算法描述
+
+  逐个调用 `EraseList` 删除节点
+
+##### InsertList
+
+* 函数原型
+
+  ```c
+  const ListNode *InsertList(List *const list, ListNode *const pos,
+                             void *const value);
+  ```
+
+* 功能描述
+
+  在指定节点之前插入节点
+
+* 参数描述
+
+  * `list`: 待修改的链表
+  * `pos`: 插入节点的位置
+  * `value`: 待插入的节点的值
+
+* 返回值描述
+
+  指向插入的节点的指针
+
+* 重要局部变量定义
+
+  ```c
+  ListNode *new_node = (ListNode *)malloc(sizeof(ListNode));
+  ```
+
+* 重要局部变量用途描述
+
+  * `new_node`: 待插入的节点
+
+* 函数算法描述
+
+  为待插入的节点申请空间，与待插入位置的前后节点相连，更新链表的节点个数。返回插入后的节点
+
+##### EraseList
+
+* 函数原型
+
+  ```c
+  const ListNode *EraseList(List *const list, const ListNode *const node,
+                            void (*Free)(void *const value));
+  ```
+
+* 功能描述
+
+  删除链表中的指定节点
+
+* 参数描述
+
+  * `list`: 待修改的链表
+  * `node`: 待删除的节点
+  * `Free`: 释放链表储存内容的函数
+
+* 返回值描述
+
+  返回指向删除的节点后面的节点的指针
+
+* 重要局部变量定义
+
+  ```c
+  const ListNode *ret = node->nxt;
+  ```
+
+* 重要局部变量用途描述
+
+  * `ret`: 存储返回值
+
+* 函数算法描述
+
+  将待删除节点的前后节点相连，释放待删除节点的空间
+
+##### SortList
+
+* 函数原型
+
+  ```c
+  void SortList(const List *const list,
+                bool (*cmp)(const void *const lhs, const void *const rhs));
+  ```
+
+* 功能描述
+
+  对链表进行排序
+
+* 参数描述
+
+  * `list`: 待排序的链表
+  * `cmp`: 比较函数，传入两个链表节点的值，返回左边是否小于等于右边
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  int l;
+  ListNode *now, *left_now, *left_end, *right_now, *right_end;
+  ```
+
+* 重要局部变量用途描述
+
+  * `l`: 当前归并的区间长度的一半
+  * `now`: 最后一个已排好的节点
+  * `left_now` / `left_end`: 第一个待排序的半区间为 [`left_now`, `left_end`)
+  * `right_now` / `right_end`: 第二个待排序的半区间为 [`right_now`, `right_end`)
+
+* 函数算法描述
+
+  为了保证排序稳定且排序前后指向链表节点的指针依旧有效，采用归并排序。由于递归太耗时，使用非递归方式归并排序。每次排序倍增待排序的区间长度，然后遍历链表内的所有区间并每次合并两个已排好序的半区间。
+
+##### UniqueList
+
+* 函数原型
+
+  ```c
+  void UniqueList(List *const list,
+                  bool (*cmp)(const void *const lhs, const void *const rhs),
+                  void (*Free)(void *const value));
+  ```
+
+* 功能描述
+
+  对已排好序的链表进行去重
+
+* 参数描述
+
+  * `list`: 待排序的链表
+  * `cmp`: 比较函数，传入两个链表节点的值，返回左边是否等于右边
+  * `Free`: 释放链表储存内容的函数
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  遍历链表，如果链表中的某个节点与它之前的节点相同，则删除这个节点
+
+##### DuplicateList
+
+* 函数原型
+
+  ```c
+  List *DuplicateList(const List *const list,
+                      void *const (*Duplicate)(void *const value));
+  ```
+
+* 功能描述
+
+  深拷贝指定链表
+
+* 参数描述
+
+  * `list`: 待拷贝的链表
+  * `Duplicate`: 深拷贝链表节点的值的函数
+
+* 返回值描述
+
+  指向深拷贝出的链表的指针
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  先调用 `NewList` 创建新链表，对老链表的每个节点逐个调用 `Duplicate` 函数深拷贝节点的值，返回新的链表
+
+##### CombineListNode
+
+* 函数原型
+
+  ```c
+  static inline void CombineListNode(ListNode *const left, ListNode *const right);
+  ```
+
+* 功能描述
+
+  使得传入的两个节点相连
+
+* 参数描述
+
+  * `left`: 待连接的前面的节点
+  * `right`: 待链接的后面的节点
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  使 `left` 的后继为 `right`，使 `right` 的前驱为 `left`
+
+##### MoveListNode
+
+* 函数原型
+
+  ```c
+  static inline ListNode *MoveListNode(const List *const list,
+                                       const ListNode *const node, int step);
+  ```
+
+* 功能描述
+
+  返回指向某节点后面指定个节点的指针
+
+* 参数描述
+
+  * `list`: 节点所在链表
+  * `node`: 初始节点
+  * `step`: 两节点距离
+
+* 返回值描述
+
+  见功能描述
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  从 `node` 节点向后移 `step` 步，除非到达链表末尾
+
 ### template
 
 ### view

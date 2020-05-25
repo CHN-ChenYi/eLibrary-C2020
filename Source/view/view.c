@@ -89,6 +89,7 @@ void InitView() {
 }
 
 void BookSearch_BorrowCallback(Book *book) {
+  // 减少在架数量
   if (!book->number_on_the_shelf) {
     char *msg = malloc(sizeof(char) * (38 + id_len + strlen(book->id)));
     sprintf(msg, "[Error] [%s] There's no [%s] on the shelf", user.id,
@@ -99,6 +100,7 @@ void BookSearch_BorrowCallback(Book *book) {
   book->number_on_the_shelf--;
   if (ErrorHandle(Update(book, book->uid, BOOK), 0)) return;
 
+  // 新建借阅记录
   BorrowRecord new_record;
   strcpy(new_record.book_id, book->id);
   new_record.book_status = BORROWED;
@@ -175,6 +177,7 @@ void LendAndBorrow_ReturnCallback(ListNode *book, ListNode *borrow_record) {
   Book *returned_book = (Book *)book->value;
   BorrowRecord *returned_borrow_record = (BorrowRecord *)borrow_record->value;
 
+  // 增加要还的书的在架数
   returned_book->number_on_the_shelf++;
   if (ErrorHandle(Update(returned_book, returned_book->uid, BOOK), 0)) return;
 
@@ -182,6 +185,7 @@ void LendAndBorrow_ReturnCallback(ListNode *book, ListNode *borrow_record) {
   sprintf(msg, "[Info] [%s] Return book [%s], expected return date[%s]",
           user.id, returned_book->id, returned_borrow_record->returned_date);
 
+  // 将借还记录的状态改成已还并更新还书的时间
   returned_borrow_record->book_status = RETURNED;
   strcpy(returned_borrow_record->returned_date, GetTime(time(NULL)));
   if (ErrorHandle(Update(returned_borrow_record, returned_borrow_record->uid,
@@ -204,6 +208,8 @@ void LendAndBorrow_TurnPage(bool direction) {
 
 void UserModify_ConfirmCallback() {
   User *modified_user = TopHistory()->state.user_modify->user;
+
+  // 如果当前用户和待修改用户权限等级相同，则检查密码是否正确
   if (user.whoami != ADMINISTRATOR || modified_user->whoami == ADMINISTRATOR) {
     char pwd_type[59];
     sprintf(pwd_type, "%s%s", TopHistory()->state.user_modify->old_password,
@@ -218,6 +224,8 @@ void UserModify_ConfirmCallback() {
       return;
     }
   }
+
+  // 如果设置了新的密码
   if (TopHistory()->state.user_modify->new_password[0] != '\0') {
     if (strcmp(TopHistory()->state.user_modify->new_password,
                TopHistory()->state.user_modify->repeat_password)) {
@@ -234,6 +242,16 @@ void UserModify_ConfirmCallback() {
     Sha256Sum(modified_user->password, new_pwd, strlen(new_pwd));
   }
 
+  // 用户号不能为空
+  if (modified_user->id[0] == '\0') {
+    char *msg = malloc(sizeof(char) * (51 + id_len + 10));
+    sprintf(msg, "[Error] [%s] User [uid = %d]'s id can't be blank", user.id,
+            modified_user->uid);
+    ReturnHistory(history_list->dummy_tail->pre, msg);
+    return;
+  }
+
+  // 用户号不能重复
   List *users = NewList();
   char *query = malloc(sizeof(char) * (10 + strlen(modified_user->id)));
   sprintf(query, "id=%s", modified_user->id);
@@ -249,14 +267,7 @@ void UserModify_ConfirmCallback() {
   }
   DeleteList(users, free);
 
-  if (modified_user->id[0] == '\0') {
-    char *msg = malloc(sizeof(char) * (51 + id_len + 10));
-    sprintf(msg, "[Error] [%s] User [uid = %d]'s id can't be blank", user.id,
-            modified_user->uid);
-    ReturnHistory(history_list->dummy_tail->pre, msg);
-    return;
-  }
-
+  // 更新数据库
   if (ErrorHandle(Update(modified_user, modified_user->uid, USER), 0)) return;
   if (modified_user->uid == user.uid) {
     memcpy(&user, modified_user, sizeof(User));
@@ -381,6 +392,7 @@ void LoginOrRegister_LoginCallback() {
 
     User *new_user = TopHistory()->state.login_or_register->user;
 
+    // 用户号不为空
     if (new_user->id[0] == '\0') {
       char *msg = malloc(sizeof(char) * 32);
       sprintf(msg, "[Error] id can't be blank");
@@ -388,6 +400,7 @@ void LoginOrRegister_LoginCallback() {
       return;
     }
 
+    // 用户号不重复
     List *users = NewList();
     char *query = malloc(sizeof(char) * (10 + strlen(new_user->id)));
     sprintf(query, "id=%s", new_user->id);
@@ -406,6 +419,7 @@ void LoginOrRegister_LoginCallback() {
     }
     DeleteList(users, free);
 
+    // 生成新用户
     if (ErrorHandle(GetNextPK(USER, &new_user->uid), 0)) return;
     RandStr(new_user->salt, 9);
     char pwd_type[59];
@@ -445,6 +459,7 @@ void LoginOrRegister_LoginCallback() {
   } else {
     User *new_user = TopHistory()->state.login_or_register->user;
 
+    // 在数据库里找出对应的用户
     List *users = NewList();
     char *query = malloc(sizeof(char) * (4 + strlen(new_user->id)));
     sprintf(query, "id=%s", new_user->id);
@@ -464,6 +479,7 @@ void LoginOrRegister_LoginCallback() {
     memcpy(new_user, users->dummy_head->nxt->value, sizeof(User));
     DeleteList(users, free);
 
+    // 验证密码
     char pwd_type[59];
     sprintf(pwd_type, "%s%s", TopHistory()->state.login_or_register->password,
             new_user->salt);
@@ -519,6 +535,7 @@ void UserManagement_ApproveCallback(ListNode *user_node, bool approve) {
 
 void UserManagement_DeleteCallback(ListNode *user_node) {
   User *new_user = user_node->value;
+  // 管理员帐号不可删除
   if (new_user->whoami == ADMINISTRATOR) {
     char *msg = malloc(sizeof(char) * (38 + id_len));
     sprintf(msg, "[Error] [%s] Can't delete admin account", user.id);
@@ -657,6 +674,7 @@ void BookDisplay_CoverCallback() {
   }
   endtry;
 
+  // 将图片拷贝至 image 文件夹并加载图片
   const char *const book_id = TopHistory()->state.book_display->book->id;
   char *new_path = malloc(sizeof(char) * (image_dir_len + 6 + 10));
   sprintf(new_path, "%s\\%d.jpg", image_dir,
@@ -690,6 +708,7 @@ void BookDisplay_ConfirmCallback() {
     return;
   }
 
+  // 书号不能为空
   Book *new_book = TopHistory()->state.book_display->book;
   if (new_book->id[0] == '\0') {
     char *msg = malloc(sizeof(char) * (36 + id_len));
@@ -698,6 +717,7 @@ void BookDisplay_ConfirmCallback() {
     return;
   }
 
+  // 书号不能重复
   List *books = NewList();
   char *query = malloc(sizeof(char) * (10 + strlen(new_book->id)));
   sprintf(query, "id=%s", new_book->id);
@@ -737,10 +757,13 @@ void BookDisplay_DeleteCallback() {
     return;
   }
   Book *new_book = TopHistory()->state.book_display->book;
+
+  // 删除数据库中的书
   if (TopHistory()->page == kBookModify) {
     if (ErrorHandle(Delete(new_book->uid, BOOK), 0)) return;
   }
 
+  // 删除图书库文件夹中的封面
   char *cover_dir = malloc(sizeof(char) * (image_dir_len + 6 + 10));
   sprintf(cover_dir, "%s\\%d.jpg", image_dir, new_book->uid);
   DeleteFile(cover_dir);
@@ -766,6 +789,7 @@ void BookDisplay_CopyPasteCallback() {
     ReturnHistory(history_list->dummy_tail->pre, msg);
   }
 
+  // 设置在架数为0并更新数据库
   book->number_on_the_shelf = 0;
   if (ErrorHandle(Create(book, BOOK), 0)) {
     book->uid = old_uid;
@@ -778,6 +802,7 @@ void BookDisplay_CopyPasteCallback() {
 
   char *msg = NULL;
 
+  // 复制图书封面
   char *old_image = malloc(sizeof(char) * (6 + 10 + image_dir_len));
   sprintf(old_image, "%s\\%d.jpg", image_dir, old_uid);
   char *new_image = malloc(sizeof(char) * (6 + 10 + image_dir_len));
@@ -792,6 +817,7 @@ void BookDisplay_CopyPasteCallback() {
   free(old_image);
   free(new_image);
 
+  // 新建一本书是防止历史记录遭到破坏
   Book new_book;
   new_book.uid = new_uid;
 
@@ -845,14 +871,11 @@ void Library_SortCallback(SortKeyword sort_keyword) {
 }
 
 void Library_SwitchCallback() {
-  if (history_list->size ==
-      0) {  // 有可能由于历史记录的个数上限，所需的信息已经丢失
-    ReturnHistory(history_list->dummy_tail->pre, NULL);
-    return;
-  }
-  if (TopHistory()->state.library->type == kList) {
+  // 有可能由于历史记录的个数上限，所需的信息已经丢失
+  if (history_list->size == 0 || TopHistory()->state.library->type == kList) {
     Navigation_Library(NULL);
   } else {
+    // 获得图书库中的所有图书
     List *books = NewList();
     if (ErrorHandle(Filter(books, "", BOOK), 0)) {
       DeleteList(books, free);
@@ -901,7 +924,7 @@ void Statistics_SelectCallback(ListNode *catalog) {
     DeleteList(borrow_records, free);
     return;
   }
-  if (strcmp(catalog->value, "ALL")) {
+  if (strcmp(catalog->value, "ALL")) { // 如果不是 ALL 这个分类，则进行筛选
     for (const ListNode *cur_node = borrow_records->dummy_head->nxt;
          cur_node != borrow_records->dummy_tail;) {
       if (ErrorHandle(
@@ -911,7 +934,7 @@ void Statistics_SelectCallback(ListNode *catalog) {
         free(book);
         return;
       }
-      if (strcmp(book->category, catalog->value))
+      if (strcmp(book->category, catalog->value)) // 分类不匹配的就删除
         cur_node = EraseList(borrow_records, cur_node, NULL);
       else
         cur_node = cur_node->nxt;

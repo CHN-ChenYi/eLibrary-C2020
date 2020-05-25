@@ -1,4 +1,4 @@
-# 1 大程序简介
+﻿# 1 大程序简介
 
 ## 1.1 选题背景及意义
 
@@ -2001,6 +2001,1022 @@
 
   在借阅记录数据库中得到该用户的借阅记录。然后初始化这一次历史记录的各个参数，调用 `DrawUI`
 
+##### BookSearch_BorrowCallback
+
+* 函数原型
+
+  ```c
+  static void BookSearch_BorrowCallback(Book *book);
+  ```
+
+* 功能描述
+
+  图书搜索的借阅按钮回调
+
+* 参数描述
+
+  * `book`: 用户要借的书
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  BorrowRecord new_record;
+  ```
+
+* 重要局部变量用途描述
+
+  * `new_record`: 新的借阅记录
+
+* 函数算法描述
+
+  减少书本在架书数，建立新的借阅记录
+
+##### BookSearch_BookCallback
+
+* 函数原型
+
+  ```c
+  void BookSearch_BookCallback(Book *book);
+  ```
+
+* 功能描述
+
+  图书搜索的图书详情按钮回调
+
+* 参数描述
+
+  * `book`: 要看详情的书
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `Navigation_BookDisplayOrInit`
+
+##### BookSearch_SearchCallback
+
+* 函数原型
+
+  ```c
+  void BookSearch_SearchCallback(char *keyword);
+  ```
+
+* 功能描述
+
+  图书搜索的搜索按钮回调
+
+* 参数描述
+
+  * `keyword`: 搜索关键字
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  深拷贝关键字之后直接调用 `BookSearchDisplay`
+
+##### BookSearch_TurnPage
+
+* 函数原型
+
+  ```c
+  void BookSearch_TurnPage(bool direction);
+  ```
+
+* 功能描述
+
+  图书搜索的翻页按钮回调
+
+* 参数描述
+
+  * `direction`: 0 表示向前，1 表示向后
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `MoveInList`，然后调用 `DrawUI`
+
+##### LendAndBorrow_SearchCallback
+
+* 函数原型
+
+  ```c
+  void LendAndBorrow_SearchCallback(char *keyword);
+  ```
+
+* 功能描述
+
+  借还的搜索按钮回调
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `BookSearch_SearchCallback`
+
+##### LendAndBorrow_ReturnCallback
+
+* 函数原型
+
+  ```c
+  void LendAndBorrow_ReturnCallback(ListNode *book, ListNode *borrow_record);
+  ```
+
+* 功能描述
+
+  借还的还书按钮回调
+
+* 参数描述
+
+  * `book`: 要还的书
+  * `borrow_record`: 对应的借阅记录
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  增加要还的书的在架数，将借还记录的状态改成已还并更新还书的时间
+
+##### LendAndBorrow_TurnPage
+
+* 函数原型
+
+  ```c
+  void LendAndBorrow_TurnPage(bool direction);
+  ```
+
+* 功能描述
+
+  借还的翻页按钮回调
+
+* 参数描述
+
+  * `direction`: 0 表示向前，1 表示向后
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `MoveInList`，然后调用 `DrawUI`
+
+##### UserModify_ConfirmCallback
+
+* 函数原型
+
+  ```c
+  void UserModify_ConfirmCallback();
+  ```
+
+* 功能描述
+
+  用户修改的确认按钮回调
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  List *users = NewList();
+  ```
+
+* 重要局部变量用途描述
+
+  * `users`: 与试图更新的用户用户号相同的用户
+
+* 函数算法描述
+
+  如果当前用户和待修改用户权限等级相同，则检查密码是否正确。如果设置了新密码则检查重复的新密码是否正确。验证新的用户号是否合法（不为空且不重复）。更新数据库并调用 `ReturnHistory`
+
+##### UserModify_TurnPage
+
+* 函数原型
+
+  ```c
+  void UserModify_TurnPage(bool direction);
+  ```
+
+* 功能描述
+
+  用户修改的翻页按钮回调
+
+* 参数描述
+
+  * `direction`: 0 表示向前，1 表示向后
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `MoveInList`，然后调用 `DrawUI`
+
+##### UserSearch_InfoCallback
+
+* 函数原型
+
+  ```c
+  void UserSearch_InfoCallback(User *show_user);
+  ```
+
+* 功能描述
+
+  用户搜索的详细信息回调
+
+* 参数描述
+
+  * `show_user`: 要显示的用户
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `UserSearchInfoDisplay`
+
+##### UserSearch_SearchCallback
+
+* 函数原型
+
+  ```c
+  void UserSearch_SearchCallback(char *keyword);
+  ```
+
+* 功能描述
+
+  用户搜索的搜索按钮回调
+
+* 参数描述
+
+  * `keyword`: 搜索关键词
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  深拷贝关键词之后直接调用 `UserSearchDisplay`
+
+##### UserSearch_TurnPage
+
+* 函数原型
+
+  ```c
+  void UserSearch_TurnPage(bool direction);
+  ```
+
+* 功能描述
+
+  用户搜索的翻页按钮回调
+
+* 参数描述
+
+  * `direction`: 0 表示向前，1 表示向后
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `MoveInList`，然后调用 `DrawUI`
+
+##### LoginOrRegister_LoginCallback
+
+* 函数原型
+
+  ```c
+  void LoginOrRegister_LoginCallback();
+  ```
+
+* 功能描述
+
+  登录或者注册的确认按钮回调
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  List *users = NewList();
+  uint32_t sha_type[8];
+  ```
+
+* 重要局部变量用途描述
+
+  * `users`: 与输入用户号相同的用户
+  * `sha_type`: 输入的密码加盐之后的哈希值
+
+* 函数算法描述
+
+  保证用户号不为空不重复，确认密码无误，更新数据库，调用 `DrawUI`
+
+##### UserManagement_ApproveCallback
+
+* 函数原型
+
+  ```c
+  void UserManagement_ApproveCallback(ListNode *user_node, bool approve);
+  ```
+
+* 功能描述
+
+  用户管理的审核按钮回调
+
+* 参数描述
+
+  * `user_node`: 存有被操作的用户的节点
+  * `approve`: 0 表示拒绝，1 表示通过
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  如果通过则在用户数据库中更新数据，如果拒绝则删除用户。然后调用 `ReturnHistory`
+
+##### UserManagement_DeleteCallback
+
+* 函数原型
+
+  ```c
+  void UserManagement_DeleteCallback(ListNode *user_node);
+  ```
+
+* 功能描述
+
+  用户管理的删除回调
+
+* 参数描述
+
+  * `user_node`: 存有被操作的用户的节点
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  在数据库中删除该用户，然后调用 `ReturnHistory`
+
+##### UserManagement_TurnPage
+
+* 函数原型
+
+  ```c
+  void UserManagement_TurnPage(bool direction, bool type);
+  ```
+
+* 功能描述
+
+  用户审核的翻页回调
+
+* 参数描述
+
+  * `direction`: 0 表示向前，1 表示向后
+  * `type`: 0 表示对待审核用户列表做操作，1 表示对已通过用户列表做操作
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `MoveInList`，然后调用 `DrawUI`
+
+##### UserManagement_InfoCallback
+
+* 函数原型
+
+  ```c
+  void UserManagement_InfoCallback(User *show_user);
+  ```
+
+* 功能描述
+
+  用户审核的详情按钮回调
+
+* 参数描述
+
+  * `show_user`: 待显示的用户
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `UserSearchInfoDisplay`
+
+##### UserManagement_SortCallback
+
+* 函数原型
+
+  ```c
+  void UserManagement_SortCallback(SortKeyword sort_keyword);
+  ```
+
+* 功能描述
+
+  用户审核的排序按钮回调
+
+* 参数描述
+
+  `sort_keyword`: 排序关键字
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  调用关键字对应的比较函数，通过 `SortList` 排序之后调用 `DrawUI`
+
+##### BookDisplay_AdminCallback
+
+* 函数原型
+
+  ```c
+  void BookDisplay_AdminCallback();
+  ```
+
+* 功能描述
+
+  图书显示的图书借还记录按钮回调
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `BookDisplayAdminDisplay`
+
+##### BookDisplay_CoverCallback
+
+* 函数原型
+
+  ```c
+  void BookDisplay_CoverCallback();
+  ```
+
+* 功能描述
+
+  图书显示的图书封面更改按钮回调
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  char image_path[MAX_PATH + 1];
+  ```
+
+* 重要局部变量用途描述
+
+  * `image_path`: 用户选择的图片的地址
+
+* 函数算法描述
+
+  通过 `SelectFile` 让用户选择图片，复制图片到图书库的文件夹之内并加载，调用 `DrawUI`
+
+##### BookDisplay_ConfirmCallback
+
+* 函数原型
+
+  ```c
+  void BookDisplay_ConfirmCallback();
+  ```
+
+* 功能描述
+
+  图书显示的确认按钮回调
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  List *books = NewList();
+  ```
+
+* 重要局部变量用途描述
+
+  * `books`: 与输入书号相同的书
+
+* 函数算法描述
+
+  确保书号不为空且不重复之后更新数据库，然后调用 `ReturnHistory`
+
+##### BookDisplay_DeleteCallback
+
+* 函数原型
+
+  ```c
+  void BookDisplay_DeleteCallback();
+  ```
+
+* 功能描述
+
+  图书显示的删除按钮回调
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  删除图书库文件夹中的图书封面。如果是图书修改，则在数据库中删除这本图书。调用 `ReturnHistory`
+
+##### BookDisplay_BorrowCallback
+
+* 函数原型
+
+  ```c
+  void BookDisplay_BorrowCallback();
+  ```
+
+* 功能描述
+
+  图书显示的借书回调
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `BookSearch_BorrowCallback`
+
+##### BookDisplay_CopyPasteCallback
+
+* 函数原型
+
+  ```c
+  void BookDisplay_CopyPasteCallback();
+  ```
+
+* 功能描述
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  const unsigned old_uid = book->uid;
+  ```
+
+* 重要局部变量用途描述
+
+  * `old_uid`: 老的书的主键
+
+* 函数算法描述
+
+  将书的主键换成新的，存入数据库，复制书的封面，调用 `Navigation_BookDisplayOrInit`
+
+##### BorrowDisplay_TurnPage
+
+* 函数原型
+
+  ```c
+  void BorrowDisplay_TurnPage(bool direction);
+  ```
+
+* 功能描述
+
+  图书借阅记录的翻页按钮回调
+
+* 参数描述
+
+  * `direction`: 0 表示向前，1 表示向后
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `MoveInList`，然后调用 `DrawUI`
+
+##### Library_BookCallback
+
+* 函数原型
+
+  ```c
+  void Library_BookCallback(ListNode *book);
+  ```
+
+* 功能描述
+
+  图书库的图书详情回调
+
+* 参数描述
+
+  * `book`: 存有要显示详情的图书的节点
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `Navigation_BookDisplayOrInit`
+
+##### Library_SortCallback
+
+* 函数原型
+
+  ```c
+  void Library_SortCallback(SortKeyword sort_keyword);
+  ```
+
+* 功能描述
+
+  图书库的排序按钮回调
+
+* 参数描述
+
+  `sort_keyword`: 排序关键字
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  调用关键字对应的比较函数，通过 `SortList` 排序之后调用 `DrawUI`
+
+##### Library_SwitchCallback
+
+* 函数原型
+
+  ```c
+  void Library_SwitchCallback();
+  ```
+
+* 功能描述
+
+  图书库的切换模式按钮回调（由于图书模式被砍，这个函数被废除）
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  如果是换成图书模式，则直接调用 `Navigation_Library`。如果是换成列表模式，则基本重复 `Navigation_Library` 的步骤，只不过不加载封面。
+
+##### Library_TurnPage
+
+* 函数原型
+
+  ```c
+  void Library_TurnPage(bool direction);
+  ```
+
+* 功能描述
+
+  图书库的翻页按钮回调
+
+* 参数描述
+
+  * `direction`: 0 表示向前，1 表示向后
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `MoveInList`，然后调用 `DrawUI`
+
+##### Statistics_SelectCallback
+
+* 函数原型
+
+  ```c
+  void Statistics_SelectCallback(ListNode *catalog);
+  ```
+
+* 功能描述
+
+  统计的选择分类按钮回调
+
+* 参数描述
+
+  * `catalog`: 存有选择的分类的节点
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  List *borrow_records = NewList();
+  Book *book = malloc(sizeof(Book));
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `borrow_records`: 所有借阅记录
+  * `book`: 暂存某一借阅记录对应的书，用以判断符不符合要求的分类
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  遍历每个借阅记录，从图书数据库中取出对应的书的分类，如果不符合要求的分类则忽略这个借阅记录
+
+##### Statistics_TurnPage
+
+* 函数原型
+
+  ```c
+  void Statistics_TurnPage(bool direction, bool type);
+  ```
+
+* 功能描述
+
+  用户审核的翻页回调
+
+* 参数描述
+
+  * `direction`: 0 表示向前，1 表示向后
+  * `type`: 0 表示对分类列表做操作，1 表示对借阅记录列表做操作
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `MoveInList`，然后调用 `DrawUI`
+
 # 4 部署运行和使用说明
 
 ## 4.1 编译安装
@@ -2008,6 +3024,8 @@
 ## 4.2 运行测试
 
 ## 4.3 使用操作
+
+TODO:(TO/GA) finish it
 
 # 5 团队合作
 
@@ -2020,6 +3038,10 @@
 ## 5.3 编码规范
 
 ## 5.4 合作总结
+
+TODO:(TO/GA) finish it
+
+开发亮点如 salt？
 
 ## 5.5 收获感言
 

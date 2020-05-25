@@ -1134,10 +1134,10 @@ void AddUserManagement() {
        p = p->nxt, count++) {
     User *user = p->value;
     tbv_user_on_page[count] = p;
-    Label* name = CreateLabel(
-      (Rect){left_x, 0, 0, left_cur_y += delta_y}, user->id, kBlack, NULL_ID
+    Link* name = CreateLink(
+      (Rect){left_x, 0, 0, left_cur_y += delta_y}, user->id, kBlack, 710 + count
     );
-    InsertComp(name, kLabel);
+    InsertComp(name, kLink);
     Label* dpt = CreateLabel(
       (Rect){name->position.right + 10, 0, 0, left_cur_y}, user->department, kBlack, NULL_ID
     );
@@ -1166,10 +1166,10 @@ void AddUserManagement() {
        p = p->nxt, count++) {
     User *user = p->value;
     v_user_on_page[count] = p;
-    Label* label = CreateLabel(
-      (Rect){right_x, 0, 0, right_cur_y += delta_y}, user->id, kBlack, NULL_ID
+    Link* label = CreateLink(
+      (Rect){right_x, 0, 0, right_cur_y += delta_y}, user->id, kBlack, 720 + count
     );
-    InsertComp(label, kLabel);
+    InsertComp(label, kLink);
     Link *delete_button = CreateLink(
       (Rect){right_border - 10 - TextStringWidth("删除") - 10, 0, 0, right_cur_y}, "删除", kBlack, 770 + count
     );
@@ -1206,7 +1206,8 @@ void AddUserManagement() {
  * 702 用户管理 - 未审核下一页
  * 703 用户管理 - 已存在上一页
  * 704 用户管理 - 已存在下一页
- * 710 - ? 用户详细信息（用户管理）
+ * 710 - ? 用户详细信息（待审核）
+ * 720 - ? 用户详细信息（已存在）
  * 740 - ? 用户管理-同意（奇数）/拒绝（偶数）第k个申请
  * 770 - ？用户管理-删除第k
  */
@@ -1229,9 +1230,17 @@ void HandleUserManagementCallback(int id) {
   default:
     if(id > 70) {
       cur_state.user_management->delete_callback(v_user_on_page[id - 70]);
-    } else {
+    } else if(id > 40){
       cur_state.user_management->approve_callback(
         tbv_user_on_page[(id - 40) + 1 >> 1], id & 1
+      );
+    } else if (id > 20) {
+      cur_state.user_management->info_callback(
+        v_user_on_page[id - 20]->value
+      );
+    } else {
+      cur_state.user_management->info_callback(
+        tbv_user_on_page[id - 10]->value
       );
     }
   }

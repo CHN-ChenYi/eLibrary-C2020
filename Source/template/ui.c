@@ -1,4 +1,4 @@
-#include "gui.h"
+﻿#include "gui.h"
 #include "page.h"
 #include "ui.h"
 #include "graphics.h"

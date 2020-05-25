@@ -1,4 +1,4 @@
-/*
+﻿/*
  * File: genlib.c
  * Version: 1.0
  * Last modified on Sun Jul 24 10:29:46 1994 by eroberts

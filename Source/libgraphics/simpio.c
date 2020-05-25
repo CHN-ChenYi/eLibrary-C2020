@@ -1,4 +1,4 @@
-/*
+﻿/*
  * File: simpio.c
  * Version: 3.0
  * Last modified on Tue Oct  4 11:24:40 1994 by eroberts

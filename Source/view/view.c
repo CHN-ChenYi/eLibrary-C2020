@@ -313,7 +313,7 @@ void UserSearchInfoDisplay(User *show_user, char *msg) {
   new_history->state.user_modify->borrowrecords_start =
       borrow_record->dummy_head->nxt;
   new_history->state.user_modify->frequency = GetBorrowRecordNumberAfter(
-      borrow_record, time(NULL) + (time_t)0x28DE80);  // 2678400（31天）
+      borrow_record, time(NULL) - (time_t)0x28DE80);  // 2678400（31天）
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -644,7 +644,7 @@ void BookDisplayAdminDisplay(char *msg) {
   new_history->state.borrow_display->borrow_record_start =
       borrow_record->dummy_head->nxt;
   new_history->state.borrow_display->frequency = GetBorrowRecordNumberAfter(
-      borrow_record, time(NULL) + (time_t)0x28DE80);  // 2678400（31天）
+      borrow_record, time(NULL) - (time_t)0x28DE80);  // 2678400（31天）
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -955,7 +955,7 @@ void Statistics_SelectCallback(ListNode *catalog) {
   new_history->state.statistics->borrow_record_start =
       borrow_records->dummy_head->nxt;
   new_history->state.statistics->frequency = GetBorrowRecordNumberAfter(
-      borrow_records, time(NULL) + (time_t)0x28DE80);  // 2678400（31天）
+      borrow_records, time(NULL) - (time_t)0x28DE80);  // 2678400（31天）
   PushBackHistory(new_history);
 
   char *msg = malloc(sizeof(char) * (46 + id_len + strlen(catalog->value)));
@@ -1543,7 +1543,7 @@ void Navigation_Statistics(char *msg) {
   new_history->state.statistics->borrow_record_start =
       borrow_record->dummy_head->nxt;
   new_history->state.statistics->frequency = GetBorrowRecordNumberAfter(
-      borrow_record, time(NULL) + (time_t)0x28DE80); // 2678400（31天）
+      borrow_record, time(NULL) - (time_t)0x28DE80); // 2678400（31天）
   PushBackHistory(new_history);
 
   if (!msg) {

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * File: gcalloc.h
  * Version: 1.0
  * Last modified on Wed Sep 21 16:21:37 1994 by eroberts

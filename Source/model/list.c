@@ -5,7 +5,11 @@
 #include "exception.h"
 
 // make right to be the one after left in the list
-static inline void CombineListNode(ListNode *const left,
+static inline void CombineListNode(ListNode *const left, ListNode *const right);
+static inline ListNode *MoveListNode(const List *const list,
+                                     const ListNode *const node, int step);
+
+void CombineListNode(ListNode *const left,
                                    ListNode *const right) {
   left->nxt = right;
   right->pre = left;
@@ -62,8 +66,8 @@ const ListNode *EraseList(List *const list, const ListNode *const node,
   return ret;
 }
 
-static inline ListNode *MoveListNode(const List *const list,
-                                     const ListNode *const node, int step) {
+ListNode *MoveListNode(const List *const list, const ListNode *const node,
+                       int step) {
   ListNode *ret = (ListNode *)node;
   while (ret != list->dummy_tail && step--) ret = ret->nxt;
   return ret;

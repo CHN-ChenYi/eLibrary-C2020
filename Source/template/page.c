@@ -1975,7 +1975,7 @@ void AddStatistics() {
  * 1001 分类统计标签上一页
  * 1002 分类统计标签下一页
  * 1003 分类统计结果上一页
- * 1004 分类统计结果上一页
+ * 1004 分类统计结果下一页
  * 1050 - ? 分类标签
  */
 void HandleStatisticsCallback(int id) {

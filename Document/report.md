@@ -4,6 +4,7 @@
 **图书管理系统**是生活中相当常见的管理系统之一，但这些管理系统还是有其缺陷，如无法准确快速的搜索到数据、整体设计复杂繁琐、体积庞大不适用某些小专案。
 因此本次我组选题为**图书管理系统**，其一是希望开发一个简易好上手、快速的管理系统；其二是图书管理系统是一个较为整齐且分工明确的项目，且涉及的各个模块实作跨度较大(绘制/排序/查找)，能接触不同领域的开发。  
 我组希望透过这次大程实现简易管理系统，能更了解C语言模块化程序设计。
+
 ## 1.2 目标要求
 * 能更熟悉运用 `libgraphics` 函数库  
 * 能更熟悉文件在C语言中的实现及处理  
@@ -16,9 +17,11 @@
 ### 深拷贝(deep copy)
 指在拷贝时，完全拷贝一个对象的值及其所含的子对象的值到目标对象，深拷贝后将有两个对象出现，并为不同个体，彼此间占用不同内存空间，不互相影响。  
 与其相对的是**浅拷贝(shallow copy)**，浅拷贝仅仅传递或赋予指针，实际对象数并没有增加。
+
 ### 哈希(hash)
 是从一笔数据中，透过一个**哈希函数**，来创建较为简短，具有独特性的**哈希值**（通常以字母和数字）的方法。如此一来，数据便有了统一的代表格式，也可利用**哈希值**来取得原始数据。
 除此之外，根据哈希函数的设计，其碰撞(产生重复哈希值)概率、安全性也不同。哈希目前广泛应用於电脑技术中，如数字签名等。
+
 ### 栈(stack)
 一种常见的数据结构，栈中数据保持先进后出(FILO)的次序。  
 ### 内联函数(inline functions)
@@ -50,7 +53,16 @@
 
 ## 3.1 总体架构设计
 
+程序采用了 MTV 结构如下图
+
+![](./image/MTV.jpg)
+
 ## 3.2 功能模块设计
+
+*  Model 进行数据库处理，如 CRUD(Create, Retrieve, Update, Delete) 等
+*  Template 进行界面显示并处理用户输入
+*  View 进行逻辑控制
+*  每个模块下的细分模块功能均与文件名一致，在此不做赘述
 
 ## 3.3 数据结构设计
 ### basictype.h
@@ -77,8 +89,8 @@
 
 * 结构描述
 
-  * `uid` - uid ，不重复，用户不可见
-  * `id` - id ，可能重复，用户可见
+  * `uid` - uid ，用户不可见
+  * `id` - id ，用户可见
   * `title` - 书名
   * `authors` - 作者
   * `category` - 分类
@@ -113,8 +125,8 @@
 
 * 结构描述
 
-  * `uid` - uid ，不重复，用户不可见
-  * `id` - id ，可能重复，用户可见
+  * `uid` - uid ，用户不可见
+  * `id` - id ，用户可见
   * `name` - 用户名
   * `salt` - 盐，密码哈希需要
   * `password` - 密码
@@ -145,18 +157,18 @@
 
 * 结构描述
 
-  * `uid` - uid ，不重复，用户不可见
-  * `book_uid` - 关联的书本 `uid` ，不重复，用户不可见
-  * `user_uid` - 关联的用户 `uid` ，不重复，用户不可见
-  * `book_id` - 关联的书本 `id` ，可能重复，用户可见
-  * `user_id` - 关联的用户 `id` ，可能重复，用户可见
+  * `uid` - uid ，用户不可见
+  * `book_uid` - 关联的书本 `uid` ，用户不可见
+  * `user_uid` - 关联的用户 `uid` ，用户不可见
+  * `book_id` - 关联的书本 `id` ，用户可见
+  * `user_id` - 关联的用户 `id` ，用户可见
   * `borrowed_date` - 借阅日期
   * `book_status` - 借阅状态
   * `returned_date` - 归还日期
 
 ### list.h
 
-### ListNode
+#### ListNode
 
 * 原型
   ```c
@@ -175,7 +187,7 @@
   * `pre` - 指针，指向前一个链表节点
   * `nxt` - 指针，指向后一个链表节点
 
-### List
+#### List
 
 * 原型
   ```c
@@ -196,11 +208,18 @@
 
 
 ## 3.4 源代码文件组织设计
+
+### 文件函数结构
+
+* 由于函数定义在哪个文件中已在 3.5 章节清晰写明，下表不再详细说明
+
+* 由于 C 语言中没有函数重载，函数仅标出函数名，函数原型请查阅 3.5 章节
+
 ```
 .
 ├── CMakeLists.txt
 ├── Document
-│   ├── image(放置文档相关图片)  
+│   ├── image(放置文档相关图片) 
 │   └── report.md(文档)
 ├── eLibrary.sln
 ├── eLibrary.vcxproj
@@ -218,6 +237,17 @@
     │   ├── genlib.h
     │   ├── graphics.c
     │   ├── graphics.h
+    |   |   ├── struct LibImage
+    |   |   ├── loadImage()
+    |   |   ├── copyImage()
+    |   |   ├── DrawImage()
+    |   |   ├── SelectFile()
+    |   |   ├── SelectFolder()
+    |   |   ├── struct Color
+    |   |   ├── struct ColorPoint
+    |   |   ├── struct Rect
+    |   |   ├── ClearDistrict()
+    |   |   └── DrawShadedRectangle()
     │   ├── random.c
     │   ├── random.h
     │   ├── simpio.c
@@ -226,31 +256,182 @@
     │   └── strlib.h
     ├── model
     │   ├── basictype.h
+    |   |   ├── struct Book
+    |   |   ├── enum Identity
+    |   |   ├── enum Gender
+    |   |   ├── struct User
+    |   |   ├── enum BookStatus
+    |   |   └── struct BorrowRecord
     │   ├── list.c
     │   ├── list.h
+    |   |   ├── struct ListNode
+    |   |   ├── struct List
+    |   |   ├── NewList()
+    |   |   ├── DeleteList()
+    |   |   ├── ClearList()
+    |   |   ├── InsertList()
+    |   |   ├── EraseList()
+    |   |   ├── SortList()
+    |   |   ├── UniqueList()
+    |   |   └── DuplicateList()
     │   ├── model.c
     │   ├── model.h
+    |   |   ├── struct DB
+    |   |   ├── OpenDBConnection()
+    |   |   ├── CloseDBConnection()
+    |   |   ├── Create()
+    |   |   ├── GetByID()
+    |   |   ├── Filter()
+    |   |   ├── GetDBSize()
+    |   |   ├── GetNextPK()
+    |   |   ├── Update()
+    |   |   └── Delete()
     │   ├── utils.c
     │   └── utils.h
+    |       ├── enum DBErrno
+    |       ├── enum Model
+    |       ├── String
+    |       ├── BookCopy()
+    |       ├── UserCopy()
+    |       ├── RecordCopy()
+    |       ├── BookFilter()
+    |       ├── UserFilter()
+    |       ├── RecordFilter()
+    |       ├── StringToModel()
+    |       └── ModelToString()
     ├── template
     │   ├── gui.h
+    |   |   ├── enum Page
+    |   |   ├── DrawUI()
+    |   |   ├── NavigationCallback()
+    |   |   ├── kLendAndBorrowMax
+    |   |   ├── struct LendAndBorrow
+    |   |   ├── kBookSearchMax
+    |   |   ├── struct BookSearch
+    |   |   ├── kUserSearchMax
+    |   |   ├── struct UserSearch
+    |   |   ├── struct ManualAndAbout
+    |   |   ├── struct LoginOrRegister
+    |   |   ├── kUserModifyMax
+    |   |   ├── struct UserModify
+    |   |   ├── enum SortKeyWord
+    |   |   ├── kUserManagementToBeVerifiedMax
+    |   |   ├── kUserManagementUsersMax
+    |   |   ├── struct UserManagement
+    |   |   ├── kLibraryMax
+    |   |   ├── struct Library
+    |   |   ├── struct BookDisplay
+    |   |   ├── kBorrowDisplayMax
+    |   |   ├── struct BorrowDisplay
+    |   |   ├── kStatisticsCatalogsMax
+    |   |   ├── kStatisticsBorrowRecordMax
+    |   |   ├── struct Statistics
+    |   |   └── union State
     │   ├── page.c
     │   ├── page.h
+    |   |   ├── InitPage()
+    |   |   ├── CallbackById()
+    |   |   ├── ExitSurface()
+    |   |   ├── InitGUI()
+    |   |   └── HandleCtrl()
     │   ├── ui.c
     │   └── ui.h
+    |       ├── enum ComponentStatus
+    |       ├── struct Button
+    |       ├── struct InputBox
+    |       ├── struct Link
+    |       ├── struct Label
+    |       ├── struct Frame
+    |       ├── struct Image
+    |       ├── CreateButton()
+    |       ├── CreateInputBox()
+    |       ├── CreateLink()
+    |       ├── CreateFrame()
+    |       ├── CreateImage()
+    |       ├── PTCNode
+    |       ├── enum TypeOfComp
+    |       ├── struct ComponentListNode
+    |       ├── CompList
+    |       ├── InsertComp()
+    |       ├── InsertFrame()
+    |       ├── InsertSurface()
+    |       ├── InitComponents()
+    |       ├── InitFrame()
+    |       ├── InitSurface()
+    |       ├── FlushScreen()
+    |       └── InitializeUI()
     └── view
         ├── hash.c
         ├── hash.h
+        |   ├── Sha256Sum()
+        |   └── RandStr
         ├── history.c
         ├── history.h
+        |   ├── struct History
+        |   ├── InitHistory()
+        |   ├── UninitHistory()
+        |   ├── TopHistory()
+        |   ├── PushBackHistory()
+        |   ├── PopBackHistory()
+        |   ├── ClearHistory()
+        |   ├── FreeHistory()
+        |   └── ReturnHistory()
         ├── main.c
         ├── utility.c
         ├── utility.h
+        |   ├── InitUtility()
+        |   ├── UninitUtility()
+        |   ├── Log()
+        |   ├── MoveInList()
+        |   ├── ErrorHandle()
+        |   ├── InitCheck()
+        |   ├── CmpGreaterBorrowRecordByReturnTime()
+        |   ├── CmpLessBorrowRecordByReturnTime()
+        |   ├── CmpLessBookById()
+        |   ├── CmpLessBookByTitle()
+        |   ├── CmpLessBookByAuthor()
+        |   ├── CmpLessUserById()
+        |   ├── CmpLessUserByName()
+        |   ├── CmpLessUserByDepartment()
+        |   ├── StrCpy()
+        |   ├── StrLess()
+        |   ├── StrSame()
+        |   ├── GetTime()
+        |   └── GetBorrowRecordNumberAfter()
         ├── view.c
         └── view.h
+            ├── InitView()
+            ├── NavigationCallback()
+            ├── Navigation_LendAndBorrow()
+            ├── Navigation_BookSearch()
+            ├── Navigation_UserSearch()
+            ├── Navigation_ManualOrAbout()
+            ├── Navigation_UserLogInOrRegister()
+            ├── Navigation_UserLogOut()
+            ├── Navigation_UserModify()
+            ├── Navigation_UserManagement()
+            ├── Navigation_Library()
+            ├── Navigation_OpenOrInitLibrary()
+            ├── Navigation_SaveLibrary()
+            ├── Navigation_BookDisplayOrInit()
+            ├── Navigation_BookInit()
+            ├── Navigation_Statistics()
+            ├── Navigation_Return()
+            ├── Navigation_Exit()
+            ├── BookDisplayAdminDisplay()
+            ├── BookSearchDisplay()
+            ├── UserSearchDisplay()
+            └── UserSearchInfoDisplay()
 
 8 directories, 70 files
 ```
+
+### 多文件构成机制
+
+* 头文件保护: 使用 `#define` 或者 `#pragma once`
+
+* 外部变量: 不同编译单元如需共用全局变量，则该全局变量在被引用最多的文件中定义
+
 ## 3.5 函数设计描述
 
 ### libgraphics
@@ -5815,6 +5996,26 @@
 
 ## 4.1 编译安装
 
+1. 打开文件夹，右键`eLibrary.sln`，选择打开方式：Visual Studio
+
+   <img src="image/open_project.png">
+
+2. 左上角将“解决方案配置”调整为`Release`
+
+   <img src="image/release.png">
+
+3. 菜单栏处点击”生成-生成解决方案“
+
+   <img src="image/build.png">
+
+4. 在`./Release/Build`处找到相应的`eLibrary.exe`
+
+   <img src="image/exe_address.png">
+
+5. 将其复制到项目的根目录下（与`./Resource`同级即可）
+
+   <img src="image/exe.png">
+
 ## 4.2 运行测试
 
 ### 案例一
@@ -5925,7 +6126,7 @@
 
     * 搜索语法如下
 
-      * `keyword1opvalue1&keyword2opvalue2...`
+      * `keyword1+op1+value1+&+keyword2+op2+value2...`
 
         * keyword
 
@@ -6148,6 +6349,12 @@
 ![](./image/issue2.jpg)
 
 ## 5.5 收获感言
+
+### Model 同学
+
+### Template 同学
+
+### View 同学
 
 # 6 参考文献资料
 

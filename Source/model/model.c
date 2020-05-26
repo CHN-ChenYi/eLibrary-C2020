@@ -66,7 +66,10 @@ int DBUninit(Model model) {
 		ClearList(data, NULL);
 		return DB_FAIL_ON_UNINIT;
 	}
-	fprintf(database, "%d %d\n", DBs[model].pk, DBs[model].size);
+	char firstline[150];
+	sprintf(firstline, "%d %d\n", DBs[model].pk, DBs[model].size);
+	fwrite(firstline, sizeof(char), sizeof(firstline)-1, database); // avoid \0 output
+	//fprintf(database, "%d %d\n", DBs[model].pk, DBs[model].size);
 	while (1) {
 		cur = cur->nxt;
 		if (cur == data->dummy_tail) break;
@@ -76,7 +79,8 @@ int DBUninit(Model model) {
 			ClearList(data, NULL);
 			return DB_FAIL_ON_UNINIT;
 		}
-		fprintf(database, "%s", str);
+		fwrite (str , sizeof(char), sizeof(str)-1, database); // avoid \0 output
+		//fprintf(database, "%s", str);
 	}
 	ClearList(data, NULL);
 	return DB_SUCCESS;

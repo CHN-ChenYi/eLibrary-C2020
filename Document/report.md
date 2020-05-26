@@ -196,7 +196,61 @@
 
 
 ## 3.4 源代码文件组织设计
+```
+.
+├── CMakeLists.txt
+├── Document
+│   ├── image(放置文档相关图片)  
+│   └── report.md(文档)
+├── eLibrary.sln
+├── eLibrary.vcxproj
+├── eLibrary.vcxproj.filters
+├── eLibrary.vcxproj.user
+├── README.md
+├── Resource(放置系统相关静态资源，如图片等)
+└── Source(主要源代码)
+    ├── libgraphics
+    │   ├── exceptio.c
+    │   ├── exception.h
+    │   ├── extgraph.h
+    │   ├── gcalloc.h
+    │   ├── genlib.c
+    │   ├── genlib.h
+    │   ├── graphics.c
+    │   ├── graphics.h
+    │   ├── random.c
+    │   ├── random.h
+    │   ├── simpio.c
+    │   ├── simpio.h
+    │   ├── strlib.c
+    │   └── strlib.h
+    ├── model
+    │   ├── basictype.h
+    │   ├── list.c
+    │   ├── list.h
+    │   ├── model.c
+    │   ├── model.h
+    │   ├── utils.c
+    │   └── utils.h
+    ├── template
+    │   ├── gui.h
+    │   ├── page.c
+    │   ├── page.h
+    │   ├── ui.c
+    │   └── ui.h
+    └── view
+        ├── hash.c
+        ├── hash.h
+        ├── history.c
+        ├── history.h
+        ├── main.c
+        ├── utility.c
+        ├── utility.h
+        ├── view.c
+        └── view.h
 
+8 directories, 70 files
+```
 ## 3.5 函数设计描述
 
 ### libgraphics

@@ -163,6 +163,11 @@ int UserFilter(User* p_u, String queries) {
 				if (flag) break;
 			}
 		}
+		else if (*(property) == 'g' && *(property + 1) == 'e') {
+			char str[50];
+			sprintf(str, "%d", p_u->gender);
+			flag = Cmp(str, para, insensitive, equal);
+		}
 		else if (*(property) == 'd' && *(property + 1) == 'e') {
 			flag = Cmp(p_u->department, para, insensitive, equal);
 		}

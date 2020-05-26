@@ -310,7 +310,6 @@
     |   |   ├── struct BookSearch
     |   |   ├── kUserSearchMax
     |   |   ├── struct UserSearch
-    |   |   ├── struct ManualAndAbout
     |   |   ├── struct LoginOrRegister
     |   |   ├── kUserModifyMax
     |   |   ├── struct UserModify
@@ -2737,7 +2736,7 @@
 
 * 参数描述
 
-  * `type`: 0 表示绘制 Manual，1 表示绘制 About
+  * `type`: 0 表示绘制 LogIn，1 表示绘制 Register
   * `msg`: 日志消息，如果为空则函数自行生成
 
 * 重要局部变量定义
@@ -6103,7 +6102,7 @@
 
     * 登录: 仅已被管理员审核通过的用户可以登录
 
-    * 新建
+    * 新建: 图书库的第一个用户自动成为管理员
 
     * 审核（仅限管理员）: 可以审核待审核的用户或删除已审核通过的用户，单击用户号跳转到详细信息（用户修改页面）
 

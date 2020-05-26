@@ -335,7 +335,7 @@ void AddSubmenu(int status) {
 }
 
 LibImage folder_icon_image, book_icon_image, lend_icon_image, user_icon_image,
-    search_icon_image, statistics_icon_image;
+    search_icon_image, statistics_icon_image, about_image, manual_image, welcome_image;
 
 // 绘制顶部菜单
 void AddHeadBar() {
@@ -446,6 +446,27 @@ void AddFooBar() {
   InsertFrame(fb_frame);
   InsertComp(bottom_output, kLabel);
   InsertComp(bottom_info, kInputBox);
+}
+
+void AddManual() {
+  if (cur_page == kManual) {
+    Image *img = CreateImage(
+      (Rect){0, GetWindowWidthPx(), 100, GetWindowHeightPx() - 100}, manual_image, 0
+    );
+    InsertComp(img, kImage);
+  } else if(cur_page == kAbout) {
+    Image *img = CreateImage(
+      (Rect){0, GetWindowWidthPx(), 100, GetWindowHeightPx() - 100}, about_image, 0
+    );
+    InsertComp(img, kImage);
+  }
+}
+
+void AddWelcome() {
+  Image *img = CreateImage(
+    (Rect){0, GetWindowWidthPx(), 100, GetWindowHeightPx() - 100}, welcome_image, 0
+  );
+  InsertComp(img, kImage);
 }
 
 // 绘制借还书界面
@@ -2048,6 +2069,7 @@ void HandleStatisticsCallback(int id) {
 void AddContents() {
   switch (cur_page) {
     case kWelcome:
+      AddWelcome();
       break;
     case kLendAndBorrow:
       AddLendAndBorrow();
@@ -2060,7 +2082,7 @@ void AddContents() {
       break;
     case kManual:
     case kAbout:
-      //AddManual();
+      AddManual();
       break;
     case kUserRegister:
       AddUserRegister();
@@ -2131,6 +2153,9 @@ void InitGUI() {
   loadImage(".\\Resource\\person.jpg", &user_icon_image);
   loadImage(".\\Resource\\search.jpg", &search_icon_image);
   loadImage(".\\Resource\\show_chart.jpg", &statistics_icon_image);
+  loadImage(".\\Resource\\about.jpg", &about_image);
+  loadImage(".\\Resource\\manual.jpg", &manual_image);
+  loadImage(".\\Resource\\welcome.jpg", &welcome_image);
   InitPage();
 }
 

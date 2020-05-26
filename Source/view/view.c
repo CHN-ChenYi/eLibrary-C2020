@@ -1063,7 +1063,10 @@ void Navigation_ManualOrAbout(bool type, char *msg) {
       sprintf(msg, "[Info] [%s] Open Page Manual", user.id);
   }
   Log(msg);
-  DrawUI(kAbout, &user, NULL, msg);
+  if (type)
+    DrawUI(kAbout, &user, NULL, msg);
+  else 
+    DrawUI(kManual, &user, NULL, msg);
 }
 
 void Navigation_UserLogInOrRegister(bool type, char *msg) {

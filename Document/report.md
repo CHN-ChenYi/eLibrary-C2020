@@ -5,7 +5,7 @@
 因此本次我组选题为**图书管理系统**，其一是希望开发一个简易好上手、快速的管理系统；其二是图书管理系统是一个较为整齐且分工明确的项目，且涉及的各个模块实作跨度较大(绘制/排序/查找)，能接触不同领域的开发。  
 我组希望透过这次大程实现简易管理系统，能更了解C语言模块化程序设计。
 ## 1.2 目标要求
-* 能更熟悉运用`libgraphics`函数库  
+* 能更熟悉运用 `libgraphics` 函数库  
 * 能更熟悉文件在C语言中的实现及处理  
 * 理解并掌握基本的数据处理，对于往后数据库的学习打下基础
 * 理解管理系统的原型    
@@ -22,7 +22,7 @@
 ### 栈(stack)
 一种常见的数据结构，栈中数据保持先进后出(FILO)的次序。  
 ### 内联函数(inline functions)
-内联函数是一种使用关键词`inline`宣告的函数，用来建议编译器对这些函数进行内联拓展，也就是说将这些函数的函数体取代每一处该调用函数的地方，用以节省调用函数的时间开支。  
+内联函数是一种使用关键词 `inline` 宣告的函数，用来建议编译器对这些函数进行内联拓展，也就是说将这些函数的函数体取代每一处该调用函数的地方，用以节省调用函数的时间开支。  
 内联函数通常为简短但是常调用的函数。
 ### 模型(model)
 模型为数据结构在编程时的抽象表示，与其相对的是**实例(instance)**，代表实际在内存中的数据结构。
@@ -53,9 +53,204 @@
 ## 3.2 功能模块设计
 
 ## 3.3 数据结构设计
+### basictype.h
+#### Book
+
+* 原型
+  ```c
+  typedef struct Book {
+    unsigned uid;
+    char id[20];
+    char title[200];
+    char authors[3][200];
+    char category[50];
+    char press[200];
+    char publication_date[10];
+    char keywords[5][50];
+    unsigned int number_on_the_shelf;
+    unsigned int available_borrowed_days;
+  } Book;
+  ```
+* 结构说明
+  
+  代表图书
+
+* 结构描述
+
+  * `uid` - uid ，不重复，用户不可见
+  * `id` - id ，可能重复，用户可见
+  * `title` - 书名
+  * `authors` - 作者
+  * `category` - 分类
+  * `press` - 出版社
+  * `publication_date` - 出版日期
+  * `keywords` - 关键词
+  * `number_on_the_shelf` - 库存量
+  * `available_borrowed_days` - 借阅期限
+
+#### User
+
+* 原型
+  ```c
+  typedef enum Identity { NORMAL_USER = 0, ADMINISTRATOR } Identity;
+  typedef enum Gender { MALE = 0, FEMALE } Gender;
+
+  typedef struct User {
+    unsigned uid;
+    char id[20];
+    char name[20];
+    char salt[10];
+    uint32_t password[8];
+    Gender gender;
+    char department[200];
+    Identity whoami;
+    bool verified;
+  } User;
+  ```
+* 结构说明
+  
+  代表用户
+
+* 结构描述
+
+  * `uid` - uid ，不重复，用户不可见
+  * `id` - id ，可能重复，用户可见
+  * `name` - 用户名
+  * `salt` - 盐，密码哈希需要
+  * `password` - 密码
+  * `gender` - 性别
+  * `department` - 单位
+  * `whoami` - 用户权限
+  * `verified` - 是否验证
+
+#### BorrowRecord
+
+* 原型
+  ```c
+  typedef struct BorrowRecord {
+    unsigned uid;
+    unsigned book_uid;
+    unsigned user_uid;
+    char book_id[20];
+    char user_id[20];
+    char borrowed_date[10];
+    BookStatus book_status;
+    // if book_status == BORROWED, returned_date stores the expected returned date
+    char returned_date[10];
+  } BorrowRecord;
+  ```
+* 结构说明
+  
+  代表借阅记录
+
+* 结构描述
+
+  * `uid` - uid ，不重复，用户不可见
+  * `book_uid` - 关联的书本 `uid` ，不重复，用户不可见
+  * `user_uid` - 关联的用户 `uid` ，不重复，用户不可见
+  * `book_id` - 关联的书本 `id` ，可能重复，用户可见
+  * `user_id` - 关联的用户 `id` ，可能重复，用户可见
+  * `borrowed_date` - 借阅日期
+  * `book_status` - 借阅状态
+  * `returned_date` - 归还日期
+
+### list.h
+
+### ListNode
+
+* 原型
+  ```c
+  typedef struct ListNode {
+    void *value;
+    struct ListNode *pre, *nxt;
+  } ListNode;
+  ```
+* 结构说明
+  
+  代表链表节点
+
+* 结构描述
+
+  * `value` - 指针，指向关联的值
+  * `pre` - 指针，指向前一个链表节点
+  * `nxt` - 指针，指向后一个链表节点
+
+### List
+
+* 原型
+  ```c
+  typedef struct List {
+    int size;
+    ListNode *dummy_head, *dummy_tail;
+  } List;
+  ```
+* 结构说明
+  
+  代表链表
+
+* 结构描述
+
+  * `size` - 链表大小
+  * `dummy_head` - 指针，指向链表头
+  * `dummy_tail` - 指针，指向链表尾
+
 
 ## 3.4 源代码文件组织设计
+```
+.
+├── CMakeLists.txt
+├── Document
+│   ├── image(放置文档相关图片)  
+│   └── report.md(文档)
+├── eLibrary.sln
+├── eLibrary.vcxproj
+├── eLibrary.vcxproj.filters
+├── eLibrary.vcxproj.user
+├── README.md
+├── Resource(放置系统相关静态资源，如图片等)
+└── Source(主要源代码)
+    ├── libgraphics
+    │   ├── exceptio.c
+    │   ├── exception.h
+    │   ├── extgraph.h
+    │   ├── gcalloc.h
+    │   ├── genlib.c
+    │   ├── genlib.h
+    │   ├── graphics.c
+    │   ├── graphics.h
+    │   ├── random.c
+    │   ├── random.h
+    │   ├── simpio.c
+    │   ├── simpio.h
+    │   ├── strlib.c
+    │   └── strlib.h
+    ├── model
+    │   ├── basictype.h
+    │   ├── list.c
+    │   ├── list.h
+    │   ├── model.c
+    │   ├── model.h
+    │   ├── utils.c
+    │   └── utils.h
+    ├── template
+    │   ├── gui.h
+    │   ├── page.c
+    │   ├── page.h
+    │   ├── ui.c
+    │   └── ui.h
+    └── view
+        ├── hash.c
+        ├── hash.h
+        ├── history.c
+        ├── history.h
+        ├── main.c
+        ├── utility.c
+        ├── utility.h
+        ├── view.c
+        └── view.h
 
+8 directories, 70 files
+```
 ## 3.5 函数设计描述
 
 ### libgraphics

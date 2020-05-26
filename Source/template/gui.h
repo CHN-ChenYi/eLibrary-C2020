@@ -85,11 +85,6 @@ typedef struct UserSearch {
   void (*turn_page)(bool direction);
 } UserSearch;
 
-/* 用户手册/关于界面 */
-typedef struct ManualAndAbout {
-  LibImage img;  // 手册/关于的图片
-} ManualAndAbout;
-
 /* 用户登陆/注册界面 */
 typedef struct LoginOrRegister {
   User *user;                // 当前正在登陆/注册的这个用户
@@ -196,7 +191,6 @@ typedef union State {
   LendAndBorrow *lend_and_borrow;
   BookSearch *book_search;
   UserSearch *user_search;
-  ManualAndAbout *manual_and_about;
   LoginOrRegister *login_or_register;
   UserModify *user_modify;
   UserManagement *user_management;

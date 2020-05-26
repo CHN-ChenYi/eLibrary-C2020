@@ -77,8 +77,8 @@
 
 * 结构描述
 
-  * `uid` - uid ，不重复，用户不可见
-  * `id` - id ，可能重复，用户可见
+  * `uid` - uid ，用户不可见
+  * `id` - id ，用户可见
   * `title` - 书名
   * `authors` - 作者
   * `category` - 分类
@@ -113,8 +113,8 @@
 
 * 结构描述
 
-  * `uid` - uid ，不重复，用户不可见
-  * `id` - id ，可能重复，用户可见
+  * `uid` - uid ，用户不可见
+  * `id` - id ，用户可见
   * `name` - 用户名
   * `salt` - 盐，密码哈希需要
   * `password` - 密码
@@ -145,11 +145,11 @@
 
 * 结构描述
 
-  * `uid` - uid ，不重复，用户不可见
-  * `book_uid` - 关联的书本 `uid` ，不重复，用户不可见
-  * `user_uid` - 关联的用户 `uid` ，不重复，用户不可见
-  * `book_id` - 关联的书本 `id` ，可能重复，用户可见
-  * `user_id` - 关联的用户 `id` ，可能重复，用户可见
+  * `uid` - uid ，用户不可见
+  * `book_uid` - 关联的书本 `uid` ，用户不可见
+  * `user_uid` - 关联的用户 `uid` ，用户不可见
+  * `book_id` - 关联的书本 `id` ，用户可见
+  * `user_id` - 关联的用户 `id` ，用户可见
   * `borrowed_date` - 借阅日期
   * `book_status` - 借阅状态
   * `returned_date` - 归还日期
@@ -196,11 +196,18 @@
 
 
 ## 3.4 源代码文件组织设计
+
+### 文件目录结构
+
+* 由于函数定义在哪个文件中已在 3.5 章节清晰写明，下表不再详细说明
+
+* 由于 C 语言中没有函数重载，函数仅标出函数名，函数原型请查阅 3.5 章节
+
 ```
 .
 ├── CMakeLists.txt
 ├── Document
-│   ├── image(放置文档相关图片)  
+│   ├── image(放置文档相关图片) 
 │   └── report.md(文档)
 ├── eLibrary.sln
 ├── eLibrary.vcxproj
@@ -218,6 +225,17 @@
     │   ├── genlib.h
     │   ├── graphics.c
     │   ├── graphics.h
+    |   |   ├── struct LibImage
+    |   |   ├── loadImage()
+    |   |   ├── copyImage()
+    |   |   ├── DrawImage()
+    |   |   ├── SelectFile()
+    |   |   ├── SelectFolder()
+    |   |   ├── struct Color
+    |   |   ├── struct ColorPoint
+    |   |   ├── struct Rect
+    |   |   ├── ClearDistrict()
+    |   |   └── DrawShadedRectangle()
     │   ├── random.c
     │   ├── random.h
     │   ├── simpio.c
@@ -226,31 +244,182 @@
     │   └── strlib.h
     ├── model
     │   ├── basictype.h
+    |   |   ├── struct Book
+    |   |   ├── enum Identity
+    |   |   ├── enum Gender
+    |   |   ├── struct User
+    |   |   ├── enum BookStatus
+    |   |   └── struct BorrowRecord
     │   ├── list.c
     │   ├── list.h
+    |   |   ├── struct ListNode
+    |   |   ├── struct List
+    |   |   ├── NewList()
+    |   |   ├── DeleteList()
+    |   |   ├── ClearList()
+    |   |   ├── InsertList()
+    |   |   ├── EraseList()
+    |   |   ├── SortList()
+    |   |   ├── UniqueList()
+    |   |   └── DuplicateList()
     │   ├── model.c
     │   ├── model.h
+    |   |   ├── struct DB
+    |   |   ├── OpenDBConnection()
+    |   |   ├── CloseDBConnection()
+    |   |   ├── Create()
+    |   |   ├── GetByID()
+    |   |   ├── Filter()
+    |   |   ├── GetDBSize()
+    |   |   ├── GetNextPK()
+    |   |   ├── Update()
+    |   |   └── Delete()
     │   ├── utils.c
     │   └── utils.h
+    |       ├── enum DBErrno
+    |       ├── enum Model
+    |       ├── String
+    |       ├── BookCopy()
+    |       ├── UserCopy()
+    |       ├── RecordCopy()
+    |       ├── BookFilter()
+    |       ├── UserFilter()
+    |       ├── RecordFilter()
+    |       ├── StringToModel()
+    |       └── ModelToString()
     ├── template
     │   ├── gui.h
+    |   |   ├── enum Page
+    |   |   ├── DrawUI()
+    |   |   ├── NavigationCallback()
+    |   |   ├── kLendAndBorrowMax
+    |   |   ├── struct LendAndBorrow
+    |   |   ├── kBookSearchMax
+    |   |   ├── struct BookSearch
+    |   |   ├── kUserSearchMax
+    |   |   ├── struct UserSearch
+    |   |   ├── struct ManualAndAbout
+    |   |   ├── struct LoginOrRegister
+    |   |   ├── kUserModifyMax
+    |   |   ├── struct UserModify
+    |   |   ├── enum SortKeyWord
+    |   |   ├── kUserManagementToBeVerifiedMax
+    |   |   ├── kUserManagementUsersMax
+    |   |   ├── struct UserManagement
+    |   |   ├── kLibraryMax
+    |   |   ├── struct Library
+    |   |   ├── struct BookDisplay
+    |   |   ├── kBorrowDisplayMax
+    |   |   ├── struct BorrowDisplay
+    |   |   ├── kStatisticsCatalogsMax
+    |   |   ├── kStatisticsBorrowRecordMax
+    |   |   ├── struct Statistics
+    |   |   └── union State
     │   ├── page.c
     │   ├── page.h
+    |   |   ├── InitPage()
+    |   |   ├── CallbackById()
+    |   |   ├── ExitSurface()
+    |   |   ├── InitGUI()
+    |   |   └── HandleCtrl()
     │   ├── ui.c
     │   └── ui.h
+    |       ├── enum ComponentStatus
+    |       ├── struct Button
+    |       ├── struct InputBox
+    |       ├── struct Link
+    |       ├── struct Label
+    |       ├── struct Frame
+    |       ├── struct Image
+    |       ├── CreateButton()
+    |       ├── CreateInputBox()
+    |       ├── CreateLink()
+    |       ├── CreateFrame()
+    |       ├── CreateImage()
+    |       ├── PTCNode
+    |       ├── enum TypeOfComp
+    |       ├── struct ComponentListNode
+    |       ├── CompList
+    |       ├── InsertComp()
+    |       ├── InsertFrame()
+    |       ├── InsertSurface()
+    |       ├── InitComponents()
+    |       ├── InitFrame()
+    |       ├── InitSurface()
+    |       ├── FlushScreen()
+    |       └── InitializeUI()
     └── view
         ├── hash.c
         ├── hash.h
+        |   ├── Sha256Sum()
+        |   └── RandStr
         ├── history.c
         ├── history.h
+        |   ├── struct History
+        |   ├── InitHistory()
+        |   ├── UninitHistory()
+        |   ├── TopHistory()
+        |   ├── PushBackHistory()
+        |   ├── PopBackHistory()
+        |   ├── ClearHistory()
+        |   ├── FreeHistory()
+        |   └── ReturnHistory()
         ├── main.c
         ├── utility.c
         ├── utility.h
+        |   ├── InitUtility()
+        |   ├── UninitUtility()
+        |   ├── Log()
+        |   ├── MoveInList()
+        |   ├── ErrorHandle()
+        |   ├── InitCheck()
+        |   ├── CmpGreaterBorrowRecordByReturnTime()
+        |   ├── CmpLessBorrowRecordByReturnTime()
+        |   ├── CmpLessBookById()
+        |   ├── CmpLessBookByTitle()
+        |   ├── CmpLessBookByAuthor()
+        |   ├── CmpLessUserById()
+        |   ├── CmpLessUserByName()
+        |   ├── CmpLessUserByDepartment()
+        |   ├── StrCpy()
+        |   ├── StrLess()
+        |   ├── StrSame()
+        |   ├── GetTime()
+        |   └── GetBorrowRecordNumberAfter()
         ├── view.c
         └── view.h
+            ├── InitView()
+            ├── NavigationCallback()
+            ├── Navigation_LendAndBorrow()
+            ├── Navigation_BookSearch()
+            ├── Navigation_UserSearch()
+            ├── Navigation_ManualOrAbout()
+            ├── Navigation_UserLogInOrRegister()
+            ├── Navigation_UserLogOut()
+            ├── Navigation_UserModify()
+            ├── Navigation_UserManagement()
+            ├── Navigation_Library()
+            ├── Navigation_OpenOrInitLibrary()
+            ├── Navigation_SaveLibrary()
+            ├── Navigation_BookDisplayOrInit()
+            ├── Navigation_BookInit()
+            ├── Navigation_Statistics()
+            ├── Navigation_Return()
+            ├── Navigation_Exit()
+            ├── BookDisplayAdminDisplay()
+            ├── BookSearchDisplay()
+            ├── UserSearchDisplay()
+            └── UserSearchInfoDisplay()
 
 8 directories, 70 files
 ```
+
+### 多文件构成机制
+
+* 头文件保护: 使用 `#define` 或者 `#pragma once`
+
+* 外部变量: 不同编译单元如需共用全局变量，则该全局变量在被引用最多的文件中定义
+
 ## 3.5 函数设计描述
 
 ### libgraphics

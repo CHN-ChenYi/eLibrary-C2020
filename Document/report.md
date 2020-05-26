@@ -50,7 +50,16 @@
 
 ## 3.1 总体架构设计
 
+程序采用了 MTV 结构如下图
+
+![](./image/MTV.jpg)
+
 ## 3.2 功能模块设计
+
+*  Model 进行数据库处理，如 CRUD(Create, Retrieve, Update, Delete) 等
+*  Template 进行界面显示并处理用户输入
+*  View 进行逻辑控制
+*  每个模块下的细分模块功能均与文件名一致，在此不做赘述
 
 ## 3.3 数据结构设计
 ### basictype.h
@@ -6094,7 +6103,7 @@
 
     * 搜索语法如下
 
-      * `keyword1opvalue1&keyword2opvalue2...`
+      * `keyword1+op1+value1+&+keyword2+op2+value2...`
 
         * keyword
 

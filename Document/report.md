@@ -241,6 +241,74 @@
 
   在 `bInfo` 中设置好调用者提供的对话框参数之后调用 Win32API
 
+##### FlushDistrict
+
+- 函数原型
+
+  ```c
+  void FlushDistrict(int min_x, int min_y, int max_x, int max_y);
+  ```
+
+- 功能描述：刷新区域
+
+- 参数描述：
+
+  - `min_x`：区域左边界
+  - `min_y`：区域上边界
+  - `max_x`：区域右边界
+  - `max_y`：区域下边界
+
+- 返回值描述：无
+
+- 重要局部变量定义：无
+
+- 重要局部变量用途描述：无
+
+- 函数算法描述：调用wingdi中的函数使得该区域的绘制生效
+
+##### ClearDistrict
+
+- 函数原型
+
+  ```c
+  void ClearDistrict(Rect* rect);
+  ```
+
+- 功能描述：清空`rect`限定的区域
+
+- 参数描述：见上
+
+- 返回值描述：无
+
+- 重要局部变量定义：无
+
+- 重要局部变量用途描述：无
+
+- 函数算法描述：调用wingdi的函数用空白覆盖掉该区域
+
+##### DrawShadedRectangle
+
+- 函数原型
+
+  ```c
+  void DrawShadedRectangle(ColorPoint* lower_right, ColorPoint* upper_left);
+  ```
+
+- 功能描述：绘制一个带渐变的矩形
+
+- 参数描述：
+
+  - `lower_right`：右下角的点的位置和颜色
+  - `upper_left`：左上角的点的位置和颜色
+
+- 返回值描述：无
+
+- 重要局部变量定义：无
+
+- 重要局部变量用途描述：无
+
+- 函数算法描述：调用wingdi的GradientFill函数。
+
 ### model
 
 #### list.c
@@ -1033,8 +1101,6 @@
 * 函数算法描述  
 先判断当前实例属于的数据模型，再将实例中的变量一一转换为字串`p_str2`，并将`p_str2`接在`p_str`后面，最后`p_str`会成为完整的字串。
 
-### template
-
 ### view
 
 #### main.c
@@ -1379,13 +1445,16 @@
 
   无
 
-* 重要局部变量用途描述
+* 重要局部变量
 
   无
 
 * 函数算法描述
 
   见功能描述
+
+
+**下列 `Cmp*` 函数均是由于 C 语言没有 lambda 函数不得已而定义，函数实际内容都只有一行**
 
 ##### CmpGreaterBorrowRecordByReturnTime
 
@@ -1419,7 +1488,7 @@
 
 * 函数算法描述
 
-  无
+  直接调用 `strcmp`
 
 ##### CmpLessBorrowRecordByReturnTime
 
@@ -1453,7 +1522,7 @@
 
 * 函数算法描述
 
-  无
+  直接调用 `strcmp`
 
 ##### CmpLessBookById
 
@@ -1486,7 +1555,7 @@
 
 * 函数算法描述
 
-  无
+  直接调用 `strcmp`
 
 ##### CmpLessBookByTitle
 
@@ -1519,7 +1588,7 @@
 
 * 函数算法描述
 
-  无
+  直接调用 `strcmp`
 
 ##### CmpLessBookByAuthor
 
@@ -1552,7 +1621,7 @@
 
 * 函数算法描述
 
-  无
+  直接调用 `strcmp`
 
 ##### CmpLessUserById
 
@@ -1585,7 +1654,7 @@
 
 * 函数算法描述
 
-  无
+  直接调用 `strcmp`
 
 ##### CmpLessUserByName
 
@@ -1618,7 +1687,7 @@
 
 * 函数算法描述
 
-  无
+  直接调用 `strcmp`
 
 ##### CmpLessUserByDepartment
 
@@ -1651,7 +1720,7 @@
 
 * 函数算法描述
 
-  无
+  直接调用 `strcmp`
 
 ##### StrCpy
 
@@ -1708,9 +1777,15 @@
 
 * 重要局部变量定义
 
+  无
+
 * 重要局部变量用途描述
 
+  无
+
 * 函数算法描述
+
+  直接调用 `strcmp`
 
 ##### StrSame
 
@@ -1735,9 +1810,15 @@
 
 * 重要局部变量定义
 
+  无
+
 * 重要局部变量用途描述
 
+  无
+
 * 函数算法描述
+
+  直接调用 `strcmp`
 
 ##### GetTime
 
@@ -3494,75 +3575,358 @@
 
   图书显示的确认按钮回调
 
-#### graphics.c
+* 参数描述
 
-##### FlushDistrict
+  无
 
-- 函数原型
+* 返回值描述
 
-  ```c
-  void FlushDistrict(int min_x, int min_y, int max_x, int max_y);
-  ```
+  无
 
-- 功能描述：刷新区域
-
-- 参数描述：
-
-  - `min_x`：区域左边界
-  - `min_y`：区域上边界
-  - `max_x`：区域右边界
-  - `max_y`：区域下边界
-
-- 返回值描述：无
-
-- 重要局部变量定义：无
-
-- 重要局部变量用途描述：无
-
-- 函数算法描述：调用wingdi中的函数使得该区域的绘制生效
-
-##### ClearDistrict
-
-- 函数原型
+* 重要局部变量定义
 
   ```c
-  void ClearDistrict(Rect* rect);
+  List *books = NewList();
   ```
 
-- 功能描述：清空`rect`限定的区域
+* 重要局部变量用途描述
 
-- 参数描述：见上
+  * `books`: 与输入书号相同的书
 
-- 返回值描述：无
+* 函数算法描述
 
-- 重要局部变量定义：无
+  确保书号不为空且不重复之后更新数据库，然后调用 `ReturnHistory`
 
-- 重要局部变量用途描述：无
+##### BookDisplay_DeleteCallback
 
-- 函数算法描述：调用wingdi的函数用空白覆盖掉该区域
-
-##### DrawShadedRectangle
-
-- 函数原型
+* 函数原型
 
   ```c
-  void DrawShadedRectangle(ColorPoint* lower_right, ColorPoint* upper_left);
+  void BookDisplay_DeleteCallback();
   ```
 
-- 功能描述：绘制一个带渐变的矩形
+* 功能描述
 
-- 参数描述：
+  图书显示的删除按钮回调
 
-  - `lower_right`：右下角的点的位置和颜色
-  - `upper_left`：左上角的点的位置和颜色
+* 参数描述
 
-- 返回值描述：无
+  无
 
-- 重要局部变量定义：无
+* 返回值描述
 
-- 重要局部变量用途描述：无
+  无
 
-- 函数算法描述：调用wingdi的GradientFill函数。
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  删除图书库文件夹中的图书封面。如果是图书修改，则在数据库中删除这本图书。调用 `ReturnHistory`
+
+##### BookDisplay_BorrowCallback
+
+* 函数原型
+
+  ```c
+  void BookDisplay_BorrowCallback();
+  ```
+
+* 功能描述
+
+  图书显示的借书回调
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `BookSearch_BorrowCallback`
+
+##### BookDisplay_CopyPasteCallback
+
+* 函数原型
+
+  ```c
+  void BookDisplay_CopyPasteCallback();
+  ```
+
+* 功能描述
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  const unsigned old_uid = book->uid;
+  ```
+
+* 重要局部变量用途描述
+
+  * `old_uid`: 老的书的主键
+
+* 函数算法描述
+
+  将书的主键换成新的，存入数据库，复制书的封面，调用 `Navigation_BookDisplayOrInit`
+
+##### BorrowDisplay_TurnPage
+
+* 函数原型
+
+  ```c
+  void BorrowDisplay_TurnPage(bool direction);
+  ```
+
+* 功能描述
+
+  图书借阅记录的翻页按钮回调
+
+* 参数描述
+
+  * `direction`: 0 表示向前，1 表示向后
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `MoveInList`，然后调用 `DrawUI`
+
+##### Library_BookCallback
+
+* 函数原型
+
+  ```c
+  void Library_BookCallback(ListNode *book);
+  ```
+
+* 功能描述
+
+  图书库的图书详情回调
+
+* 参数描述
+
+  * `book`: 存有要显示详情的图书的节点
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `Navigation_BookDisplayOrInit`
+
+##### Library_SortCallback
+
+* 函数原型
+
+  ```c
+  void Library_SortCallback(SortKeyword sort_keyword);
+  ```
+
+* 功能描述
+
+  图书库的排序按钮回调
+
+* 参数描述
+
+  `sort_keyword`: 排序关键字
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  调用关键字对应的比较函数，通过 `SortList` 排序之后调用 `DrawUI`
+
+##### Library_SwitchCallback
+
+* 函数原型
+
+  ```c
+  void Library_SwitchCallback();
+  ```
+
+* 功能描述
+
+  图书库的切换模式按钮回调（由于图书模式被砍，这个函数被废除）
+
+* 参数描述
+
+  无
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  如果是换成图书模式，则直接调用 `Navigation_Library`。如果是换成列表模式，则基本重复 `Navigation_Library` 的步骤，只不过不加载封面。
+
+##### Library_TurnPage
+
+* 函数原型
+
+  ```c
+  void Library_TurnPage(bool direction);
+  ```
+
+* 功能描述
+
+  图书库的翻页按钮回调
+
+* 参数描述
+
+  * `direction`: 0 表示向前，1 表示向后
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `MoveInList`，然后调用 `DrawUI`
+
+##### Statistics_SelectCallback
+
+* 函数原型
+
+  ```c
+  void Statistics_SelectCallback(ListNode *catalog);
+  ```
+
+* 功能描述
+
+  统计的选择分类按钮回调
+
+* 参数描述
+
+  * `catalog`: 存有选择的分类的节点
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  ```c
+  List *borrow_records = NewList();
+  Book *book = malloc(sizeof(Book));
+  History *const new_history = malloc(sizeof(History));
+  ```
+
+* 重要局部变量用途描述
+
+  * `borrow_records`: 所有借阅记录
+  * `book`: 暂存某一借阅记录对应的书，用以判断符不符合要求的分类
+  * `new_history`: 这一次的历史记录
+
+* 函数算法描述
+
+  遍历每个借阅记录，从图书数据库中取出对应的书的分类，如果不符合要求的分类则忽略这个借阅记录
+
+##### Statistics_TurnPage
+
+* 函数原型
+
+  ```c
+  void Statistics_TurnPage(bool direction, bool type);
+  ```
+
+* 功能描述
+
+  用户审核的翻页回调
+
+* 参数描述
+
+  * `direction`: 0 表示向前，1 表示向后
+  * `type`: 0 表示对分类列表做操作，1 表示对借阅记录列表做操作
+
+* 返回值描述
+
+  无
+
+* 重要局部变量定义
+
+  无
+
+* 重要局部变量用途描述
+
+  无
+
+* 函数算法描述
+
+  直接调用 `MoveInList`，然后调用 `DrawUI`
+
+### template
 
 #### ui.c
 
@@ -5251,368 +5615,6 @@
 - 重要局部变量用途描述：无
 
 - 函数算法描述：将参数拷贝到全局变量中，再调用对应的绘制函数
-
-### view
-
-* 参数描述
-
-  无
-
-* 返回值描述
-
-  无
-
-* 重要局部变量定义
-
-  ```c
-  List *books = NewList();
-  ```
-
-* 重要局部变量用途描述
-
-  * `books`: 与输入书号相同的书
-
-* 函数算法描述
-
-  确保书号不为空且不重复之后更新数据库，然后调用 `ReturnHistory`
-
-##### BookDisplay_DeleteCallback
-
-* 函数原型
-
-  ```c
-  void BookDisplay_DeleteCallback();
-  ```
-
-* 功能描述
-
-  图书显示的删除按钮回调
-
-* 参数描述
-
-  无
-
-* 返回值描述
-
-  无
-
-* 重要局部变量定义
-
-  无
-
-* 重要局部变量用途描述
-
-  无
-
-* 函数算法描述
-
-  删除图书库文件夹中的图书封面。如果是图书修改，则在数据库中删除这本图书。调用 `ReturnHistory`
-
-##### BookDisplay_BorrowCallback
-
-* 函数原型
-
-  ```c
-  void BookDisplay_BorrowCallback();
-  ```
-
-* 功能描述
-
-  图书显示的借书回调
-
-* 参数描述
-
-  无
-
-* 返回值描述
-
-  无
-
-* 重要局部变量定义
-
-  无
-
-* 重要局部变量用途描述
-
-  无
-
-* 函数算法描述
-
-  直接调用 `BookSearch_BorrowCallback`
-
-##### BookDisplay_CopyPasteCallback
-
-* 函数原型
-
-  ```c
-  void BookDisplay_CopyPasteCallback();
-  ```
-
-* 功能描述
-
-* 参数描述
-
-  无
-
-* 返回值描述
-
-  无
-
-* 重要局部变量定义
-
-  ```c
-  const unsigned old_uid = book->uid;
-  ```
-
-* 重要局部变量用途描述
-
-  * `old_uid`: 老的书的主键
-
-* 函数算法描述
-
-  将书的主键换成新的，存入数据库，复制书的封面，调用 `Navigation_BookDisplayOrInit`
-
-##### BorrowDisplay_TurnPage
-
-* 函数原型
-
-  ```c
-  void BorrowDisplay_TurnPage(bool direction);
-  ```
-
-* 功能描述
-
-  图书借阅记录的翻页按钮回调
-
-* 参数描述
-
-  * `direction`: 0 表示向前，1 表示向后
-
-* 返回值描述
-
-  无
-
-* 重要局部变量定义
-
-  无
-
-* 重要局部变量用途描述
-
-  无
-
-* 函数算法描述
-
-  直接调用 `MoveInList`，然后调用 `DrawUI`
-
-##### Library_BookCallback
-
-* 函数原型
-
-  ```c
-  void Library_BookCallback(ListNode *book);
-  ```
-
-* 功能描述
-
-  图书库的图书详情回调
-
-* 参数描述
-
-  * `book`: 存有要显示详情的图书的节点
-
-* 返回值描述
-
-  无
-
-* 重要局部变量定义
-
-  无
-
-* 重要局部变量用途描述
-
-  无
-
-* 函数算法描述
-
-  直接调用 `Navigation_BookDisplayOrInit`
-
-##### Library_SortCallback
-
-* 函数原型
-
-  ```c
-  void Library_SortCallback(SortKeyword sort_keyword);
-  ```
-
-* 功能描述
-
-  图书库的排序按钮回调
-
-* 参数描述
-
-  `sort_keyword`: 排序关键字
-
-* 返回值描述
-
-  无
-
-* 重要局部变量定义
-
-  无
-
-* 重要局部变量用途描述
-
-  无
-
-* 函数算法描述
-
-  调用关键字对应的比较函数，通过 `SortList` 排序之后调用 `DrawUI`
-
-##### Library_SwitchCallback
-
-* 函数原型
-
-  ```c
-  void Library_SwitchCallback();
-  ```
-
-* 功能描述
-
-  图书库的切换模式按钮回调（由于图书模式被砍，这个函数被废除）
-
-* 参数描述
-
-  无
-
-* 返回值描述
-
-  无
-
-* 重要局部变量定义
-
-  ```c
-  History *const new_history = malloc(sizeof(History));
-  ```
-
-* 重要局部变量用途描述
-
-  * `new_history`: 这一次的历史记录
-
-* 函数算法描述
-
-  如果是换成图书模式，则直接调用 `Navigation_Library`。如果是换成列表模式，则基本重复 `Navigation_Library` 的步骤，只不过不加载封面。
-
-##### Library_TurnPage
-
-* 函数原型
-
-  ```c
-  void Library_TurnPage(bool direction);
-  ```
-
-* 功能描述
-
-* 参数描述
-
-* 返回值描述
-
-* 重要局部变量定义
-
-* 重要局部变量用途描述
-
-=======
-  图书库的翻页按钮回调
-
-* 参数描述
-
-  * `direction`: 0 表示向前，1 表示向后
-
-* 返回值描述
-
-  无
-
-* 重要局部变量定义
-
-  无
-
-* 重要局部变量用途描述
-
-  无
-
-* 函数算法描述
-
-  直接调用 `MoveInList`，然后调用 `DrawUI`
-
-##### Statistics_SelectCallback
-
-* 函数原型
-
-  ```c
-  void Statistics_SelectCallback(ListNode *catalog);
-  ```
-
-* 功能描述
-
-  统计的选择分类按钮回调
-
-* 参数描述
-
-  * `catalog`: 存有选择的分类的节点
-
-* 返回值描述
-
-  无
-
-* 重要局部变量定义
-
-  ```c
-  List *borrow_records = NewList();
-  Book *book = malloc(sizeof(Book));
-  History *const new_history = malloc(sizeof(History));
-  ```
-
-* 重要局部变量用途描述
-
-  * `borrow_records`: 所有借阅记录
-  * `book`: 暂存某一借阅记录对应的书，用以判断符不符合要求的分类
-  * `new_history`: 这一次的历史记录
-
-* 函数算法描述
-
-  遍历每个借阅记录，从图书数据库中取出对应的书的分类，如果不符合要求的分类则忽略这个借阅记录
-
-##### Statistics_TurnPage
-
-* 函数原型
-
-  ```c
-  void Statistics_TurnPage(bool direction, bool type);
-  ```
-
-* 功能描述
-
-  用户审核的翻页回调
-
-* 参数描述
-
-  * `direction`: 0 表示向前，1 表示向后
-  * `type`: 0 表示对分类列表做操作，1 表示对借阅记录列表做操作
-
-* 返回值描述
-
-  无
-
-* 重要局部变量定义
-
-  无
-
-* 重要局部变量用途描述
-
-  无
-
-* 函数算法描述
-
-  直接调用 `MoveInList`，然后调用 `DrawUI`
 
 # 4 部署运行和使用说明
 

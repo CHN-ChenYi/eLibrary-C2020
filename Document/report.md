@@ -6163,7 +6163,7 @@
 
           * `!=`: 不相等
 
-          * `;=`: 模糊匹配（大小写不敏感）
+          * `;=`: 模糊匹配（字串相同即匹配成功）
 
       * e.g. `press;=cambridge&keyword=Math&published_date!=20130317`
 

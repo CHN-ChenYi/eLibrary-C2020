@@ -1048,15 +1048,12 @@ void Navigation_UserSearch(char *msg) {
 
 void Navigation_ManualOrAbout(bool type, char *msg) {
   History *const new_history = malloc(sizeof(History));
-  new_history->state.manual_and_about = malloc(sizeof(ManualAndAbout));
 
   if (type)
     new_history->page = kAbout;
   else
     new_history->page = kManual;
   PushBackHistory(new_history);
-
-  // TODO: finish it
 
   if (!msg) {
     msg = malloc(sizeof(char) * (27 + id_len));
@@ -1066,7 +1063,7 @@ void Navigation_ManualOrAbout(bool type, char *msg) {
       sprintf(msg, "[Info] [%s] Open Page Manual", user.id);
   }
   Log(msg);
-  DrawUI(kAbout, &user, new_history->state.manual_and_about, msg);
+  DrawUI(kAbout, &user, NULL, msg);
 }
 
 void Navigation_UserLogInOrRegister(bool type, char *msg) {

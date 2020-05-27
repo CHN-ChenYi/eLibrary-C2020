@@ -806,7 +806,7 @@ void AddUserRegister() {
   );
   id_on_page = id_input->context;
   Label *name_label = CreateLabel(
-    (Rect){left_x, 0, 0, cur_y += delta_y}, "用户名：", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "姓名：", kBlack, NULL_ID
   );
   InputBox *name_input = CreateInputBox(
     (Rect){name_label->position.right + 10, right_border - 10, 0, cur_y}, "", NULL_ID, 0
@@ -987,7 +987,7 @@ void AddUserModify() {
   id_on_page = id_input->context;
 
   Label *name_label = CreateLabel(
-    (Rect){left_x, 0, 0, cur_y += delta_y}, "用户名：", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "姓名：", kBlack, NULL_ID
   );
   InputBox *name_input = CreateInputBox(
     (Rect){name_label->position.right + 10, middle - 20, 0, cur_y}, user->name, kBlack, NULL_ID

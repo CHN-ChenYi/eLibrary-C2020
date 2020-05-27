@@ -139,7 +139,7 @@
 
   * `uid` - uid ，用户不可见
   * `id` - id ，用户可见
-  * `name` - 用户名
+  * `name` - 姓名
   * `salt` - 盐，密码哈希需要
   * `password` - 密码
   * `gender` - 性别

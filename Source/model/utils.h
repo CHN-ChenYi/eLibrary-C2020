@@ -37,10 +37,4 @@ int BookFilter(Book* p_b, String queries);
 int UserFilter(User* p_u, String queries);
 int RecordFilter(BorrowRecord* p_r, String queries);
 
-// StringToModel
-int StringToModel(void** handle, Model model, String str);
-
-// ModelToString
-int ModelToString(void* handle, Model model, char* p_str);
-
 #endif

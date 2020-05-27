@@ -1,4 +1,12 @@
-﻿# 1 大程序简介
+﻿<div style="font-size:28px"><center>目录</center></div>
+
+[toc]
+
+<div STYLE="page-break-after: always;"></div>
+
+<div style="font-size:32px"><center>图书管理系统大程序设计</center></div>
+
+# 1 大程序简介
 
 ## 1.1 选题背景及意义
 **图书管理系统**是生活中相当常见的管理系统之一，但这些管理系统还是有其缺陷，如无法准确快速的搜索到数据、整体设计复杂繁琐、体积庞大不适用某些小专案。
@@ -29,6 +37,9 @@
 内联函数通常为简短但是常调用的函数。
 ### 模型(model)
 模型为数据结构在编程时的抽象表示，与其相对的是**实例(instance)**，代表实际在内存中的数据结构。
+
+<div STYLE="page-break-after: always;"></div>
+
 # 2 功能需求分析
 
 ### 编辑
@@ -48,6 +59,7 @@
 ### 存取
 * 数据在内存与文件的转换
 
+<div STYLE="page-break-after: always;"></div>
 
 # 3 程序开发设计
 
@@ -218,9 +230,6 @@
 ```
 .
 ├── CMakeLists.txt
-├── Document
-│   ├── image(放置文档相关图片) 
-│   └── report.md(文档)
 ├── eLibrary.sln
 ├── eLibrary.vcxproj
 ├── eLibrary.vcxproj.filters
@@ -5991,6 +6000,8 @@
 
 - 函数算法描述：将参数拷贝到全局变量中，再调用对应的绘制函数
 
+<div STYLE="page-break-after: always;"></div>
+
 # 4 部署运行和使用说明
 
 ## 4.1 编译安装
@@ -6011,6 +6022,8 @@
 
    <img src="image/exe_address.png">
 
+<div STYLE="page-break-after: always;"></div>
+
 5. 将其复制到项目的根目录下（与`./Resource`同级即可）
 
    <img src="image/exe.png">
@@ -6021,23 +6034,25 @@
 
 * 发现错误
 
-![](./image/4.2.1(1).jpg)
+<img src="./image/4.2.1(1).jpg" height="300"/>
 
 * 定位错误
 
-![](./image/4.2.1(2).jpg)
+<figure class="half">
+    <img src="./image/4.2.1(2).jpg" height="350"/><img src="./image/4.2.1(3).jpg" height="350"/>
+</figure>
 
-![](./image/4.2.1(3).jpg)
+<figure class="half">
+    <img src="./image/4.2.1(4).jpg" height="200"/><img src="./image/4.2.1(5).jpg" height="200"/>
+</figure>
 
-![](./image/4.2.1(4).jpg)
-
-![](./image/4.2.1(5).jpg)
 
 * 解决问题
 
-![](./image/4.2.1(6).jpg)
+<figure class="half">
+    <img src="./image/4.2.1(6).jpg" height="90"/><img src="./image/4.2.1(7).jpg" height="90"/>
+</figure>
 
-![](./image/4.2.1(7).jpg)
 
 ### 案例二
 
@@ -6228,6 +6243,8 @@
 
     * 请严格遵守输入提示括号内的要求
 
+<div STYLE="page-break-after: always;"></div>
+
 # 5 团队合作
 
 ## 5.1 任务分工
@@ -6303,43 +6320,47 @@
 
 * 宏：很多常数通过宏来进行定义，也使用了几个宏函数提高代码复用性及简介性
 
+<div STYLE="page-break-after: always;"></div>
+
 ### 讨论记录
 
 #### qq 群讨论 （部分）
 
 * 4-20
 
-  ![](./image/4-20.jpg)
+  <img src="./image/4-20.jpg" height="300"/>
 
 * 4-26
 
-  ![](./image/4-26.jpg)
+  <img src="./image/4-26.jpg" height="100"/>
 
 * 4-29
 
-  ![](./image/4-29.jpg)
+  <img src="./image/4-29.jpg" height="400"/>
+
+<div STYLE="page-break-after: always;"></div>
 
 * 5-7
 
-  ![](./image/5-7.jpg)
+  <img src="./image/5-7.jpg" height="67"/>
 
 * 5-11
 
-  ![](./image/5-11.jpg)
-
-  ![](./image/5-11(2).jpg)
+<figure class="half">
+  <img src="./image/5-11.jpg" height="300"/><img src="./image/5-11(2).jpg" height="300"/>
+</figure>
 
 * 5-15
 
-  ![](./image/5-15.jpg)
+  <img src="./image/5-15.jpg" height="200"/>
 
 * 5-21
 
-  ![](./image/5-21.jpg)
+<figure class="third">
+  <img src="./image/5-21.jpg" height="150"/><img src="./image/5-21(2).jpg" height="150"/><img src="./image/5-21(3).jpg" height="150"/>
+</figure>
 
-  ![](./image/5-21(2).jpg)
-
-  ![](./image/5-21(3).jpg)
+<div STYLE="page-break-after: always;"></div>
 
 #### GitHub Issue （部分）
 
@@ -6376,6 +6397,8 @@
 作为实现 View 部分的人，要同时和两个模块沟通好 API 已经具体实现细节。以前单人写代码不会遇到诸如动态分配的内存谁来释放这样的细节，但在这一次却要全盘考虑这些东西，感觉收获了挺多的经验和教训
 
 在高三之后好久没有写过这么长的代码了，第一次运行没啥重大的 bug 感觉挺不错的。不过下次合作的时候应该更好地预估执行任务所需要的时间从而定下合理的开发计划。还有开发一开始对 GitHub 这个平台的利用度还是不够，QQ 讨论总是会在实现的时候有所遗漏，过了几天终于想起来还有 Issue 这种东西，后面合作的时候就好了很多
+
+<div STYLE="page-break-after: always;"></div>
 
 # 6 参考文献资料
 

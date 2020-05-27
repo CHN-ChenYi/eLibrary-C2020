@@ -229,12 +229,10 @@
 
 ```
 .
-├── CMakeLists.txt
 ├── eLibrary.sln
 ├── eLibrary.vcxproj
 ├── eLibrary.vcxproj.filters
 ├── eLibrary.vcxproj.user
-├── README.md
 ├── Resource(放置系统相关静态资源，如图片等)
 └── Source(主要源代码)
     ├── libgraphics
@@ -429,7 +427,7 @@
             ├── UserSearchDisplay()
             └── UserSearchInfoDisplay()
 
-8 directories, 70 files
+6 directories, 50 files
 ```
 
 ### 多文件构成机制

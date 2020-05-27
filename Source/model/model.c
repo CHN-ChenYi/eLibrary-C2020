@@ -14,9 +14,9 @@ inline int DBExists(Model model) {
 
 int DBOpen(const char* filename, Model model) {
 	FILE* database;
-	database = fopen(filename, "r+");
+	database = fopen(filename, "rb+");
 	if (database == NULL) {
-		database = fopen(filename, "w+");
+		database = fopen(filename, "wb+");
 	}
 	DBs[model].filename = (char *)malloc(sizeof(char) * 500);
 	strcpy(DBs[model].filename, filename);
@@ -32,56 +32,76 @@ int DBClose(Model model) {
 	else return DB_SUCCESS;
 }
 int DBInit(Model model) {
-	int ok;
-	char str[1000] = "";
-	FILE** database = &DBs[model].database;
-	List** data = &DBs[model].data;
-	*data = NewList();
-	if (fgets(str, 50, *database) == NULL) {
-		if (strlen(str) == 0) {
-			DBs[model].pk = 0;
-			DBs[model].size = 0;
-			return DB_SUCCESS;
-		}
+  FILE** database = &DBs[model].database;
+  List** data = &DBs[model].data;
+  *data = NewList();
+  if (!fread(&DBs[model].pk, sizeof(int), 1, *database)) {
+		clearerr(*database); // 如果是新建的话一定会触发这个，所以得清除掉
+		DBs[model].pk = DBs[model].size = 0;
 		return DB_ENTRY_EMPTY;
 	}
-	ok = sscanf(str, "%d %d", &(DBs[model].pk), &(DBs[model].size));
-	if (ok != 2) return DB_FAIL_ON_INIT;
-	while (fgets(str, 1000, *database) != NULL) {
-		void *handle;
-		ok = StringToModel(&handle, model, str);
-		if (ok != 0) return DB_FAIL_ON_INIT;
-		InsertList(*data, (*data)->dummy_tail, handle);
-	}
-	return DB_SUCCESS;
+  if (!fread(&DBs[model].size, sizeof(int), 1, *database))
+    return DB_FAIL_ON_INIT;
+  if (model == BOOK) {
+    Book* handle = malloc(sizeof(Book) * DBs[model].size);
+    if (fread(handle, sizeof(Book), DBs[model].size, *database) <
+        DBs[model].size)
+      return DB_FAIL_ON_INIT;
+    for (int i = 0; i < DBs[model].size; i++)
+      InsertList(*data, (*data)->dummy_tail, handle + i);
+  } else if (model == USER) {
+    User* handle = malloc(sizeof(User) * DBs[model].size);
+    if (fread(handle, sizeof(User), DBs[model].size, *database) <
+        DBs[model].size)
+      return DB_FAIL_ON_INIT;
+    for (int i = 0; i < DBs[model].size; i++)
+      InsertList(*data, (*data)->dummy_tail, handle + i);
+  } else if (model == BORROWRECORD) {
+    BorrowRecord* handle = malloc(sizeof(BorrowRecord) * DBs[model].size);
+    if (fread(handle, sizeof(BorrowRecord), DBs[model].size, *database) <
+        DBs[model].size)
+      return DB_FAIL_ON_INIT;
+    for (int i = 0; i < DBs[model].size; i++)
+      InsertList(*data, (*data)->dummy_tail, handle + i);
+  }
+  return DB_SUCCESS;
 }
 int DBUninit(Model model) {
-	int ok;
-	FILE* database = DBs[model].database;
-	if (database == NULL) return DB_NOT_FOUND;
-	List* data = DBs[model].data;
-	ListNode* cur = data->dummy_head;
-	ok = fseek(database, 0, SEEK_SET); // reset FILE pointer to its starting point.
-	if (ok != 0) {
-		ClearList(data, NULL);
-		return DB_FAIL_ON_UNINIT;
-	}
-	char firstline[150];
-	sprintf(firstline, "%d %d\n", DBs[model].pk, DBs[model].size);
-	fwrite(firstline, sizeof(char), sizeof(firstline)-1, database); // avoid \0 output
-	//fprintf(database, "%d %d\n", DBs[model].pk, DBs[model].size);
-	while (1) {
-		cur = cur->nxt;
-		if (cur == data->dummy_tail) break;
-		char str[3000] = "";
-		ok = ModelToString(cur->value, model, str);
-		if (ok != 0) {
-			ClearList(data, NULL);
-			return DB_FAIL_ON_UNINIT;
-		}
-		fwrite (str , sizeof(char), sizeof(str)-1, database); // avoid \0 output
-		//fprintf(database, "%s", str);
-	}
+  FILE* database = DBs[model].database;
+  if (database == NULL) return DB_NOT_FOUND;
+  List* data = DBs[model].data;
+  // reset FILE pointer to its starting point.
+  rewind(database);
+  if (!fwrite(&DBs[model].pk, sizeof(int), 1, database) ||
+      !fwrite(&DBs[model].size, sizeof(int), 1, database)) {
+    ClearList(data, NULL);
+    return DB_FAIL_ON_UNINIT;
+  }
+  if (model == BOOK) {
+    for (ListNode* cur = data->dummy_head->nxt; cur != data->dummy_tail;
+         cur = cur->nxt) {
+      if (!fwrite(cur->value, sizeof(Book), 1, database)) {
+        ClearList(data, NULL);
+        return DB_FAIL_ON_UNINIT;
+      }
+    }
+  } else if (model == USER) {
+    for (ListNode* cur = data->dummy_head->nxt; cur != data->dummy_tail;
+         cur = cur->nxt) {
+      if (!fwrite(cur->value, sizeof(User), 1, database)) {
+        ClearList(data, NULL);
+        return DB_FAIL_ON_UNINIT;
+      }
+    }
+  } else if (model == BORROWRECORD) {
+    for (ListNode* cur = data->dummy_head->nxt; cur != data->dummy_tail;
+         cur = cur->nxt) {
+      if (!fwrite(cur->value, sizeof(BorrowRecord), 1, database)) {
+        ClearList(data, NULL);
+        return DB_FAIL_ON_UNINIT;
+      }
+    }
+  }
 	ClearList(data, NULL);
 	return DB_SUCCESS;
 }

@@ -382,21 +382,20 @@ void DrawLine(int pdx, int pdy) {
   double dx = InchesX(pdx);
   double dy = -InchesY(pdy);
   switch (regionState) {
-  case NoRegion:
-    DisplayLine(cx, cy, dx, dy);
-    break;
-  case RegionStarting:
-  case RegionActive:
-    DisplayLine(cx, cy, dx, dy);
-    regionState = RegionActive;
-    break;
-  case PenHasMoved:
-    Error("Region segments must be contiguous");
+    case NoRegion:
+      DisplayLine(cx, cy, dx, dy);
+      break;
+    case RegionStarting:
+    case RegionActive:
+      DisplayLine(cx, cy, dx, dy);
+      regionState = RegionActive;
+      break;
+    case PenHasMoved:
+      Error("Region segments must be contiguous");
   }
   cx += dx;
   cy += dy;
 }
-
 
 double GetCurrentX(void) {
   InitCheck();
@@ -1881,7 +1880,7 @@ double ScaleYInches(int y) {
   return GetWindowHeight() - (double)y / GetYResolution();
 }
 
-/*================ New Added Image Function ===================*/
+/*================ New Added Function ===================*/
 
 #include <ocidl.h>
 #include <olectl.h>
@@ -1952,12 +1951,12 @@ void FlushDistrict(int min_x, int min_y, int max_x, int max_y) {
 }
 
 // Clear a district
-void ClearDistrict(Rect* rect) {
+void ClearDistrict(Rect *rect) {
   RECT r;
   SetRect(&r, rect->left, rect->top, rect->right, rect->bottom);
   InvalidateRect(graphicsWindow, &r, TRUE);
-  BitBlt(osdc, rect->left, rect->top, rect->right - rect->left, rect->bottom - rect->top,
-    NULL, 0, 0, WHITENESS);
+  BitBlt(osdc, rect->left, rect->top, rect->right - rect->left,
+         rect->bottom - rect->top, NULL, 0, 0, WHITENESS);
 }
 
 void DrawImage(LibImage *pImage, int px_x, int px_y, int px_width,
@@ -1966,8 +1965,7 @@ void DrawImage(LibImage *pImage, int px_x, int px_y, int px_width,
     Error("Can't draw a null image");
     return;
   }
-  if (pImage->height == 0 && pImage->width == 0)
-    return;
+  if (pImage->height == 0 && pImage->width == 0) return;
   HDC hbitmapdc;
   hbitmapdc = CreateCompatibleDC(osdc);
   SelectObject(hbitmapdc, pImage->hbitmap);
@@ -2029,40 +2027,40 @@ void SelectFolder(const char hint_text[], char path[]) {
 
 #pragma comment(lib, "MSImg32")
 
-void DrawShadedTriangle(ColorPoint* A, ColorPoint* B, ColorPoint* C) {
-  // Create an array of TRIVERTEX structures that describe 
+void DrawShadedTriangle(ColorPoint *A, ColorPoint *B, ColorPoint *C) {
+  // Create an array of TRIVERTEX structures that describe
   // positional and color values for each vertex given.
 
   TRIVERTEX vertex[3];
-  vertex[0].x     = A->x;
-  vertex[0].y     = A->y;
-  vertex[0].Red   = A->color.R;
+  vertex[0].x = A->x;
+  vertex[0].y = A->y;
+  vertex[0].Red = A->color.R;
   vertex[0].Green = A->color.G;
-  vertex[0].Blue  = A->color.B;
+  vertex[0].Blue = A->color.B;
   vertex[0].Alpha = A->color.Alpha;
 
-  vertex[1].x     = B->x;
-  vertex[1].y     = B->y; 
-  vertex[1].Red   = B->color.R;
+  vertex[1].x = B->x;
+  vertex[1].y = B->y;
+  vertex[1].Red = B->color.R;
   vertex[1].Green = B->color.G;
-  vertex[1].Blue  = B->color.B;
+  vertex[1].Blue = B->color.B;
   vertex[1].Alpha = B->color.Alpha;
 
-  vertex[2].x     = C->x;
-  vertex[2].y     = C->y;
-  vertex[2].Red   = C->color.R;
+  vertex[2].x = C->x;
+  vertex[2].y = C->y;
+  vertex[2].Red = C->color.R;
   vertex[2].Green = C->color.G;
-  vertex[2].Blue  = C->color.B;
+  vertex[2].Blue = C->color.B;
   vertex[2].Alpha = C->color.Alpha;
 
-  // Create a GRADIENT_RECT structure that 
-  // references the TRIVERTEX vertices. 
+  // Create a GRADIENT_RECT structure that
+  // references the TRIVERTEX vertices.
   GRADIENT_TRIANGLE gTri;
   gTri.Vertex1 = 0;
   gTri.Vertex2 = 1;
   gTri.Vertex3 = 2;
 
-  // Draw a shaded triangle. 
+  // Draw a shaded triangle.
   GradientFill(osdc, vertex, 3, &gTri, 1, GRADIENT_FILL_TRIANGLE);
 
   int min_x = min(A->x, min(B->x, C->x));
@@ -2073,7 +2071,7 @@ void DrawShadedTriangle(ColorPoint* A, ColorPoint* B, ColorPoint* C) {
 }
 
 // Draw a shaded Rectangle with its lower right corner & upperleft corner given
-void DrawShadedRectangle(ColorPoint* lower_right, ColorPoint* upper_left) {
+void DrawShadedRectangle(ColorPoint *lower_right, ColorPoint *upper_left) {
   TRIVERTEX vertex[2];
   vertex[0].x = lower_right->x;
   vertex[0].y = lower_right->y;

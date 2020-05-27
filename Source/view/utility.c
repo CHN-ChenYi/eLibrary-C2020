@@ -215,11 +215,9 @@ int GetBorrowRecordNumberAfter(List *borrow_record, time_t dst_tm) {
   const char *const dst_time = GetTime(dst_tm);
   for (ListNode *cur_node = borrow_record->dummy_head->nxt;
        cur_node != borrow_record->dummy_tail; cur_node = cur_node->nxt) {
-    if (strcmp(((BorrowRecord *)cur_node->value)->borrowed_date, dst_time) >=
-        0)
+    if (strcmp(((BorrowRecord *)cur_node->value)->borrowed_date, dst_time) >= 0)
       ret++;
-    if (strcmp(((BorrowRecord *)cur_node->value)->returned_date, dst_time) <
-        0)
+    if (strcmp(((BorrowRecord *)cur_node->value)->returned_date, dst_time) < 0)
       break;  // 由于传入的链表为归还时间的降序，所以可以剪枝
   }
   return ret;

@@ -139,7 +139,7 @@
 
   * `uid` - uid ，用户不可见
   * `id` - id ，用户可见
-  * `name` - 用户名
+  * `name` - 姓名
   * `salt` - 盐，密码哈希需要
   * `password` - 密码
   * `gender` - 性别
@@ -229,12 +229,10 @@
 
 ```
 .
-├── CMakeLists.txt
 ├── eLibrary.sln
 ├── eLibrary.vcxproj
 ├── eLibrary.vcxproj.filters
 ├── eLibrary.vcxproj.user
-├── README.md
 ├── Resource(放置系统相关静态资源，如图片等)
 └── Source(主要源代码)
     ├── libgraphics
@@ -429,7 +427,7 @@
             ├── UserSearchDisplay()
             └── UserSearchInfoDisplay()
 
-8 directories, 70 files
+6 directories, 50 files
 ```
 
 ### 多文件构成机制
@@ -6077,6 +6075,8 @@
     * 对图书或是用户进行搜索
 
     * 图书搜索时点击书名可跳转至详细信息页面
+
+    * 用户搜索仅可搜到通过审核的用户
 
     * 搜索语法如下
 

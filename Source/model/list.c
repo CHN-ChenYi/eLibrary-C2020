@@ -9,8 +9,7 @@ static inline void CombineListNode(ListNode *const left, ListNode *const right);
 static inline ListNode *MoveListNode(const List *const list,
                                      const ListNode *const node, int step);
 
-void CombineListNode(ListNode *const left,
-                                   ListNode *const right) {
+void CombineListNode(ListNode *const left, ListNode *const right) {
   left->nxt = right;
   right->pre = left;
 }

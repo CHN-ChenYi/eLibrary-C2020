@@ -336,11 +336,19 @@ void UserSearchDisplay(char *keyword, char *msg) {
     return;
   }
 
+  // search
   List *results = NewList();
-  if (ErrorHandle(Filter(results, keyword, USER), 0)) {
+  char *true_keyword = malloc(sizeof(char) * (strlen(keyword) + 12));
+  if (keyword[0] != '\0')
+    sprintf(true_keyword, "%s&verified=1", keyword);
+  else // 不能以 & 开头
+    sprintf(true_keyword, "verified=1");
+  if (ErrorHandle(Filter(results, true_keyword, USER), 0)) {
+    free(true_keyword);
     DeleteList(results, free);
     return;
   }
+  free(true_keyword);
 
   History *const new_history = malloc(sizeof(History));
   new_history->page = kUserSearch;

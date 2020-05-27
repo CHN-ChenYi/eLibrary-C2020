@@ -64,6 +64,7 @@ static ListNode* tbv_user_on_page[MAX_ON_PAGE];
 static ListNode* v_user_on_page[MAX_ON_PAGE];
 static ListNode* catalog_on_page[MAX_ON_PAGE];
 static char *keyword_on_page;
+static char *user_name_on_page;
 static char *id_on_page;
 static char *old_pwd_on_page;
 static char *pwd_on_page;
@@ -781,60 +782,74 @@ void HandleUserSearchCallback(int id){
 
 // 绘制用户注册界面
 void AddUserRegister() {
-  int pos_x = GetWindowWidthPx() / 2 - 200;
-  int pos_y = GetWindowHeightPx() / 2 - 250;
+  int left_border = GetWindowWidthPx() / 2 - 200;
+  int right_border = GetWindowWidthPx() / 2 + 200;
+  int top = GetWindowHeightPx() / 2 - 250;
+  int bottom = GetWindowHeightPx() / 2 + 250;
+  int left_x = left_border + 10;
+
+  int cur_y = top;
+  int delta_y = (bottom - top) / 10;
   Frame* center_frame = CreateFrame(
-    (Rect){pos_x, pos_x + 400, pos_y, pos_y + 500},
+    (Rect){left_border, right_border, top, bottom},
     PANEL_COLOR, 1
   );
   InsertFrame(center_frame);
   Label *register_title = CreateLabel(
-    (Rect){pos_x + 5, 0, 0, pos_y + 25}, "用户注册：", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "用户注册：", kBlack, NULL_ID
   );
   Label *id_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 70}, "用户号：", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "用户号：", kBlack, NULL_ID
   );
   InputBox* id_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 70}, "", NULL_ID, 0
+    (Rect){id_label->position.right + 10, right_border - 10, 0, cur_y}, "", NULL_ID, 0
   );
   id_on_page = id_input->context;
+  Label *name_label = CreateLabel(
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "用户名：", kBlack, NULL_ID
+  );
+  InputBox *name_input = CreateInputBox(
+    (Rect){name_label->position.right + 10, right_border - 10, 0, cur_y}, "", NULL_ID, 0
+  );
+  user_name_on_page = name_input->context;
   Label *first_pw_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 130}, "密码：", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "密码：", kBlack, NULL_ID
   );
   InputBox* first_pw_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 130}, "", NULL_ID, 0
+    (Rect){first_pw_label->position.right + 10, right_border - 10, 0, cur_y}, "", NULL_ID, 0
   );
   pwd_on_page = first_pw_input->context;
   Label *second_pw_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 190}, "重复密码：", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "重复密码：", kBlack, NULL_ID
   );
   InputBox* second_pw_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 190}, "", NULL_ID, 0
+    (Rect){second_pw_label->position.right + 10, right_border - 10, 0, cur_y}, "", NULL_ID, 0
   );
   rep_pwd_on_page = second_pw_input->context;
   Label *dpt_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 250}, "部门：", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "部门：", kBlack, NULL_ID
   );
   InputBox* dpt_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 250}, "", NULL_ID, 0
+    (Rect){dpt_label->position.right, right_border - 10, 0, cur_y}, "", NULL_ID, 0
   );
   dpt_on_page = dpt_input->context;
   Label *sex_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 310}, "性别（M/F）", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "性别（M/F）", kBlack, NULL_ID
   );
   InputBox* sex_input = CreateInputBox(
-    (Rect){pos_x + 150, pos_x + 350, 0, pos_y + 310}, "", NULL_ID, 0
+    (Rect){sex_label->position.right + 10, right_border - 10, 0, cur_y}, "", NULL_ID, 0
   );
   gender_on_page = sex_input->context;
   Label *admin_label = CreateLabel(
-    (Rect){pos_x + 15, 0, 0, pos_y + 370}, "是否申请管理员账号？(Y/N)", kBlack, NULL_ID
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "是否申请管理员账号？(Y/N)", kBlack, NULL_ID
   );
   InputBox* admin_input = CreateInputBox(
-    (Rect){pos_x + 250, pos_x + 350, 0, pos_y + 370}, "", NULL_ID, 0
+    (Rect){admin_label->position.right + 10, right_border - 10, 0, cur_y}, "", NULL_ID, 0
   );
   whoami_on_page = admin_input->context;
   Button* confirm_button = CreateButton(
-    (Rect){pos_x + 100, pos_x + 300, pos_y + 400, pos_y + 470}, "确认",
+    (Rect){left_border + right_border - 80 >> 1, left_border + right_border + 80 >> 1,
+           bottom - 50, bottom}, "确认",
     CONFIRM_COLOR, 1, kBlack, 201
   );
   InsertComp(confirm_button, kButton);
@@ -843,12 +858,14 @@ void AddUserRegister() {
   InsertComp(dpt_input, kInputBox);
   InsertComp(second_pw_input, kInputBox);
   InsertComp(first_pw_input, kInputBox);
+  InsertComp(name_input, kInputBox);
   InsertComp(id_input, kInputBox);
   InsertComp(admin_label, kLabel);
   InsertComp(sex_label, kLabel);
   InsertComp(dpt_label, kLabel);
   InsertComp(second_pw_label, kLabel);
   InsertComp(first_pw_label, kLabel);
+  InsertComp(name_label, kLabel);
   InsertComp(id_label, kLabel);
   InsertComp(register_title, kLabel);
 }
@@ -863,6 +880,7 @@ void HandleUserRegisterCallback(int id) {
     strcpy(cur_state.login_or_register->repeat_password, rep_pwd_on_page);
     strcpy(cur_state.login_or_register->user->id, id_on_page);
     strcpy(cur_state.login_or_register->user->department, dpt_on_page);
+    strcpy(cur_state.login_or_register->user->name, user_name_on_page);
     if (strcmp(gender_on_page, "F") == 0) {
       cur_state.login_or_register->user->gender = FEMALE;
     } else {
@@ -954,7 +972,7 @@ void AddUserModify() {
 
   int left_x = left_border + 10;
   int cur_y = top;
-  int delta_y = (bottom - top - 100) / 8;
+  int delta_y = (bottom - top - 100) / 9;
   Label *register_title = CreateLabel(
     (Rect){left_x, 0, 0, cur_y += delta_y}, "用户修改：", kBlack, NULL_ID
   );
@@ -967,6 +985,15 @@ void AddUserModify() {
     user->id, NULL_ID, 0
   );
   id_on_page = id_input->context;
+
+  Label *name_label = CreateLabel(
+    (Rect){left_x, 0, 0, cur_y += delta_y}, "用户名：", kBlack, NULL_ID
+  );
+  InputBox *name_input = CreateInputBox(
+    (Rect){name_label->position.right + 10, middle - 20, 0, cur_y}, user->name, kBlack, NULL_ID
+  );
+  user_name_on_page = name_input->context;
+
   Label *first_pw_label = CreateLabel(
     (Rect){left_x, 0, 0, cur_y += delta_y}, "原密码：", kBlack, NULL_ID
   );
@@ -1086,12 +1113,14 @@ void AddUserModify() {
   InsertComp(dpt_input, kInputBox);
   InsertComp(second_pw_input, kInputBox);
   InsertComp(first_pw_input, kInputBox);
+  InsertComp(name_input, kInputBox);
   InsertComp(id_input, kInputBox);
   InsertComp(admin_label, kLabel);
   InsertComp(sex_label, kLabel);
   InsertComp(dpt_label, kLabel);
   InsertComp(second_pw_label, kLabel);
   InsertComp(first_pw_label, kLabel);
+  InsertComp(name_label, kLabel);
   InsertComp(id_label, kLabel);
   InsertComp(register_title, kLabel);
 }
@@ -1112,6 +1141,7 @@ void HandleUserModifyCallback(int id) {
     strcpy(cur_state.user_modify->repeat_password, rep_pwd_on_page);
     strcpy(cur_state.user_modify->user->department, dpt_on_page);
     strcpy(cur_state.user_modify->user->id, id_on_page);
+    strcpy(cur_state.user_modify->user->name, user_name_on_page);
     if (strcmp(gender_on_page, "F") == 0) {
       cur_state.user_modify->user->gender = FEMALE;
     }

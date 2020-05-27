@@ -1,8 +1,9 @@
 ﻿#ifndef UTILS_H_
 #define UTILS_H_
 
-#include"basictype.h"
-#include<stdio.h>
+#include <stdio.h>
+
+#include "basictype.h"
 
 enum DBErrno {
   DB_SUCCESS = 0,

@@ -142,8 +142,8 @@ typedef struct Library {
   List *book_covers;              // 图书库的书的封面
   ListNode *books_covers_start;   // 第一本要显示的图书
   void (*sort_callback)(SortKeyword sort_keyword);  // 排序按钮
-  void (*book_callback)(ListNode *book);           // 图书详细信息按钮
-  void (*switch_callback)();                       // 切换模式
+  void (*book_callback)(ListNode *book);            // 图书详细信息按钮
+  void (*switch_callback)();                        // 切换模式
   // direction = 0 上一页, direction = 1 下一页
   void (*turn_page)(bool direction);
 } Library;

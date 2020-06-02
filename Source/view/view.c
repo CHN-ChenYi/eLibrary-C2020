@@ -336,11 +336,19 @@ void UserSearchDisplay(char *keyword, char *msg) {
     return;
   }
 
+  // search
   List *results = NewList();
-  if (ErrorHandle(Filter(results, keyword, USER), 0)) {
+  char *true_keyword = malloc(sizeof(char) * (strlen(keyword) + 12));
+  if (keyword[0] != '\0')
+    sprintf(true_keyword, "%s&verified=1", keyword);
+  else  // 不能以 & 开头
+    sprintf(true_keyword, "verified=1");
+  if (ErrorHandle(Filter(results, true_keyword, USER), 0)) {
+    free(true_keyword);
     DeleteList(results, free);
     return;
   }
+  free(true_keyword);
 
   History *const new_history = malloc(sizeof(History));
   new_history->page = kUserSearch;
@@ -581,7 +589,8 @@ void UserManagement_SortCallback(SortKeyword sort_keyword) {
       sprintf(msg, "[Info] [%s] sort users by name", user.id);
       break;
     case kDepartment:
-      SortList(TopHistory()->state.user_management->users, CmpLessUserByDepartment);
+      SortList(TopHistory()->state.user_management->users,
+               CmpLessUserByDepartment);
       SortList(TopHistory()->state.user_management->to_be_verified,
                CmpLessUserByDepartment);
       sprintf(msg, "[Info] [%s] sort users by department", user.id);
@@ -924,7 +933,7 @@ void Statistics_SelectCallback(ListNode *catalog) {
     DeleteList(borrow_records, free);
     return;
   }
-  if (strcmp(catalog->value, "ALL")) { // 如果不是 ALL 这个分类，则进行筛选
+  if (strcmp(catalog->value, "ALL")) {  // 如果不是 ALL 这个分类，则进行筛选
     for (const ListNode *cur_node = borrow_records->dummy_head->nxt;
          cur_node != borrow_records->dummy_tail;) {
       if (ErrorHandle(
@@ -934,7 +943,7 @@ void Statistics_SelectCallback(ListNode *catalog) {
         free(book);
         return;
       }
-      if (strcmp(book->category, catalog->value)) // 分类不匹配的就删除
+      if (strcmp(book->category, catalog->value))  // 分类不匹配的就删除
         cur_node = EraseList(borrow_records, cur_node, NULL);
       else
         cur_node = cur_node->nxt;
@@ -1073,7 +1082,7 @@ void Navigation_UserLogInOrRegister(bool type, char *msg) {
   memset(&user, 0x00, sizeof(User));
   id_len = 0;
 
-  ClearHistory(); // 不能让下一个用户了解到上一个用户干了什么
+  ClearHistory();  // 不能让下一个用户了解到上一个用户干了什么
   History *const new_history = malloc(sizeof(History));
   if (type)
     new_history->page = kUserRegister;
@@ -1150,8 +1159,10 @@ void Navigation_UserManagement(char *msg) {
   new_history->state.user_management->delete_callback =
       UserManagement_DeleteCallback;
   new_history->state.user_management->turn_page = UserManagement_TurnPage;
-  new_history->state.user_management->info_callback = UserManagement_InfoCallback;
-  new_history->state.user_management->sort_callback = UserManagement_SortCallback;
+  new_history->state.user_management->info_callback =
+      UserManagement_InfoCallback;
+  new_history->state.user_management->sort_callback =
+      UserManagement_SortCallback;
   new_history->state.user_management->to_be_verified = to_be_verified;
   new_history->state.user_management->to_be_verified_start =
       to_be_verified->dummy_head->nxt;
@@ -1253,7 +1264,7 @@ void Navigation_OpenOrInitLibrary(bool type, char *msg) {
 
   sprintf(image_dir, "%s\\image", lib_dir);
   image_dir_len = strlen(image_dir);
-  if (type) {    // 新建图片文件夹
+  if (type) {  // 新建图片文件夹
     if (!CreateDirectory(image_dir, NULL)) {
       char *msg = malloc(sizeof(char) * (63 + id_len));
       sprintf(
@@ -1445,14 +1456,14 @@ void Navigation_BookDisplayOrInit(Book *book, bool type, char *msg) {
       BookDisplay_CopyPasteCallback;
   new_history->state.book_display->book = new_book;
   // 加载要显示的封面图片
-  if (!type) { // 图书显示
+  if (!type) {  // 图书显示
     char *image_path = malloc(sizeof(char) * (6 + image_dir_len + 10));
     sprintf(image_path, "%s\\%d.jpg", image_dir, book->uid);
-    if (!_access(image_path, 4)) // 找的到图书封面
+    if (!_access(image_path, 4))  // 找的到图书封面
       loadImage(image_path, &new_history->state.book_display->book_cover);
-    else // 找不到图书封面
+    else  // 找不到图书封面
       copyImage(&new_history->state.book_display->book_cover, &unknown_cover);
-  } else { // 图书新建
+  } else {  // 图书新建
     copyImage(&new_history->state.book_display->book_cover, &edit_cover);
   }
   PushBackHistory(new_history);
@@ -1540,7 +1551,7 @@ void Navigation_Statistics(char *msg) {
   new_history->state.statistics->borrow_record_start =
       borrow_record->dummy_head->nxt;
   new_history->state.statistics->frequency = GetBorrowRecordNumberAfter(
-      borrow_record, time(NULL) - (time_t)0x28DE80); // 2678400（31天）
+      borrow_record, time(NULL) - (time_t)0x28DE80);  // 2678400（31天）
   PushBackHistory(new_history);
 
   if (!msg) {
@@ -1552,7 +1563,7 @@ void Navigation_Statistics(char *msg) {
 }
 
 void Navigation_Return(char *msg) {
-  if (history_list->size < 2) { // 没有可以返回的界面
+  if (history_list->size < 2) {  // 没有可以返回的界面
     if (!msg) {
       msg = malloc(sizeof(char) * (44 + id_len));
       sprintf(msg, "[Error] [%s] There's no history to go back to", user.id);

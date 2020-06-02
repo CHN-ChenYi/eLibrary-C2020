@@ -175,9 +175,10 @@ void cancelCharEvent();
 void cancelMouseEvent();
 void cancelTimerEvent();
 
-/*================ New Added Image Function ===================*/
+/*================ New Added Function ===================*/
 
 #include <windef.h>
+
 #include "genlib.h"
 
 typedef struct {
@@ -186,9 +187,9 @@ typedef struct {
   int height;
 } LibImage;
 
-void loadImage(const char *image, LibImage *mapbuf);
+void loadImage(const char* image, LibImage* mapbuf);
 
-void copyImage(LibImage *dst, LibImage *src);
+void copyImage(LibImage* dst, LibImage* src);
 
 void DrawImage(LibImage* pImage, int px_x, int px_y, int px_width,
                int px_height);
@@ -229,7 +230,8 @@ typedef struct Rect {
 void ClearDistrict(Rect* rect);
 // Draw a shaded trangle decided by the three vertices A, B, C
 void DrawShadedTriangle(ColorPoint* A, ColorPoint* B, ColorPoint* C);
-// Draw a shaded rectangle decided by the lower left point and the upper right point.
+// Draw a shaded rectangle decided by the lower left point and the upper right
+// point.
 void DrawShadedRectangle(ColorPoint* lower_right, ColorPoint* upper_left);
 
 int GetWindowWidthPx(void);

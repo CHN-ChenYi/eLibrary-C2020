@@ -1,10 +1,11 @@
 ﻿#ifndef MODEL_H_
 #define MODEL_H_
 
+#include <stdio.h>
+
 #include "basictype.h"
 #include "list.h"
 #include "utils.h"
-#include <stdio.h>
 
 typedef struct DB {
   String filename;
@@ -121,7 +122,7 @@ int Filter(List* list_handle, String queries, Model model);
 /*
   GetDBSize
   It's used to get the number of rows(elements) in database.
-  
+
   Parameter:
   model - see enum Model
   size - the pointer pointing to the memory to store the size of DB
@@ -130,7 +131,7 @@ int Filter(List* list_handle, String queries, Model model);
   DBErrno
 */
 
-int GetDBSize(Model model, unsigned int *size);
+int GetDBSize(Model model, unsigned int* size);
 
 /*
   GetNextPK
@@ -145,7 +146,7 @@ int GetDBSize(Model model, unsigned int *size);
   DBErrno
  */
 
-int GetNextPK(Model model, unsigned int *pk);
+int GetNextPK(Model model, unsigned int* pk);
 
 // Update
 /*

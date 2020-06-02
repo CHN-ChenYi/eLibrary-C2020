@@ -1,8 +1,9 @@
 ﻿#ifndef UTILS_H_
 #define UTILS_H_
 
-#include"basictype.h"
-#include<stdio.h>
+#include <stdio.h>
+
+#include "basictype.h"
 
 enum DBErrno {
   DB_SUCCESS = 0,
@@ -36,11 +37,5 @@ int RecordCopy(BorrowRecord* destination, BorrowRecord* source);
 int BookFilter(Book* p_b, String queries);
 int UserFilter(User* p_u, String queries);
 int RecordFilter(BorrowRecord* p_r, String queries);
-
-// StringToModel
-int StringToModel(void** handle, Model model, String str);
-
-// ModelToString
-int ModelToString(void* handle, Model model, char* p_str);
 
 #endif

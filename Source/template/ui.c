@@ -685,6 +685,12 @@ void KeyboardEventHandler(int key, int event) {
       case VK_DOWN:
         MoveCursor(1000);
         break;
+      case VK_HOME:
+        MoveCursor(-1000);
+        break;
+      case VK_END:
+        MoveCursor(1000);
+        break;
       case VK_DELETE:
         DeleteInputBox();
         break;
